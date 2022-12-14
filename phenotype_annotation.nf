@@ -93,14 +93,16 @@ workflow annotateWithPheno {
 
 
 workflow LDSC {
-    phens = Channel.fromPath(params.phenotypes_meta)
-        .splitCsv(header:true, sep:'\t')
-        .map(row -> tuple(row.phen_id, row.phen_name, file(row.sumstats_file)))
-    chroms = Channel.of(1..22)
-
-    ld_data = find_ld(chroms).combine(ann_path).collect()
-    
-    run_ldsc(phens, ld_data)
+    take:
+        ld_data
+    main:
+        phens = Channel.fromPath(params.phenotypes_meta)
+            .splitCsv(header:true, sep:'\t')
+            .map(row -> tuple(row.phen_id, row.phen_name, file(row.sumstats_file)))
+        
+        run_ldsc(phens, ld_data)
+    emit:
+        run_ldsc.out
 }
 
 workflow regressionOnly {
@@ -110,12 +112,10 @@ workflow regressionOnly {
             Channel.fromPath("/net/seq/data2/projects/sabramov/LDSC/test_ldsc/output/l2/result/baselineLD.*"),
             Channel.fromPath("/net/seq/data2/projects/sabramov/LDSC/test_ldsc/output/l2_logs/result/baselineLD.*.M*")
         ).collect()
-    phens = Channel.fromPath("/net/seq/data2/projects/sabramov/LDSC/UKBB.phenotypes.test.tsv")
-        .splitCsv(header:true, sep:'\t')
-        .map(row -> tuple(row.phen_id, row.phen_name, file(row.sumstats_file)))
-    run_ldsc(phens, ld_data)
+    LDSC(ld_data)
 }
 
 workflow {
-
+    chroms = Channel.of(1..22)
+    LDSC(find_ld(chroms).collect())
 }
