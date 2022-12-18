@@ -53,7 +53,7 @@ process calc_ld {
         tuple val(chrom), path(annotation_file)
     
     output:
-        tuple val(annotation_file.simpleName), path("${name}*"), path(annotation_file)
+        tuple val("${annotation_file.simpleName}."), path("${name}*"), path(annotation_file)
     
     script:
     name = "result/${annotation_file.simpleName}.${chrom}"
