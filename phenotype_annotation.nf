@@ -148,7 +148,7 @@ workflow {
     data = Channel.of(1..22).combine(custom_annotations)
     lds = make_ldsc_annotation(data) | calc_ld
     ldsc_data = lds.groupTuple(size: 22).map(
-        it -> tuple(it[0], it[1].flatMap().add_all(it[2].flatMap()))
+        it -> tuple(it[0], it[1].union(it[2]))
     )
     LDSC(ldsc_data)
 }
