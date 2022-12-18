@@ -15,7 +15,7 @@ def main(base_annotations, custom_annotation, output):
     
     base_df.loc[base_df['index'].isin(custom_df['index']), key] = 1
 
-    base_df.to_csv(output, sep='\t', index=False)
+    base_df[['CHR', 'BP', 'SNP', 'CM', key]].to_csv(output, sep='\t', index=False)
 
 
 
