@@ -87,11 +87,10 @@ process run_ldsc {
 
     script:
     name = "${phen_id}"
-    ld_prefix = file(params.ann_path).name
     """
     ${params.ldsc_scripts_path}/ldsc.py \
         --h2 ${sumstats_file} \
-        --ref-ld-chr ${params.base_ann_path},${ld_prefix} \
+        --ref-ld-chr ${params.base_ann_path},${prefix} \
         --frqfile-chr ${params.frqfiles} \
         --w-ld-chr ${params.weights} \
         --overlap-annot \
