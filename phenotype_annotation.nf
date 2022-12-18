@@ -75,8 +75,8 @@ process run_ldsc {
     publishDir "${params.outdir}/${prefix}/ldsc", pattern: "${name}.results"
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.logs"
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.part_delete"
-    tag "${phen_name}"
-    scratch true
+    tag "${prefix}:${phen_name}"
+    //scratch true
     errorStrategy "terminate"
 
     input:
