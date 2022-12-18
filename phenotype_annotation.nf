@@ -72,20 +72,20 @@ process calc_ld {
 // TODO wrap in apptainer
 process run_ldsc {
     conda params.ldsc_conda
-    publishDir "${params.outdir}/${annotation_file.simpleName}/ldsc", pattern: "${name}.results"
+    publishDir "${params.outdir}/${prefix}/ldsc", pattern: "${name}.results"
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.logs"
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.part_delete"
     tag "${phen_name}"
     scratch true
 
     input:
-        tuple val(phen_id), val(phen_name), path(sumstats_file), val(prefix), path("ld_files/*")
+        tuple val(phen_id), val(phen_name), path(sumstats_file), val(prefix), path(ld_files)
     
     output:
         tuple val(phen_id), val(phen_name), path("${name}*")
 
     script:
-    name = "${phen_id}"
+    name = "${prefix}_${phen_id}"
     """
     ${params.ldsc_scripts_path}/ldsc.py \
         --h2 ${sumstats_file} \
@@ -145,11 +145,11 @@ workflow {
     )
     data = Channel.of(1..22).combine(custom_annotations)
     lds = make_ldsc_annotation(data) | calc_ld
-    lds.map(it -> tuple(it[0], [it[1], it[2]].flatten())).take(2).view()
-    ldsc_data = lds.groupTuple(size: 22).map(
-        it -> tuple(it[0], it[1].flatten())
-    )
+    ldsc_data = lds.map(it -> tuple(it[0], [it[1], it[2]].flatten()))
+        .groupTuple(size: 22)
+        .map(
+            it -> tuple(it[0], it[1].flatten())
+        )
 
-    //ldsc_data.take(2).view()
     LDSC(ldsc_data)
 }
