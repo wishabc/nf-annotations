@@ -34,7 +34,7 @@ process make_ldsc_annotation {
     script:
     suffix = "${chrom}.annot.gz"
     baseannotation = "${params.base_ann_path}${suffix}"
-    name = "${annotation.baseName}.${suffix}"
+    name = "${annotation.simpleName}.${suffix}"
     """
     python3 $moduleDir/bin/make_annotation.py ${baseannotation} ${annotation} ${name}
     """
@@ -61,7 +61,7 @@ process calc_ld {
     mkdir result
     # Check if --print-snps parameter is needed
     ${params.ldsc_scripts_path}/ldsc.py \
-        --print-snps ${params.ukbb_snps} \
+        --print-snps ${params.tested_snps} \
         --ld-wind-cm 1.0 \
         --out ${name} \
         --bfile ${params.gtfiles}${chrom} \
@@ -143,7 +143,7 @@ workflow calcBaseline {
 }
 workflow {
     custom_annotations = Channel.fromPath(
-        
+        "${params.annotations_dir}/*"
     )
     data = Channel.of(1..22).combine(custom_annotations)
     lds = make_ldsc_annotation(data) | calc_ld
