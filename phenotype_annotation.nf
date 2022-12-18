@@ -43,6 +43,7 @@ process calc_ld {
     publishDir "${params.outdir}/l2_logs", pattern: "${name}.log"
     publishDir "${params.outdir}/l2", pattern: "${name}.l2.ldscore.gz"
     publishDir "${params.outdir}/l2", pattern: "${name}.l2.M*"
+    publishDir "${params.outdir}/l2/result", pattern: "${annotation_file}"
     tag "chr${chrom}"
     scratch true
     conda params.ldsc_conda
@@ -141,7 +142,7 @@ workflow calcBaseline {
 }
 workflow {
     custom_annotations = Channel.fromPath(
-
+        
     )
     data = Channel.of(1..22).combine(custom_annotations)
     lds = make_ldsc_annotation(data) | calc_ld
