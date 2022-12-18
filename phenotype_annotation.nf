@@ -53,7 +53,7 @@ process calc_ld {
         tuple val(chrom), path(annotation_file)
     
     output:
-        tuple val("${annotation_file.simpleName}."), path("${name}*"), path(annotation_file)
+        tuple val(annotation_file.simpleName), path("${name}*"), path(annotation_file)
     
     script:
     name = "result/${annotation_file.simpleName}.${chrom}"
@@ -76,7 +76,7 @@ process run_ldsc {
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.logs"
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.part_delete"
     tag "${prefix}:${phen_name}"
-    //scratch true
+    scratch true
     errorStrategy "terminate"
 
     input:
@@ -87,10 +87,11 @@ process run_ldsc {
 
     script:
     name = "${prefix}_${phen_id}"
+    pref = "${prefix}."
     """
     ${params.ldsc_scripts_path}/ldsc.py \
         --h2 ${sumstats_file} \
-        --ref-ld-chr ${params.base_ann_path},${prefix} \
+        --ref-ld-chr ${params.base_ann_path},${pref} \
         --frqfile-chr ${params.frqfiles} \
         --w-ld-chr ${params.weights} \
         --overlap-annot \
