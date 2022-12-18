@@ -24,6 +24,7 @@ process annotate_with_phenotypes {
 process make_ldsc_annotation {
     conda params.conda
     tag "chr${chrom}:${annotation.baseName}"
+
     input:
         tuple val(chrom), path(annotation)
 
@@ -55,7 +56,7 @@ process calc_ld {
         tuple val(annotation_file.simpleName), path("${name}*"), path(annotation_file)
     
     script:
-    name = "result/${annotation_file.simpleName}${chrom}"
+    name = "result/${annotation_file.simpleName}.${chrom}"
     """
     mkdir result
     # Check if --print-snps parameter is needed
