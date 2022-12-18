@@ -145,10 +145,11 @@ workflow {
     )
     data = Channel.of(1..22).combine(custom_annotations)
     lds = make_ldsc_annotation(data) | calc_ld
+    lds.map(it -> tuple(it[0], [it[1], it[2]].flatten())).take(2).view()
     ldsc_data = lds.groupTuple(size: 22).map(
         it -> tuple(it[0], it[1].flatten())
     )
-    lds.take(2).view()
+
     //ldsc_data.take(2).view()
     LDSC(ldsc_data)
 }
