@@ -40,6 +40,7 @@ process make_ldsc_annotation {
     python3 $moduleDir/bin/make_annotation.py ${baseannotation} ${annotation} ${name}
     """
 }
+
 // TODO wrap in apptainer
 process calc_ld {
     publishDir "${params.outdir}/l2_logs", pattern: "${name}.log"
@@ -102,9 +103,7 @@ process run_ldsc {
 }
 
 
-
 workflow annotateWithPheno {
-    
     pvals = Channel.fromPath("${params.pval_file_dir}/*.bed")
         .map(it -> file(it))
     annotate_with_phenotypes(pvals)
@@ -124,20 +123,10 @@ workflow LDSC {
         run_ldsc.out
 }
 
-workflow regressionOnly {
-    // Remove second part from concat once M logs are processed
-    ld_data = Channel.fromPath("${params.base_ann_path}*")
-        .concat(
-            Channel.fromPath("/net/seq/data2/projects/sabramov/LDSC/test_ldsc/output/l2/result/baselineLD.*"),
-            Channel.fromPath("/net/seq/data2/projects/sabramov/LDSC/test_ldsc/output/l2_logs/result/baselineLD.*.M*")
-        ).collect()
-    LDSC(ld_data)
-}
-
 
 workflow calcBaseline {
     data = Channel.of(1..22).map(
-        it -> tuple(it, "${params.base_ann_path}${it}.annot.gz")
+        it -> tuple(it, "${params.base_ann_path}/${it}.annot.gz")
     )
     calc_ld(data)
 }
