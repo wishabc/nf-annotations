@@ -58,7 +58,7 @@ process calc_ld {
     """
     mkdir result
     # Check if --print-snps parameter is needed
-    ${ldsc_scripts_path}/ldsc.py \
+    ${params.ldsc_scripts_path}/ldsc.py \
         --print-snps ${params.ukbb_snps} \
         --ld-wind-cm 1.0 \
         --out ${name} \
@@ -87,7 +87,7 @@ process run_ldsc {
     name = "${phen_id}"
     ld_prefix = file(params.ann_path).name
     """
-    ${ldsc_scripts_path}/ldsc.py \
+    ${params.ldsc_scripts_path}/ldsc.py \
         --h2 ${sumstats_file} \
         --ref-ld-chr ${params.base_ann_path},${ld_prefix} \
         --frqfile-chr ${params.frqfiles} \
