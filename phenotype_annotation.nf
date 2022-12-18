@@ -47,7 +47,7 @@ process calc_ld {
     publishDir "${params.outdir}/${annotation_file.simpleName}/l2", pattern: "${name}.l2.ldscore.gz"
     publishDir "${params.outdir}/${annotation_file.simpleName}/l2", pattern: "${name}.l2.M*"
     publishDir "${params.outdir}/${annotation_file.simpleName}/l2/result", pattern: "${annotation_file}"
-    tag "chr${chrom}:${annotation.simpleName}"
+    tag "chr${chrom}:${annotation_file.simpleName}"
     scratch true
     conda params.ldsc_conda
 
@@ -129,7 +129,6 @@ workflow calcBaseline {
     data = Channel.of(1..22).map(
         it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true))
     )
-    data.view()
     calc_ld(data)
 }
 workflow {
