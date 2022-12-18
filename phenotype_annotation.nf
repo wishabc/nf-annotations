@@ -127,7 +127,7 @@ workflow LDSC {
 
 workflow calcBaseline {
     data = Channel.of(1..22).map(
-        it -> tuple(it, "${params.base_ann_path}/${it}.annot.gz")
+        it -> tuple(it, file("${params.base_ann_path}/${it}.annot.gz"))
     )
     calc_ld(data)
 }
