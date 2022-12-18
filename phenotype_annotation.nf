@@ -129,6 +129,7 @@ workflow calcBaseline {
     data = Channel.of(1..22).map(
         it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true))
     )
+    data.view()
     calc_ld(data)
 }
 workflow {
