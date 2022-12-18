@@ -79,8 +79,7 @@ process run_ldsc {
     scratch true
 
     input:
-        tuple val(phen_id), val(phen_name), path(sumstats_file)
-        tuple val(prefix), path("ld_files/*")
+        tuple val(phen_id), val(phen_name), path(sumstats_file), val(prefix), path("ld_files/*")
     
     output:
         tuple val(phen_id), val(phen_name), path("${name}*")
@@ -118,7 +117,7 @@ workflow LDSC {
             .splitCsv(header:true, sep:'\t')
             .map(row -> tuple(row.phen_id, row.phen_name, file(row.sumstats_file)))
         
-        run_ldsc(phens, ld_data)
+        run_ldsc(phens.combine(ld_data))
     emit:
         run_ldsc.out
 }
