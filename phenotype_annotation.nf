@@ -23,7 +23,8 @@ process annotate_with_phenotypes {
 
 process make_ldsc_annotation {
     conda params.conda
-    tag "chr${chrom}:${annotation.baseName}"
+    tag "chr${chrom}:${annotation.simpleName}"
+    scratch true
 
     input:
         tuple val(chrom), path(annotation)
@@ -45,7 +46,7 @@ process calc_ld {
     publishDir "${params.outdir}/${annotation_file.simpleName}/l2", pattern: "${name}.l2.ldscore.gz"
     publishDir "${params.outdir}/${annotation_file.simpleName}/l2", pattern: "${name}.l2.M*"
     publishDir "${params.outdir}/${annotation_file.simpleName}/l2/result", pattern: "${annotation_file}"
-    tag "chr${chrom}"
+    tag "chr${chrom}:${annotation.simpleName}"
     scratch true
     conda params.ldsc_conda
 
@@ -77,7 +78,6 @@ process run_ldsc {
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.part_delete"
     tag "${prefix}:${phen_name}"
     scratch true
-    errorStrategy "terminate"
 
     input:
         tuple val(phen_id), val(phen_name), path(sumstats_file), val(prefix), path(ld_files)
