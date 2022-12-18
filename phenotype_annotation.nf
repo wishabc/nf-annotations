@@ -21,9 +21,25 @@ process annotate_with_phenotypes {
     """
 }
 
+process make_ldsc_annotation {
+    conda params.conda
+    tag "chr${chrom}:${annotation.baseName}"
+    input:
+        tuple val(chrom), path(annotation)
 
+    output:
+        tuple val(chrom), path(name)
+    
+    script:
+    suffix = "${chrom}.annot.gz"
+    baseannotation = "${params.base_ann_path}${suffix}"
+    name = "${annotation.baseName}.${suffix}"
+    """
+    python3 $moduleDir/bin/make_annotation.py ${baseannotation} ${annotation} ${name}
+    """
+}
 // TODO wrap in apptainer
-process find_ld {
+process calc_ld {
     publishDir "${params.outdir}/l2_logs", pattern: "${name}.log"
     publishDir "${params.outdir}/l2", pattern: "${name}.l2.ldscore.gz"
     publishDir "${params.outdir}/l2", pattern: "${name}.l2.M*"
@@ -32,23 +48,22 @@ process find_ld {
     conda params.ldsc_conda
 
     input:
-        val chrom
+        tuple val(chrom), path(annotation_file)
     
     output:
-        tuple path("${name}*"), path(ann_path)
+        tuple val(annotation_file.simpleName), path("${name}*"), path(annotation_file)
     
     script:
-    prefix = file(params.ann_path).name
-    name = "result/${prefix}${chrom}"
-    ann_path = "${params.ann_path}${chrom}.annot.gz"
+    name = "result/${annotation_file.simpleName}${chrom}"
     """
     mkdir result
+    # Check if --print-snps parameter is needed
     ${ldsc_scripts_path}/ldsc.py \
         --print-snps ${params.ukbb_snps} \
         --ld-wind-cm 1.0 \
         --out ${name} \
         --bfile ${params.gtfiles}${chrom} \
-        --annot ${ann_path} \
+        --annot ${annotation_file} \
         --l2
     """
 }
@@ -63,7 +78,7 @@ process run_ldsc {
 
     input:
         tuple val(phen_id), val(phen_name), path(sumstats_file)
-        path "ld_files/*"
+        tuple val(prefix), path("ld_files/*")
     
     output:
         tuple val(phen_id), val(phen_name), path("${name}*")
@@ -74,7 +89,7 @@ process run_ldsc {
     """
     ${ldsc_scripts_path}/ldsc.py \
         --h2 ${sumstats_file} \
-        --ref-ld-chr ${ld_prefix} \
+        --ref-ld-chr ${params.base_ann_path},${ld_prefix} \
         --frqfile-chr ${params.frqfiles} \
         --w-ld-chr ${params.weights} \
         --overlap-annot \
@@ -83,6 +98,8 @@ process run_ldsc {
         --out ${name}
     """
 }
+
+
 
 workflow annotateWithPheno {
     
@@ -107,7 +124,7 @@ workflow LDSC {
 
 workflow regressionOnly {
     // Remove second part from concat once M logs being processed
-    ld_data = Channel.fromPath("${params.ann_path}*")
+    ld_data = Channel.fromPath("${params.base_ann_path}*")
         .concat(
             Channel.fromPath("/net/seq/data2/projects/sabramov/LDSC/test_ldsc/output/l2/result/baselineLD.*"),
             Channel.fromPath("/net/seq/data2/projects/sabramov/LDSC/test_ldsc/output/l2_logs/result/baselineLD.*.M*")
@@ -115,7 +132,21 @@ workflow regressionOnly {
     LDSC(ld_data)
 }
 
+
+workflow calcBaseline {
+    Channel.of(1..22).map(
+        it -> tuple(it, "${params.base_ann_path}${it}.annot.gz")
+    )
+    calc_ld()
+}
 workflow {
-    chroms = Channel.of(1..22)
-    LDSC(find_ld(chroms).collect())
+    custom_annotations = Channel.fromPath(
+
+    )
+    data = Channel.of(1..22).combine(custom_annotations)
+    lds = make_ldsc_annotation(data) | calc_ld
+    ldsc_data = lds.groupTuple(size: 22).map(
+        a, b -> tuple(it[0], it[1].flatMap().add_all(it[2].flatMap()))
+    )
+    LDSC(ldsc_data)
 }
