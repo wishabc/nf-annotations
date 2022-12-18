@@ -134,10 +134,10 @@ workflow regressionOnly {
 
 
 workflow calcBaseline {
-    Channel.of(1..22).map(
+    data = Channel.of(1..22).map(
         it -> tuple(it, "${params.base_ann_path}${it}.annot.gz")
     )
-    calc_ld()
+    calc_ld(data)
 }
 workflow {
     custom_annotations = Channel.fromPath(
