@@ -42,9 +42,9 @@ process make_ldsc_annotation {
 // TODO wrap in apptainer
 process calc_ld {
     publishDir "${params.outdir}/l2_logs", pattern: "${name}.log"
-    publishDir "${params.outdir}/l2", pattern: "${name}.l2.ldscore.gz"
-    publishDir "${params.outdir}/l2", pattern: "${name}.l2.M*"
-    publishDir "${params.outdir}/l2/result", pattern: "${annotation_file}"
+    publishDir "${params.outdir}/${annotation_file.simpleName}/l2", pattern: "${name}.l2.ldscore.gz"
+    publishDir "${params.outdir}/${annotation_file.simpleName}/l2", pattern: "${name}.l2.M*"
+    publishDir "${params.outdir}/${annotation_file.simpleName}/l2/result", pattern: "${annotation_file}"
     tag "chr${chrom}"
     scratch true
     conda params.ldsc_conda
@@ -72,7 +72,7 @@ process calc_ld {
 // TODO wrap in apptainer
 process run_ldsc {
     conda params.ldsc_conda
-    publishDir "${params.outdir}/ldsc", pattern: "${name}.results"
+    publishDir "${params.outdir}/${annotation_file.simpleName}/ldsc", pattern: "${name}.results"
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.logs"
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.part_delete"
     tag "${phen_name}"
