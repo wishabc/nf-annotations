@@ -116,8 +116,10 @@ workflow LDSC {
         phens = Channel.fromPath(params.phenotypes_meta)
             .splitCsv(header:true, sep:'\t')
             .map(row -> tuple(row.phen_id, row.phen_name, file(row.sumstats_file)))
-        
-        run_ldsc(phens.combine(ld_data))
+        phens.view()
+        d = phens.combine(ld_data)
+        d.take(1).view()
+        run_ldsc(d)
     emit:
         run_ldsc.out
 }
