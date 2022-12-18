@@ -148,6 +148,7 @@ workflow {
     ldsc_data = lds.groupTuple(size: 22).map(
         it -> tuple(it[0], it[1].flatten())
     )
-    ldsc_data.take(2).view()
+    lds.take(2).view()
+    //ldsc_data.take(2).view()
     LDSC(ldsc_data)
 }
