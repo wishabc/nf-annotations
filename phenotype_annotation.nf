@@ -132,7 +132,7 @@ workflow test {
         "immune_diff_sides",
         "immune_imbalanced_in_ct"
     ).map(
-        it -> tuple(it, "/net/seq/data2/projects/sabramov/LDSC/UKBB1218/output/${it}/l2/result/*")
+        it -> tuple(it, file("/net/seq/data2/projects/sabramov/LDSC/UKBB1218/output/${it}/l2/result/*"))
     )
 
     LDSC(data)
