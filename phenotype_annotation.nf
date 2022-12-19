@@ -88,7 +88,7 @@ process run_ldsc {
         tuple val(phen_id), val(phen_name), path("${name}*")
 
     script:
-    name = "${prefix}_${phen_id}"
+    name = "${prefix}.${phen_id}"
     pref = "${prefix}."
     """
     ${params.ldsc_scripts_path}/ldsc.py \
