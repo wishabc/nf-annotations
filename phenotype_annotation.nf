@@ -79,6 +79,7 @@ process run_ldsc {
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.part_delete"
     tag "${prefix}:${phen_name}"
     scratch true
+    errorStrategy "ignore"
 
     input:
         tuple val(phen_id), val(phen_name), path(sumstats_file), val(prefix), path(ld_files)
