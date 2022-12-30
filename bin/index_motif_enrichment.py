@@ -2,12 +2,10 @@ import pandas as pd
 import sys
 import numpy as np
 from scipy.stats import hypergeom
-import datatable as dt
 
 
 def read_as_np(binary_matrix_path):
-    df = dt.fread(binary_matrix_path, header=False)
-    return df.to_numpy().astype(bool)
+    return pd.read_table(binary_matrix_path, header=None).to_numpy()
 
 
 def main(binary_matrix_path, motif_hits_path, motif, sample_ids_path):

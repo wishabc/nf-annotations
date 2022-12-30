@@ -131,7 +131,7 @@ process calc_index_motif_enrichment {
     tag "${motif_id}"
     conda params.conda
     memory { 11.GB * task.attempt }
-    conda "/home/sabramov/miniconda3/envs/super-index"
+    conda params.conda
     errorStrategy "terminate"
     scratch true
 
