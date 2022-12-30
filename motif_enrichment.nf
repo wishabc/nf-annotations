@@ -111,18 +111,18 @@ process motif_hits_intersect {
     publishDir "${params.outdir}/counts", pattern: "${counts_file}"
     tag "${motif_id}"
     conda params.conda
-    errorStrategy 'terminate'
+    memory { 16.GB * task.attempt }
 
     input:
-        tuple val(motif_id), path(moods_file), path(pval_file)
+        tuple val(motif_id), path(moods_file), path(index_file)
 
     output:
-        tuple val(motif_id), path(counts_file), path(pval_file)
+        tuple val(motif_id), path(counts_file)
 
     script:
     counts_file = "${motif_id}.hits.bed"
     """
-    zcat ${moods_file} | bedmap --indicator  --fraction-map 1 ${pval_file} - > ${counts_file}
+    zcat ${moods_file} | bedmap --indicator  --fraction-map 1 ${index_file} - > ${counts_file}
     """
 }
 
