@@ -126,8 +126,32 @@ process motif_hits_intersect {
     """
 }
 
+process calc_index_motif_enrichment {
+    publishDir "${params.outdir}/enrichment"
+    tag "${motif_id}"
+    conda params.conda
+    memory { 16.GB * task.attempt }
+
+
+    input:
+        tuple val(motif_id), path(counts_file)
+    
+    output:
+        tuple val(motif_id), path(name)
+
+    script:
+    name = "${motif_id}_enrichment.tsv"
+    """
+    python3 $moduleDir/bin/index_motif_enrichment.py ${params.binary_matrix} \
+         ${counts_file} ${motif_id} ${params.sample_names} > ${name}
+    """
+
+}
+
 
 workflow calcMotifHits {
+    params.binary_matrix = "/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/raw_masterlist/masterlist_DHSs_2902Altius-Index_nonovl_any_binary.unlabeled.mtx.gz"
+    params.sample_names = "/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/files/listOfSamples.txt"
     index = Channel.fromPath("/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/raw_masterlist/masterlist_DHSs_2902Altius-Index_nonovl_any_chunkIDs.bed")
         .map(it -> file(it))
     moods_scans = Channel.fromPath("${params.moods_scans_dir}/*.bed.gz")
