@@ -130,11 +130,12 @@ process calc_index_motif_enrichment {
     publishDir "${params.outdir}/enrichment"
     tag "${motif_id}"
     conda params.conda
-    memory { 70.GB * task.attempt }
+    memory { 11.GB * task.attempt }
     conda "/home/sabramov/miniconda3/envs/super-index"
+    scratch true
 
     input:
-        tuple val(motif_id), path(counts_file)
+        tuple val(motif_id), path(counts_file), val(sample_id)
     
     output:
         tuple val(motif_id), path(name)
@@ -142,8 +143,9 @@ process calc_index_motif_enrichment {
     script:
     name = "${motif_id}_enrichment.tsv"
     """
+    cut -f${sample_id} ${params.binary_matrix} > tmp.txt
     python3 $moduleDir/bin/index_motif_enrichment.py  \
-        ${params.binary_matrix} ${counts_file} ${motif_id} ${params.sample_names} > ${name}
+        tmp.txt ${counts_file} ${motif_id} ${params.sample_names} > ${name}
     """
 
 }
@@ -152,11 +154,13 @@ process calc_index_motif_enrichment {
 workflow calcMotifHits {
     params.binary_matrix = "/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/raw_masterlist/masterlist_DHSs_2902Altius-Index_nonovl_any_binary.unlabeled.mtx.gz"
     params.sample_names = "/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/files/listOfSamples.txt"
+    samples_count = file(params.sample_names).countLines()
+    sample_names = Channel.of(1..samples_count)
     index = Channel.fromPath("/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/raw_masterlist/masterlist_DHSs_2902Altius-Index_nonovl_any_chunkIDs.bed")
         .map(it -> file(it))
     moods_scans = Channel.fromPath("${params.moods_scans_dir}/*.bed.gz")
         .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
-    out = motif_hits_intersect(moods_scans.combine(index)) | calc_index_motif_enrichment | collectFile(name: 'motif_enrichment.tsv', storeDir: '/net/seq/data2/projects/ENCODE4Plus/figures/motif_enrichment/dnase')
+    out = motif_hits_intersect(moods_scans.combine(index).combine(sample_names)) | calc_index_motif_enrichment | collectFile(name: 'motif_enrichment.tsv', storeDir: '/net/seq/data2/projects/ENCODE4Plus/figures/motif_enrichment/dnase')
 }
 
 workflow calcEnrichment {
