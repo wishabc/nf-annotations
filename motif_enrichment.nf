@@ -126,8 +126,9 @@ process motif_hits_intersect {
     """
 }
 process cut_matrix {
-    conda params.conda
+    conda "/home/sabramov/miniconda3/envs/super-index"
     tag "chunk#${sample_id}"
+    scratch true
 
     input:
         val(sample_id)
@@ -136,16 +137,17 @@ process cut_matrix {
         tuple val(sample_id), path(name)
 
     script:
-    name = "${sample_id}.cut_matrix.txt"
+    name = "${sample_id}.cut_matrix.npy"
     end = sample_id + params.step
     """
-    zcat ${params.binary_matrix} | cut -f${sample_id}-${end} > ${name}
+    zcat ${params.binary_matrix} | cut -f${sample_id}-${end} > tmp.txt
+    python3 $moduleDir/bin/convert_to_numpy.py tmp.txt ${name}
     """
 }
 process calc_index_motif_enrichment {
     publishDir "${params.outdir}/enrichment"
     tag "${motif_id}"
-    conda "/home/sabramov/miniconda3/envs/super-index"
+    conda params.conda
     errorStrategy "terminate"
 
     input:
@@ -178,6 +180,7 @@ workflow calcMotifHits {
     out = motif_hits_intersect(moods_scans.combine(index)) | combine(c_mat) | calc_index_motif_enrichment | flatten
     out.collectFile(name: 'motif_enrichment.tsv', storeDir: '/net/seq/data2/projects/ENCODE4Plus/figures/motif_enrichment/dnase')
 }
+
 
 workflow calcEnrichment {
     take:
