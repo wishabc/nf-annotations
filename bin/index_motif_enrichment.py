@@ -12,7 +12,8 @@ def read_as_np(binary_matrix_path):
 
 def main(binary_matrix_path, motif_hits_path, motif, sample_ids_path, sample_id, step):
     binary_matrix = read_as_np(binary_matrix_path)
-    sample_ids = pd.read_table(sample_ids_path, header=None).iloc[:, 0].tolist()[sample_id - 1: sample_id + step]
+    sample_ids = pd.read_table(sample_ids_path, header=None).iloc[:, 0].tolist()
+    sample_ids = sample_ids[sample_id - 1: min(sample_id + step, len(sample_ids))]
     motif_hits = pd.read_table(motif_hits_path, header=None).to_numpy()
     assert motif_hits.shape[0] == binary_matrix.shape[0]
     M = motif_hits.shape[0]
