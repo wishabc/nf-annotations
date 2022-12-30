@@ -6,7 +6,7 @@ import datatable as dt
 
 
 def read_as_np(binary_matrix_path):
-    df = dt.fread(binary_matrix_path, header=False)[:, 1:]
+    df = dt.fread(binary_matrix_path, header=False)
     return df.to_numpy().astype(bool)
 
 
