@@ -167,6 +167,7 @@ process calc_index_motif_enrichment {
 
 process collect_f {
     publishDir params.outdir
+    scratch true
 
     input:
         tuple val(sample_id), path(files)
@@ -179,7 +180,7 @@ process collect_f {
     """
     echo "${files}" | tr ' ' '\n' > all_files_paths.txt
     while read line; do 
-        cat \$line >> merged_file
+        cat \$line >> ${merged_file}
     done < all_files_paths.txt
     """
 }
