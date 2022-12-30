@@ -144,7 +144,7 @@ process calc_index_motif_enrichment {
     script:
     name = "${motif_id}_enrichment.tsv"
     """
-    cut -f${sample_id} ${params.binary_matrix} > tmp.txt
+    zcat ${params.binary_matrix} | cut -f${sample_id}  > tmp.txt
     python3 $moduleDir/bin/index_motif_enrichment.py  \
         tmp.txt ${counts_file} ${motif_id} ${params.sample_names} > ${name}
     """
