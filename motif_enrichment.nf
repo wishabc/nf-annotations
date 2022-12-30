@@ -132,6 +132,7 @@ process calc_index_motif_enrichment {
     conda params.conda
     memory { 11.GB * task.attempt }
     conda "/home/sabramov/miniconda3/envs/super-index"
+    errorStrategy "terminate"
     scratch true
 
     input:
@@ -156,6 +157,7 @@ workflow calcMotifHits {
     params.sample_names = "/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/files/listOfSamples.txt"
     samples_count = file(params.sample_names).countLines()
     sample_names = Channel.of(1..samples_count)
+    sample_names.take(2).view()
     index = Channel.fromPath("/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/raw_masterlist/masterlist_DHSs_2902Altius-Index_nonovl_any_chunkIDs.bed")
         .map(it -> file(it))
     moods_scans = Channel.fromPath("${params.moods_scans_dir}/*.bed.gz")
