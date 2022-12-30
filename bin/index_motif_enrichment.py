@@ -2,7 +2,6 @@ import pandas as pd
 import sys
 import numpy as np
 from scipy.stats import hypergeom
-import datatable as dt
 
 
 def read_as_np(binary_matrix_path):
