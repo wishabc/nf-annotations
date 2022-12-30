@@ -114,7 +114,7 @@ process motif_hits_intersect {
     conda params.conda
 
     input:
-        tuple val(motif_id), val(cluster_id), path(pwm_path), path(moods_file), path(pval_file)
+        tuple val(motif_id), path(moods_file), path(pval_file)
 
     output:
         tuple val(motif_id), path(counts_file), path(pval_file)
