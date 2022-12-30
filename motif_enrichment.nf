@@ -133,7 +133,7 @@ process cut_matrix {
         val(sample_id)
 
     output:
-        tuple val(sample_id), path(name)
+        path(name)
 
     script:
     name = "${sample_id}.cut_matrix.txt"
@@ -144,12 +144,11 @@ process cut_matrix {
 process calc_index_motif_enrichment {
     publishDir "${params.outdir}/enrichment"
     tag "${motif_id}"
-    conda params.conda
-    conda params.conda
+    conda "/home/sabramov/miniconda3/envs/super-index"
     errorStrategy "terminate"
 
     input:
-        tuple val(motif_id), path(counts_file), val(sample_id), path(matrix)
+        tuple val(motif_id), path(counts_file), path(matrix)
     
     output:
         tuple val(motif_id), path(name)
@@ -167,7 +166,8 @@ process calc_index_motif_enrichment {
 workflow calcMotifHits {
     params.binary_matrix = "/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/raw_masterlist/masterlist_DHSs_2902Altius-Index_nonovl_any_binary.unlabeled.mtx.gz"
     params.sample_names = "/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/files/listOfSamples.txt"
-    samples_count = file(params.sample_names).countLines()
+    params.step = 400
+    samples_count = file(params.sample_names).countLines().intdiv(params.step)
     sample_names = Channel.of(1..samples_count)
     index = Channel.fromPath("/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/raw_masterlist/masterlist_DHSs_2902Altius-Index_nonovl_any_chunkIDs.bed")
         .map(it -> file(it))
