@@ -129,6 +129,7 @@ process cut_matrix {
     conda "/home/sabramov/miniconda3/envs/super-index"
     tag "chunk#${sample_id}"
     scratch true
+    publishDir "${params.outdir}/chunks"
 
     input:
         val(sample_id)
@@ -165,9 +166,11 @@ process calc_index_motif_enrichment {
 
 }
 
+// Workaroud, file name used to be not unique in the previous process...
 process collect_f {
     publishDir params.outdir
     scratch true
+    tag "${sample_id}"
 
     input:
         tuple val(sample_id), path(files)
