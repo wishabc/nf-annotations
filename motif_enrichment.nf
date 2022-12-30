@@ -111,6 +111,7 @@ process motif_hits_intersect {
     publishDir "${params.outdir}/counts", pattern: "${counts_file}"
     tag "${motif_id}"
     conda params.conda
+    errorStrategy 'terminate'
 
     input:
         tuple val(motif_id), path(moods_file), path(pval_file)
@@ -121,7 +122,7 @@ process motif_hits_intersect {
     script:
     counts_file = "${motif_id}.hits.bed"
     """
-    gzip ${moods_file} | bedmap --indicator ${pval_file} - > ${counts_file}
+    gzip ${moods_file} | bedmap --indicator  --fraction-map 1 ${pval_file} - > ${counts_file}
     """
 }
 
