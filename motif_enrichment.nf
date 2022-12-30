@@ -156,7 +156,7 @@ workflow calcMotifHits {
         .map(it -> file(it))
     moods_scans = Channel.fromPath("${params.moods_scans_dir}/*.bed.gz")
         .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
-    out = motif_hits_intersect(moods_scans.combine(index))
+    out = motif_hits_intersect(moods_scans.combine(index)) | calc_index_motif_enrichment
 }
 
 workflow calcEnrichment {
