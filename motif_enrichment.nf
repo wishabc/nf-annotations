@@ -130,8 +130,7 @@ process calc_index_motif_enrichment {
     publishDir "${params.outdir}/enrichment"
     tag "${motif_id}"
     conda params.conda
-    memory { 16.GB * task.attempt }
-    errorStrategy "terminate"
+    memory { 70.GB * task.attempt }
     conda "/home/sabramov/miniconda3/envs/super-index"
 
     input:
@@ -143,8 +142,9 @@ process calc_index_motif_enrichment {
     script:
     name = "${motif_id}_enrichment.tsv"
     """
-    python3 $moduleDir/bin/index_motif_enrichment.py ${params.binary_matrix} \
-         ${counts_file} ${motif_id} ${params.sample_names} > ${name}
+    zcat ${params.binary_matrix} | cut -f1-5 > tmp.txt
+    python3 $moduleDir/bin/index_motif_enrichment.py  \
+        tmp.txt ${counts_file} ${motif_id} ${params.sample_names} > ${name}
     """
 
 }
