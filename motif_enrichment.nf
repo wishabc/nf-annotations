@@ -154,10 +154,10 @@ process calc_index_motif_enrichment {
         tuple val(motif_id), path(counts_file), val(sample_id),  path(matrix)
     
     output:
-        path(name)
+        tuple val(sample_id), path(name)
 
     script:
-    name = "${motif_id}_${sample_id}_enrichment.tsv"
+    name = "${motif_id}_enrichment.tsv"
     """
     python3 $moduleDir/bin/index_motif_enrichment.py  \
         ${matrix} ${counts_file} ${motif_id} ${params.sample_names} ${sample_id} ${params.step} > ${name}
@@ -165,22 +165,24 @@ process calc_index_motif_enrichment {
 
 }
 
-// process collect_f {
-//     publishDir params.outdir
-//     input:
-//         path(files)
-    
-//     output:
-//         path(merged_file)
-    
-//     script:
-//     merged_file = "merged_samples"
-//     """
-//     echo "${files}" | tr ' ' '\n' > all_files_paths.txt
-//     while read line; do 
+process collect_f {
+    publishDir params.outdir
 
-//     """
-// }
+    input:
+        tuple val(sample_id), path(files)
+    
+    output:
+        path(merged_file)
+    
+    script:
+    merged_file = "merged_samples.${sample_id}.tsv"
+    """
+    echo "${files}" | tr ' ' '\n' > all_files_paths.txt
+    while read line; do 
+        cat \$line >> merged_file
+    done < all_files_paths.txt
+    """
+}
 
 
 workflow calcMotifHits {
@@ -195,7 +197,7 @@ workflow calcMotifHits {
         .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
     c_mat = cut_matrix(sample_names)
     out = motif_hits_intersect(moods_scans.combine(index)) | combine(c_mat) | calc_index_motif_enrichment
-    out.collectFile(name: 'motif_enrichment.tsv', storeDir: '/net/seq/data2/projects/ENCODE4Plus/figures/motif_enrichment/dnase')
+    a = out.groupTuple()
 }
 
 
