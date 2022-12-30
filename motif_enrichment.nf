@@ -169,7 +169,7 @@ workflow calcMotifHits {
     params.sample_names = "/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/files/listOfSamples.txt"
     params.step = 400
     samples_count = file(params.sample_names).countLines().intdiv(params.step)
-    sample_names = Channel.of(1..samples_count)
+    sample_names = Channel.of(0..samples_count).map(it -> it * params.step + 1)
     index = Channel.fromPath("/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/raw_masterlist/masterlist_DHSs_2902Altius-Index_nonovl_any_chunkIDs.bed")
         .map(it -> file(it))
     moods_scans = Channel.fromPath("${params.moods_scans_dir}/*.bed.gz")
