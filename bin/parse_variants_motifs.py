@@ -54,7 +54,7 @@ def ddg(seq, ref, alt, offset, pfm):
     
 # Load PFMs
 pfms = load_pfm_dir(pfm_dir) 
-
+"chrom,start,end,id,...|"
 for line in sys.stdin:
     fields = line.strip('\n').split("|")
 

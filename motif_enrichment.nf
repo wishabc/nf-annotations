@@ -104,8 +104,36 @@ process get_motif_stats {
     """
     python3 $moduleDir/bin/motif_stats.py ${motif_id} ${pval_file} ${counts_file} ${name}
     """
+}
 
 
+process motif_hits_intersect {
+    publishDir "${params.outdir}/counts", pattern: "${counts_file}"
+    scratch true
+    tag "${motif_id}"
+    conda params.conda
+
+    input:
+        tuple val(motif_id), val(cluster_id), path(pwm_path), path(moods_file), path(pval_file)
+
+    output:
+        tuple val(motif_id), path(counts_file), path(pval_file)
+
+    script:
+    counts_file = "${motif_id}.hits.bed"
+    """
+    gzip ${moods_file} > tf_hits.bed
+    bedmap --indicator ${pval_file} tf_hits.bed > ${counts_file}
+    """
+}
+
+
+workflow calcMotifHits {
+    index = Channel.fromPath("/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/raw_masterlist/masterlist_DHSs_2902Altius-Index_nonovl_any_chunkIDs.bed")
+        .map(it -> file(it))
+    moods_scans = Channel.fromPath("${params.moods_scans_dir}/*.bed.gz")
+        .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
+    out = motif_hits_intersect(moods_scans.combine(index))
 }
 
 workflow calcEnrichment {
@@ -134,7 +162,7 @@ workflow motifEnrichment {
         enrichment
 }
 
-params.moods_scans_dir = "/net/seq/data2/projects/sabramov/ENCODE4/cav-calling/babachi_1.5_common_final/all_aggregations/output/output/moods_scans"
+params.moods_scans_dir = "/net/seq/data2/projects/sabramov/ENCODE4/data_dnase_1010/cav_calls/output/moods_scans"
 workflow {
     pvals = Channel.fromPath("${params.pval_file_dir}/*.bed")
         .map(it -> file(it))
