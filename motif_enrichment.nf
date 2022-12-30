@@ -132,7 +132,7 @@ process calc_index_motif_enrichment {
     conda params.conda
     memory { 16.GB * task.attempt }
     errorStrategy "terminate"
-
+    conda "/home/sabramov/miniconda3/envs/super-index"
 
     input:
         tuple val(motif_id), path(counts_file)
