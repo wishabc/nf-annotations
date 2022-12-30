@@ -131,6 +131,7 @@ process calc_index_motif_enrichment {
     tag "${motif_id}"
     conda params.conda
     memory { 16.GB * task.attempt }
+    errorStrategy "terminate"
 
 
     input:
