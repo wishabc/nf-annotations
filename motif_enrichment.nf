@@ -133,7 +133,7 @@ process cut_matrix {
         val(sample_id)
 
     output:
-        path(name)
+        tuple val(sample_id), path(name)
 
     script:
     name = "${sample_id}.cut_matrix.txt"
@@ -149,7 +149,7 @@ process calc_index_motif_enrichment {
     errorStrategy "terminate"
 
     input:
-        tuple val(motif_id), path(counts_file), path(matrix)
+        tuple val(motif_id), path(counts_file), val(sample_id),  path(matrix)
     
     output:
         tuple val(motif_id), path(name)
@@ -158,7 +158,7 @@ process calc_index_motif_enrichment {
     name = "${motif_id}_enrichment.tsv"
     """
     python3 $moduleDir/bin/index_motif_enrichment.py  \
-        ${matrix} ${counts_file} ${motif_id} ${params.sample_names} > ${name}
+        ${matrix} ${counts_file} ${motif_id} ${params.sample_names} ${sample_id} ${params.step} > ${name}
     """
 
 }
