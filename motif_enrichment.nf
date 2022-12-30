@@ -167,7 +167,7 @@ process calc_index_motif_enrichment {
 workflow calcMotifHits {
     params.binary_matrix = "/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/raw_masterlist/masterlist_DHSs_2902Altius-Index_nonovl_any_binary.unlabeled.mtx.gz"
     params.sample_names = "/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/files/listOfSamples.txt"
-    params.step = 400
+    params.step = 100
     samples_count = file(params.sample_names).countLines().intdiv(params.step)
     sample_names = Channel.of(0..samples_count).map(it -> it * params.step + 1)
     index = Channel.fromPath("/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/raw_masterlist/masterlist_DHSs_2902Altius-Index_nonovl_any_chunkIDs.bed")
