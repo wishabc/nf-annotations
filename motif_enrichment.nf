@@ -157,7 +157,7 @@ process calc_index_motif_enrichment {
         tuple val(motif_id), path(name)
 
     script:
-    name = "${motif_id}_enrichment.tsv"
+    name = "${motif_id}_${sample_id}_enrichment.tsv"
     """
     python3 $moduleDir/bin/index_motif_enrichment.py  \
         ${matrix} ${counts_file} ${motif_id} ${params.sample_names} ${sample_id} ${params.step} > ${name}
