@@ -137,8 +137,9 @@ process cut_matrix {
 
     script:
     name = "${sample_id}.cut_matrix.txt"
+    end = sample_id + params.step
     """
-    zcat ${params.binary_matrix} | cut -f${sample_id} > ${name}
+    zcat ${params.binary_matrix} | cut -f${sample_id}-${end} > ${name}
     """
 }
 process calc_index_motif_enrichment {
