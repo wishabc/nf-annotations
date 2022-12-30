@@ -109,7 +109,6 @@ process get_motif_stats {
 
 process motif_hits_intersect {
     publishDir "${params.outdir}/counts", pattern: "${counts_file}"
-    scratch true
     tag "${motif_id}"
     conda params.conda
 
@@ -122,8 +121,7 @@ process motif_hits_intersect {
     script:
     counts_file = "${motif_id}.hits.bed"
     """
-    gzip ${moods_file} > tf_hits.bed
-    bedmap --indicator ${pval_file} tf_hits.bed > ${counts_file}
+    gzip ${moods_file} | bedmap --indicator ${pval_file} - > ${counts_file}
     """
 }
 
