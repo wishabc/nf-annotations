@@ -197,7 +197,7 @@ workflow calcMotifHits {
         .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
     c_mat = cut_matrix(sample_names)
     out = motif_hits_intersect(moods_scans.combine(index)) | combine(c_mat) | calc_index_motif_enrichment
-    a = out.groupTuple()
+    a = collect_f(out.groupTuple())
 }
 
 
