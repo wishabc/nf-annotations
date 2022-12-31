@@ -129,7 +129,6 @@ process cut_matrix {
     conda "/home/sabramov/miniconda3/envs/super-index"
     tag "samples ${interval}"
     scratch true
-    publishDir "${params.outdir}/chunks"
 
     input:
         val(sample_id)
