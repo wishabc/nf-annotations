@@ -8,14 +8,14 @@ def read_as_np(binary_matrix_path):
     return np.load(binary_matrix_path)
 
 
-def main(binary_matrix_path, motif_hits_path, motif, sample_ids_path, sample_id, step):
+def main(binary_matrix_path, motif_hits_path, motif, sample_ids_path, interval):
     binary_matrix = read_as_np(binary_matrix_path)
     sample_ids = pd.read_table(sample_ids_path, header=None).iloc[:, 0].tolist()
-    sample_id = int(sample_id)
-    step = int(step)
-    sample_ids = sample_ids[sample_id - 1: min(sample_id + step, len(sample_ids))]
+    start, end = map(int, interval.split('-'))
+    sample_ids = sample_ids[start - 1: min(end + 1, len(sample_ids))]
     motif_hits = pd.read_table(motif_hits_path, header=None).to_numpy()
     assert motif_hits.shape[0] == binary_matrix.shape[0]
+    assert binary_matrix.shape[1] == len(sample_ids)
     M = motif_hits.shape[0]
     N = binary_matrix.sum(axis=0)
     n = motif_hits.sum()

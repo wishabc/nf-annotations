@@ -127,7 +127,7 @@ process motif_hits_intersect {
 }
 process cut_matrix {
     conda "/home/sabramov/miniconda3/envs/super-index"
-    tag "chunk#${sample_id}"
+    tag "samples ${interval}"
     scratch true
     publishDir "${params.outdir}/chunks"
 
@@ -135,18 +135,20 @@ process cut_matrix {
         val(sample_id)
 
     output:
-        tuple val(sample_id), path(name)
+        tuple val(interval), path(name)
 
     script:
-    name = "${sample_id}.cut_matrix.npy"
-    end = sample_id + params.step
+    end = sample_id + params.step - 1
+    interval = "${sample_id}-${end}"
+    name = "${interval}.cut_matrix.npy"
     """
-    zcat ${params.binary_matrix} | cut -f${sample_id}-${end} > tmp.txt
+    zcat ${params.binary_matrix} | cut -f${interval} > tmp.txt
     python3 $moduleDir/bin/convert_to_numpy.py tmp.txt ${name}
     """
 }
+
+
 process calc_index_motif_enrichment {
-    publishDir "${params.outdir}/enrichment"
     tag "${motif_id}"
     conda params.conda
     errorStrategy "terminate"
@@ -158,50 +160,12 @@ process calc_index_motif_enrichment {
         tuple val(sample_id), path(name)
 
     script:
-    name = "${motif_id}_enrichment.tsv"
+    name = "${motif_id}_${sample_id}_enrichment.tsv"
     """
     python3 $moduleDir/bin/index_motif_enrichment.py  \
-        ${matrix} ${counts_file} ${motif_id} ${params.sample_names} ${sample_id} ${params.step} > ${name}
+        ${matrix} ${counts_file} ${motif_id} ${params.sample_names} ${sample_id} > ${name}
     """
 
-}
-
-// Workaroud, file name used to be not unique in the previous process...
-process collect_f {
-    publishDir params.outdir
-    scratch true
-    tag "${sample_id}"
-
-    input:
-        tuple val(sample_id), path(files)
-    
-    output:
-        path(merged_file)
-    
-    script:
-    merged_file = "merged_samples.${sample_id}.tsv"
-    """
-    echo "${files}" | tr ' ' '\n' > all_files_paths.txt
-    while read line; do 
-        cat \$line >> ${merged_file}
-    done < all_files_paths.txt
-    """
-}
-
-
-workflow calcMotifHits {
-    params.binary_matrix = "/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/raw_masterlist/masterlist_DHSs_2902Altius-Index_nonovl_any_binary.unlabeled.mtx.gz"
-    params.sample_names = "/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/files/listOfSamples.txt"
-    params.step = 100
-    samples_count = file(params.sample_names).countLines().intdiv(params.step)
-    sample_names = Channel.of(0..samples_count).map(it -> it * params.step + 1)
-    index = Channel.fromPath("/net/seq/data2/projects/ENCODE4Plus/indexes/index_altius_22-11-28/raw_masterlist/masterlist_DHSs_2902Altius-Index_nonovl_any_chunkIDs.bed")
-        .map(it -> file(it))
-    moods_scans = Channel.fromPath("${params.moods_scans_dir}/*.bed.gz")
-        .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
-    c_mat = cut_matrix(sample_names)
-    out = motif_hits_intersect(moods_scans.combine(index)) | combine(c_mat) | calc_index_motif_enrichment
-    a = collect_f(out.groupTuple())
 }
 
 
