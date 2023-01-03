@@ -126,7 +126,7 @@ process motif_hits_intersect {
     """
 }
 process cut_matrix {
-    conda "/home/sabramov/miniconda3/envs/super-index"
+    conda params.conda
     tag "samples ${interval}"
     scratch true
 
@@ -150,7 +150,6 @@ process cut_matrix {
 process calc_index_motif_enrichment {
     tag "${motif_id}"
     conda params.conda
-    errorStrategy "terminate"
 
     input:
         tuple val(motif_id), path(counts_file), val(sample_id),  path(matrix)
