@@ -194,7 +194,7 @@ workflow motifEnrichment {
         enrichment
 }
 
-params.moods_scans_dir = "/net/seq/data2/projects/sabramov/ENCODE4/data_dnase_1010/cav_calls/output/moods_scans"
+params.moods_scans_dir = ""
 workflow {
     pvals = Channel.fromPath("${params.pval_file_dir}/*.bed")
         .map(it -> file(it))
@@ -202,8 +202,12 @@ workflow {
         .splitCsv(header:true, sep:'\t')
         .map(row -> tuple(row.motif, row.cluster, file(row.motif_file)))
     // Check if moods_scans_dir exists, if not run motifEnrichment pipeline
-    moods_scans = Channel.fromPath("${params.moods_scans_dir}/*.bed.gz")
-        .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
-    //motifEnrichment(pvals)
-    calcEnrichment(motifs.join(moods_scans).combine(pvals))
+    if (file(params.moods_scans_dir).exists()) {
+        moods_scans = Channel.fromPath("${params.moods_scans_dir}/*.bed.gz")
+            .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
+        calcEnrichment(motifs.join(moods_scans).combine(pvals))
+    } else {
+        motifEnrichment(pvals)
+    }
+    
 }
