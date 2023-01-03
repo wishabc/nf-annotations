@@ -43,8 +43,8 @@ process scan_with_moods {
 
 
 process motif_enrichment {
-    publishDir "${params.outdir}/${params.aggregation_key}/${pval_file.simpleName}/counts", pattern: "${counts_file}"
-    publishDir "${params.outdir}/${params.aggregation_key}/${pval_file.simpleName}/enrichment", pattern: "${enrichment_file}"
+    publishDir "${params.outdir}/${pval_file.simpleName}/counts", pattern: "${counts_file}"
+    publishDir "${params.outdir}/${pval_file.simpleName}/enrichment", pattern: "${enrichment_file}"
     scratch true
     tag "${motif_id}"
     conda params.conda
