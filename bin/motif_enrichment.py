@@ -4,7 +4,6 @@ import sys
 import pandas as pd
 import numpy as np
 import scipy.stats as stats
-from aggregation import result_columns
 # Helper functions
 
 _complement = {"A": "T", "C": "G", "G": "C", "T": "A"}
