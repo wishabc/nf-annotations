@@ -190,7 +190,7 @@ workflow readMoods {
         motifs = Channel.fromPath(params.motifs_list)
             .splitCsv(header:true, sep:'\t')
             .map(row -> tuple(row.motif, file(row.motif_file)))
-        if (file(params.moods_scans_dir).exists() || params.redo_moods) {
+        if (file(params.moods_scans_dir).exists() && !params.redo_moods) {
             moods_logs = Channel.fromPath("${params.moods_scans_dir}/*.moods.log.bed.gz")
                 .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
             moods_scans = motifs.join(moods_logs)
