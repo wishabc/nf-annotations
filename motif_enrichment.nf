@@ -200,7 +200,15 @@ workflow readMoods {
         }
     emit:
         moods_scans
+}
 
+workflow test {
+    motifs = Channel.fromPath(params.motifs_list)
+        .splitCsv(header:true, sep:'\t')
+        .map(row -> tuple(row.motif, file(row.motif_file), "${params.moods_scans_dir}/${row.motif}.moods.log.bed.gz"))
+        .filter { !it[2].exists() }
+        .map(it -> tuple(it[0], it[1]))
+    scan_with_moods(motifs)
 }
 
 workflow {
