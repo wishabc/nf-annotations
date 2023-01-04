@@ -8,7 +8,7 @@ process scan_with_moods {
     conda params.conda
     tag "${motif_id}"
     scratch true
-    publishDir "${params.outdir}/moods_scans", pattern: "${name}"
+    publishDir "${moods_scans_dir}", pattern: "${name}", mode: "move"
 
     input:
         tuple val(motif_id), val(cluster_id), path(pwm_path)
@@ -180,33 +180,46 @@ workflow calcEnrichment {
         counts
 }
 
-workflow motifEnrichment {
+
+workflow readMoods {
     take:
-        pval_file
+        motifs
+    // Check if moods_scans_dir exists, if not run motifEnrichment pipeline
     main:
-        motifs = Channel.fromPath(params.motifs_list)
-            .splitCsv(header:true, sep:'\t')
-            .map(row -> tuple(row.motif, row.cluster, file(row.motif_file)))
-        moods_scans = scan_with_moods(motifs).combine(pval_file)
-        enrichment = calcEnrichment(moods_scans)
+        if (file(params.moods_scans_dir).exists()) {
+            moods_logs = Channel.fromPath("${params.moods_scans_dir}/*.moods.log.bed.gz")
+                .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
+            moods_scans = motifs.join(moods_logs)
+        } else {
+            moods_scans = scan_with_moods(motifs)
+        }
     emit:
-        enrichment
+        moods_scans
+
 }
 
-params.moods_scans_dir = ""
 workflow {
     pvals = Channel.fromPath("${params.pval_file_dir}/*.bed")
         .map(it -> file(it))
     motifs = Channel.fromPath(params.motifs_list)
         .splitCsv(header:true, sep:'\t')
         .map(row -> tuple(row.motif, row.cluster, file(row.motif_file)))
-    // Check if moods_scans_dir exists, if not run motifEnrichment pipeline
-    if (file(params.moods_scans_dir).exists()) {
-        moods_scans = Channel.fromPath("${params.moods_scans_dir}/*.bed.gz")
-            .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
-        calcEnrichment(motifs.join(moods_scans).combine(pvals))
-    } else {
-        motifEnrichment(pvals)
-    }
-    
+    moods_scans = readMoods(motifs)
+    calcEnrichment(moods_scans.combine(pvals))
+}
+
+workflow indexEnrichment {
+    samples_count = file(params.sample_names).countLines().intdiv(params.step)
+    sample_names = Channel.of(0..samples_count).map(it -> it * params.step + 1)
+    index = Channel.fromPath(file(params.index_file))
+    motifs = Channel.fromPath(params.motifs_list)
+        .splitCsv(header:true, sep:'\t')
+        .map(row -> tuple(row.motif, row.cluster, file(row.motif_file)))
+
+    moods_scans = readMoods(motifs).map(it -> tuple(it[0], it[3]))
+
+    c_mat = cut_matrix(sample_names)
+    out = motif_hits_intersect(moods_scans.combine(index)) | combine(c_mat) | calc_index_motif_enrichment | flatten
+    out.collectFile(name: 'motif_enrichment.tsv',
+         storeDir: "$launchDir/${params.outdir}")
 }
