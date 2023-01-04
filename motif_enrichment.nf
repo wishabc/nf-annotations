@@ -11,20 +11,23 @@ process scan_with_moods {
     publishDir "${moods_scans_dir}", pattern: "${name}", mode: "move"
 
     input:
-        tuple val(motif_id), val(cluster_id), path(pwm_path)
+        tuple val(motif_id), path(pwm_path)
 
     output:
-        tuple val(motif_id), val(cluster_id), path(pwm_path), path(name)
+        tuple val(motif_id), path(pwm_path), path(name)
     
     script:
     name = "${motif_id}.moods.log.bed.gz"
     """
-    { (cat ${params.bg_file} | head -n5 | tail -n +2 | cut -d" " -f2) || true; } > background_probs.py
-
-    echo ${pwm_path}
-    moods-dna.py --sep ";" -s ${params.alt_fasta_file} \
-        --p-value ${params.motif_pval_tr} --lo-bg `cat background_probs.py` \
-        -m "${pwm_path}" -o moods.log
+    if [ -f ${params.bg_file}]; then
+        moods-dna.py --sep ";" -s ${params.alt_fasta_file} \
+            --p-value ${params.motif_pval_tr} --lo-bg `cat background_probs.py` \
+            -m "${pwm_path}" -o moods.log
+    else 
+        moods-dna.py --sep ";" -s ${params.alt_fasta_file} \
+            --p-value ${params.motif_pval_tr} \
+            -m "${pwm_path}" -o moods.log
+    fi
     
     cat moods.log | awk '{print \$1}' > chroms.txt
 
@@ -50,7 +53,7 @@ process motif_enrichment {
     conda params.conda
 
     input:
-        tuple val(motif_id), val(cluster_id), path(pwm_path), path(moods_file), path(pval_file)
+        tuple val(motif_id), path(pwm_path), path(moods_file), path(pval_file)
 
     output:
         tuple val(motif_id), path(counts_file), path(pval_file), emit: counts
@@ -83,8 +86,7 @@ process motif_enrichment {
     python3 ${projectDir}/bin/motif_enrichment.py  \
         ${pval_file} \
         ${counts_file} \
-        ${motif_id} \
-        ${cluster_id} | bgzip -c > ${enrichment_file}
+        ${motif_id} | bgzip -c > ${enrichment_file}
     """
 }
 
@@ -125,6 +127,7 @@ process motif_hits_intersect {
     zcat ${moods_file} | bedmap --indicator  --fraction-map 1 ${index_file} - > ${counts_file}
     """
 }
+
 process cut_matrix {
     conda params.conda
     tag "samples ${interval}"
@@ -182,10 +185,11 @@ workflow calcEnrichment {
 
 
 workflow readMoods {
-    take:
-        motifs
     // Check if moods_scans_dir exists, if not run motifEnrichment pipeline
     main:
+        motifs = Channel.fromPath(params.motifs_list)
+            .splitCsv(header:true, sep:'\t')
+            .map(row -> tuple(row.motif, file(row.motif_file)))
         if (file(params.moods_scans_dir).exists()) {
             moods_logs = Channel.fromPath("${params.moods_scans_dir}/*.moods.log.bed.gz")
                 .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
@@ -203,8 +207,8 @@ workflow {
         .map(it -> file(it))
     motifs = Channel.fromPath(params.motifs_list)
         .splitCsv(header:true, sep:'\t')
-        .map(row -> tuple(row.motif, row.cluster, file(row.motif_file)))
-    moods_scans = readMoods(motifs)
+        .map(row -> tuple(row.motif, file(row.motif_file)))
+    moods_scans = readMoods()
     calcEnrichment(moods_scans.combine(pvals))
 }
 
@@ -212,11 +216,8 @@ workflow indexEnrichment {
     samples_count = file(params.sample_names).countLines().intdiv(params.step)
     sample_names = Channel.of(0..samples_count).map(it -> it * params.step + 1)
     index = Channel.fromPath(file(params.index_file))
-    motifs = Channel.fromPath(params.motifs_list)
-        .splitCsv(header:true, sep:'\t')
-        .map(row -> tuple(row.motif, row.cluster, file(row.motif_file)))
 
-    moods_scans = readMoods(motifs).map(it -> tuple(it[0], it[3]))
+    moods_scans = readMoods().map(it -> tuple(it[0], it[2]))
 
     c_mat = cut_matrix(sample_names)
     out = motif_hits_intersect(moods_scans.combine(index)) | combine(c_mat) | calc_index_motif_enrichment | flatten

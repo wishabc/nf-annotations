@@ -96,7 +96,6 @@ pvals_per_nt = -1 * stats.norm.logsf(log_odds_per_nt,
 
 fields = [
     sys.argv[3],
-    sys.argv[4],
     log_odds,
     pval,
     np.nansum(n_all[flank_width:-flank_width]),

@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-from helpers import starting_columns
 import glob
 import sys
 from tqdm import tqdm
@@ -182,7 +181,7 @@ def remove_phen_name_punctuation(phenotype_name):
 def main(phenotypes_dir, snps_path, out_path):
     print('Reading files')
     snps = pd.read_table(snps_path)
-    snps_positions = snps[[*starting_columns, 'fdrp_bh_ref', 'fdrp_bh_alt']]
+    snps_positions = snps[['#chr', 'start', 'end', 'ID', 'ref', 'alt']]
     del snps
     snps_positions['posID'] = snps_positions['#chr'] + '_' + snps_positions['end'].astype(str)
     grasp = os.path.join(phenotypes_dir, 'pheno', 'grasp_pheno.tsv')

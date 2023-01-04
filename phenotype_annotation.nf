@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 params.conda = "$moduleDir/environment.yml"
 
-
+params.phenotypes_data = "/home/sabramov/phenotypes_data"
 // Annotates with pheWAS, clinvar, finemapping, grasp, ebi-gwas phenotypes
 process annotate_with_phenotypes {
     conda params.conda
@@ -77,15 +77,14 @@ process run_ldsc {
     publishDir "${params.outdir}/${prefix}/ldsc", pattern: "${name}.results"
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.logs"
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.part_delete"
-    tag "${prefix}:${phen_name}"
+    tag "${prefix}:${phen_id}"
     scratch true
-    errorStrategy "terminate"
 
     input:
-        tuple val(phen_id), val(phen_name), path(sumstats_file), val(prefix), path(ld_files)
+        tuple val(phen_id), path(sumstats_file), val(prefix), path(ld_files)
     
     output:
-        tuple val(phen_id), val(phen_name), path("${name}*")
+        tuple val(phen_id), path("${name}*")
 
     script:
     name = "${prefix}.${phen_id}"
@@ -104,25 +103,19 @@ process run_ldsc {
 }
 
 
-workflow annotateWithPheno {
-    pvals = Channel.fromPath("${params.pval_file_dir}/*.bed")
-        .map(it -> file(it))
-    annotate_with_phenotypes(pvals)
-}
-
-
 workflow LDSC {
     take:
         ld_data
     main:
         phens = Channel.fromPath(params.phenotypes_meta)
             .splitCsv(header:true, sep:'\t')
-            .map(row -> tuple(row.phen_id, row.phen_name, file(row.sumstats_file)))
+            .map(row -> tuple(row.phen_id, file(row.sumstats_file)))
         d = phens.combine(ld_data)
         run_ldsc(d)
     emit:
         run_ldsc.out
 }
+
 
 workflow calcBaseline {
     data = Channel.of(1..22).map(
@@ -142,4 +135,10 @@ workflow {
             it -> tuple(it[0], it[1].flatten())
         )
     LDSC(ldsc_data)
+}
+
+workflow annotateWithPheno {
+    pvals = Channel.fromPath("${params.pval_file_dir}/*.bed")
+        .map(it -> file(it))
+    annotate_with_phenotypes(pvals)
 }
