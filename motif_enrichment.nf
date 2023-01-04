@@ -51,6 +51,7 @@ process motif_enrichment {
     scratch true
     tag "${motif_id}"
     conda params.conda
+    errorStrategy 'finish'
 
     input:
         tuple val(motif_id), path(pwm_path), path(moods_file), path(pval_file)
@@ -64,20 +65,20 @@ process motif_enrichment {
     enrichment_file = "${motif_id}.enrichment.bed.gz"
     """
     zcat ${moods_file} | bedmap \
-    --skip-unmapped \
-    --sweep-all \
-    --range 20 \
-    --delim "|" \
-    --multidelim ";" \
-    --echo \
-    --echo-map <(sort-bed ${pval_file}) \
-     -    \
-    | python $projectDir/bin/parse_variants_motifs.py \
-        ${params.genome_fasta_file} \
-        ./ \
-    | sort-bed - \
-    | bgzip -c \
-    > ${counts_file}
+        --skip-unmapped \
+        --sweep-all \
+        --range 20 \
+        --delim "|" \
+        --multidelim ";" \
+        --echo \
+        --echo-map <(sort-bed ${pval_file}) \
+        -    \
+        | python $projectDir/bin/parse_variants_motifs.py \
+            ${params.genome_fasta_file} \
+            \$PWD \
+        | sort-bed - \
+        | bgzip -c \
+        > ${counts_file}
 
     if ! [ -f ${counts_file} ]; then
         exit 1
