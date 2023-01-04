@@ -8,7 +8,7 @@ Repository with nextflow scripts for motif enrichment calculation and phenotypes
 - `conda` - path to existing conda environment
 - `pval_file_dir` - directory with BED pvalue files files (output of [nf-babachi pipeline](https://github.com/wishabc/nf-babachi)) 
 - `genome_fasta_file` - reference genome fasta
-- `moods_scans_dir` - directory to save moods motif hits to. If exists, the pipeline will look for ```<motif_id>.moods.log.bed.gz``` files in this directory
+- `moods_scans_dir` - directory to save MOODS motif hits to. If exists, the pipeline will look for ```<motif_id>.moods.log.bed.gz``` files in this directory
 ### Moods params
  - `alt_fasta_file` - Fasta file with all SNPs encoded as IUPAC symbols (see [MOODS README](https://github.com/jhkorhonen/MOODS/wiki/Getting-Started))
 - `bg_file` - file with background frequencies of nucleotides (pA pC pG pT), new line separated. Ignored if file does not exist
@@ -31,7 +31,7 @@ Repository with nextflow scripts for motif enrichment calculation and phenotypes
 
 ## Motif enrichment
 ### Moods scans
-Moods scans are automatically created if you provide non-existent directory in ```moods_scans_dir``` parameter. The resulting moods files are saved into the ```moods_scans_dir```.<br> If directory exists, the pipeline will look for ```<motif_id>.moods.log.bed.gz``` files in this directory.<br><br> Before running Moods, please fill in parameters in ```params.config``` file, section ```Moods params```.
+Moods scans are automatically created if you provide non-existent directory in ```moods_scans_dir``` parameter. The resulting moods files are saved into the ```moods_scans_dir```.<br> If directory exists, the pipeline will look for ```<motif_id>.moods.log.bed.gz``` files in this directory.<br><br> Before running MOODS, please fill in parameters in ```params.config``` file, section ```Moods params```.
 
 ### CAVs motif enrichment
 1) Fill in parameters in ```params.config``` file, section ```Motif enrichment for index```
