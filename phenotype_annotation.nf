@@ -124,21 +124,6 @@ workflow LDSC {
         run_ldsc.out
 }
 
-workflow test {
-    data = Channel.of(
-        "immune_2fold_imbalanced_in_ct",
-        "immune_annotated",
-        "immune_anova",
-        "immune_diff_sides",
-        "immune_imbalanced_in_ct"
-    ).map(
-        it -> tuple(it, file("/net/seq/data2/projects/sabramov/LDSC/UKBB1218/output/${it}/l2/result/*"))
-    )
-
-    LDSC(data)
-
-}
-
 workflow calcBaseline {
     data = Channel.of(1..22).map(
         it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true))

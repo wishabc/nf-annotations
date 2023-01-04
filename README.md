@@ -17,4 +17,7 @@ Moods scans are automatically created if you provide non-existent directory in `
 ```nextflow run <src-dir>/motif_enrichment.nf -profile Altius -entry indexEnrichment -resume```
 
 ## Phenotypes associations analysis
-TODO documentation
+### UKBB associations
+1) Fill in parameters in ```params.config``` file, section ```LDSC data```
+2) Run LDSC on index file with
+```nextflow run <src-dir>/phenotype_annotation.nf -profile Altius -resume```
