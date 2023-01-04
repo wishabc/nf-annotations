@@ -220,7 +220,10 @@ workflow indexEnrichment {
     moods_scans = readMoods().map(it -> tuple(it[0], it[2]))
 
     c_mat = cut_matrix(sample_names)
-    out = motif_hits_intersect(moods_scans.combine(index)) | combine(c_mat) | calc_index_motif_enrichment | flatten
-    out.collectFile(name: 'motif_enrichment.tsv',
-         storeDir: "$launchDir/${params.outdir}")
+    out = motif_hits_intersect(moods_scans.combine(index))
+        | combine(c_mat)
+        | calc_index_motif_enrichment
+        | flatten
+        | collectFile(name: 'motif_enrichment.tsv', 
+                      storeDir: "$launchDir/${params.outdir}")
 }
