@@ -52,5 +52,6 @@ Moods scans are automatically created if you provide non-existent directory in `
 
 ### ClinVAR, Finemapping, GRASP, GTEx, EBI-GWAS, pheWAS associations annotation
 ❗Input files are set up only at Altius cluster.<br><br>
-Run phenotype annotation on arbitary BED file with
+Run phenotype annotation on the BED files in `pval_file_dir` with
 ```nextflow run <src-dir>/phenotype_annotation.nf -profile Altius -entry annotateWithPheno -resume```
+<br>The files for this step should have `#chr`, `start`, `end`, `ID` columns
