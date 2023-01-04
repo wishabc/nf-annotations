@@ -37,7 +37,11 @@ process make_ldsc_annotation {
     baseannotation = "${params.base_ann_path}${suffix}"
     name = "${annotation.simpleName}.${suffix}"
     """
-    python3 $moduleDir/bin/make_annotation.py ${baseannotation} ${annotation} ${name}
+    echo "CHR\tBP\tSNP\tCM\t${annotation.simpleName}" > ${name}
+    cat ${baseannotation} \
+        | awk -v OFS='\t' -F'\t' '{ print \$1,\$2-1,\$2,\$3,\$4 }'\
+        | bedtools intersect -wa -c -a - -b ${annotation} \
+        | awk -v OFS='\t' '{ print \$1,\$3,\$4,\$5}' >> ${name}
     """
 }
 
