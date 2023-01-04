@@ -12,7 +12,7 @@ Repository with nextflow scripts for motif enrichment calculation and phenotypes
 ### Moods params
  - `alt_fasta_file` - Fasta file with all SNPs encoded as IUPAC symbols (see [MOODS README](https://github.com/jhkorhonen/MOODS/wiki/Getting-Started))
 - `bg_file` - file with background frequencies of nucleotides (pA pC pG pT), new line separated
-- `motifs_list` -  tsv file listing all motifs, expected to have `motif` and `motif_file` fields, other fields are ignored. PWM/PFM in motif_file field should have respective suffix
+- `motifs_list` -  tsv file listing all the motifs, expected to have `motif` and `motif_file` fields, other fields are ignored. PWM/PFM in the `motif_file` field should have the respective suffix
 - `motif_pval_tr` - threshold to scan motifs on
 
 ### Index motif enrichment params
