@@ -8,7 +8,7 @@ process scan_with_moods {
     conda params.conda
     tag "${motif_id}"
     scratch true
-    publishDir "${moods_scans_dir}", pattern: "${name}", mode: "move"
+    publishDir "${params.moods_scans_dir}", pattern: "${name}", mode: "move"
 
     input:
         tuple val(motif_id), path(pwm_path)
@@ -183,14 +183,14 @@ workflow calcEnrichment {
         counts
 }
 
-
+params.redo_moods = false
 workflow readMoods {
     // Check if moods_scans_dir exists, if not run motifEnrichment pipeline
     main:
         motifs = Channel.fromPath(params.motifs_list)
             .splitCsv(header:true, sep:'\t')
             .map(row -> tuple(row.motif, file(row.motif_file)))
-        if (file(params.moods_scans_dir).exists()) {
+        if (file(params.moods_scans_dir).exists() || params.redo_moods) {
             moods_logs = Channel.fromPath("${params.moods_scans_dir}/*.moods.log.bed.gz")
                 .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
             moods_scans = motifs.join(moods_logs)
