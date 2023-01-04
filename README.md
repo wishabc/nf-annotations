@@ -11,7 +11,7 @@ Repository with nextflow scripts for motif enrichment calculation and phenotypes
 - `moods_scans_dir` - directory to save moods motif hits to. If exists, the pipeline will look for ```<motif_id>.moods.log.bed.gz``` files in this directory
 ### Moods params
  - `alt_fasta_file` - Fasta file with all SNPs encoded as IUPAC symbols (see [MOODS README](https://github.com/jhkorhonen/MOODS/wiki/Getting-Started))
-- `bg_file` - file with background frequencies of nucleotides (pA pC pG pT), new line separated
+- `bg_file` - file with background frequencies of nucleotides (pA pC pG pT), new line separated. Ignored if file does not exist
 - `motifs_list` -  tsv file listing all the motifs, expected to have `motif` and `motif_file` fields, other fields are ignored. PWM/PFM in the `motif_file` field should have the respective suffix
 - `motif_pval_tr` - threshold to scan motifs on
 
