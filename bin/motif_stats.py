@@ -29,7 +29,7 @@ def flip_by_strand(x):
         #x['aa'] =  complement(x['aa'])
     return x
 
-def prefered_allele(x, es_fld='aggregated_es_weighted_ref'):
+def prefered_allele(x, es_fld='aggregated_es_weighted'):
     x["prefered_allele"] = x["ref"] if x[es_fld] >= 0 else x["alt"]
     return x
 
@@ -83,9 +83,9 @@ def get_annotations(motif_id, variants, motif_counts):
                         'within', 'strand', 'ref_score', 'alt_score', 'seq'])
     v = set_index(df)
     v = v.apply(flip_by_strand, axis = 1)
-    es_flds = ['aggregated_es_weighted_ref', 'aggregated_es_ref']
+    es_flds = ['aggregated_es_weighted', 'aggregated_es']
     snvs = v.join(variants[es_flds + ['min_fdr']])
-    snvs = snvs.apply(lambda x: prefered_allele(x, 'aggregated_es_weighted_ref'), axis=1)
+    snvs = snvs.apply(lambda x: prefered_allele(x, 'aggregated_es_weighted'), axis=1)
     var, imbl, log_odds, pval, _, pvals_per_nt, n_imb, n_all = variant_enrichment(snvs)
 
     df_ct_all = pd.crosstab(var['offset'], var['ref'])
@@ -97,7 +97,7 @@ def get_annotations(motif_id, variants, motif_counts):
     snvs_in = snvs[inside & imb]
     if len(snvs_in) > 0:
         pred = 'log_es'
-        es_fld = 'aggregated_es_weighted_ref'
+        es_fld = 'aggregated_es_weighted'
 
         if pred == 'log_es':
             lim = (-3, 3)
