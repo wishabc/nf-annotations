@@ -104,7 +104,7 @@ process get_motif_stats {
         tuple path(pval_file), path(counts_file)
 
     output:
-        tuple path(pval_file), path(motif_stats)
+        path motif_stats
     
     script:
     motif_stats = "${pval_file.simpleName}.motif_stats.tsv"
@@ -144,7 +144,7 @@ workflow calcEnrichment {
         motif_ann = pvals_files
             | combine(counts)
             | get_motif_stats
-            | collectFile(storeDir: "${params.outdir}/motif_stats")
+            | collectFile(storeDir: "${params.outdir}/motif_stats") { it.text }
     emit:
         motif_ann
 }
