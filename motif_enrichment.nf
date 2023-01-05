@@ -47,6 +47,7 @@ process motif_enrichment {
     publishDir "${params.outdir}/${pval_file.simpleName}/counts", pattern: "${counts_file}"
     publishDir "${params.outdir}/${pval_file.simpleName}/enrichment", pattern: "${enrichment_file}"
     //scratch true
+    errorStrategy "terminate"
     tag "${motif_id}"
     conda params.conda
 
