@@ -120,7 +120,7 @@ def calc_enrichment(motifs_df, imbalanced):
     n_all = np.histogram(motifs_df['offset'], bins=bins)[0]
     n_imbalanced = np.histogram(motifs_df['offset'][imbalanced], bins=bins)[0]
     n_not_imbalanced = n_all - n_imbalanced
-
+    n_inside = np.nansum(n_all[flank_width:-flank_width])
     log_odds = np.log2((n_imbalanced[flank_width:-flank_width].sum() / n_imbalanced.sum()) / (n_not_imbalanced[flank_width:-flank_width].sum() / n_not_imbalanced.sum()) )
     # log_odds_per_nt = np.log2((n_imbalanced / n_imbalanced.sum()) / (n_not_imbalanced / n_not_imbalanced.sum()))
 
@@ -144,7 +144,7 @@ def calc_enrichment(motifs_df, imbalanced):
     return [
         log_odds,
         pval,
-        np.nansum(n_all[flank_width:-flank_width]),
+        n_inside,
         np.nansum(n_imbalanced[flank_width:-flank_width]),
         np.nanmedian(n_all[flank_width:-flank_width]),
         np.nansum(n_imbalanced[flank_width:-flank_width]>=7)
@@ -153,26 +153,30 @@ def calc_enrichment(motifs_df, imbalanced):
 
 def get_stats(motifs_df):
     imbalanced = (motifs_df['min_fdr'] <= 0.05) # & ((motifs_df['ard'] > 0.65))# | (df['ard'] < 0.3))
-    log_odds, pval, n_inside, n_imb_inside, n_median_inside, n_inside_more_7  = calc_enrichment(motifs_df, imbalanced)
-    r2, concordance, log_ref_bias = get_annotations(motifs_df, imbalanced)
+    if imbalanced.sum() == 0:
+        fields = [motifs_df.name, np.nan, np.nan, n_inside,
+                     0, 0, 0, np.nan, np.nan, np.nan]
+    else:
+        log_odds, pval, n_inside, n_imb_inside, n_median_inside, n_inside_more_7  = calc_enrichment(motifs_df, imbalanced)
+        r2, concordance, log_ref_bias = get_annotations(motifs_df, imbalanced)
 
-    fields = [
-        motifs_df.name,
-        log_odds,
-        pval,
-        n_inside,
-        n_imb_inside, 
-        n_median_inside,
-        n_inside_more_7,
-        r2,
-        concordance,
-        log_ref_bias
-    ]
+        fields = [
+            motifs_df.name,
+            log_odds,
+            pval,
+            n_inside,
+            n_imb_inside, 
+            n_median_inside,
+            n_inside_more_7,
+            r2,
+            concordance,
+            log_ref_bias
+        ]
 
     print('\t'.join(map(str, fields)))
 
 
-def main(variants_df_path, counts_df_path, jobs=3):
+def main(variants_df_path, counts_df_path):
     # Load variant imbalance file
     variants_df = set_index(pd.read_table(variants_df_path))
     if variants_df.empty:
