@@ -113,6 +113,7 @@ process motif_hits_intersect {
     tag "${motif_id}"
     conda params.conda
     memory { 16.GB * task.attempt }
+    scratch true
 
     input:
         tuple val(motif_id), path(moods_file), path(index_file)
@@ -152,6 +153,7 @@ process cut_matrix {
 process calc_index_motif_enrichment {
     tag "${motif_id}"
     conda params.conda
+    scratch true
 
     input:
         tuple val(motif_id), path(counts_file), val(sample_id),  path(matrix)
@@ -175,9 +177,11 @@ workflow calcEnrichment {
     main:
         counts = motif_enrichment(args).counts //, motifs.map(it -> it[2]).collect())
         motif_ann = get_motif_stats(counts)
-        .collectFile(
+        | collectFile(
             storeDir: "${params.outdir}/stats",
-            keepHeader: true, newLine: true, skip: 1) { item -> [[ "${item[2].simpleName}/motif_stats/${item[2].simpleName}.bed", item[1].text]]}
+            keepHeader: true,
+            newLine: true,
+            skip: 1) { item -> [ "${item[2].simpleName}/motif_stats/${item[2].simpleName}.bed", item[1].text]}
     emit:
         counts
 }
