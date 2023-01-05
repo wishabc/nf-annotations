@@ -30,15 +30,15 @@ process scan_with_moods {
     cat moods.log | awk '{print \$1}' > chroms.txt
 
     cat moods.log \
-    | cut -d";" -f2- \
-    | sed 's/;\$//g' \
-    | awk -v FS=";" -v OFS="\t" \
-        '{ print \$2, \$2+length(\$5), \$1, \$4, \$3, \$5; }' \
-    | sed 's/".pfm"/""/g' \
-    | paste chroms.txt - \
-    | sort-bed - \
-    | bgzip -c \
-    > ${name}
+        | cut -d";" -f2- \
+        | sed 's/;\$//g' \
+        | awk -v FS=";" -v OFS="\t" \
+            '{ print \$2, \$2+length(\$5), \$1, \$4, \$3, \$5; }' \
+        | sed 's/".pfm"/""/g' \
+        | paste chroms.txt - \
+        | sort-bed - \
+        | bgzip -c \
+        > ${name}
     """
 }
 
