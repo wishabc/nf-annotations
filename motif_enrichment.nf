@@ -123,7 +123,7 @@ workflow calcEnrichment {
         moods_scans
         pvals_files
     main:
-        pval_file = filter_uniq_variants(pvals_files)
+        pval_file = filter_uniq_variants(pvals_files.collect())
         counts = motif_counts(moods_scans, pval_file) 
             | collectFile(name: 'motif_hits.bed', storeDir: "${params.outdir}")
         motif_ann = get_motif_stats(pvals_files.combine(counts))
