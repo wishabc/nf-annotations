@@ -171,9 +171,6 @@ def get_stats(motifs_df):
 
     print('\t'.join(map(str, fields)))
 
-def aggregate_subgroup(subgroup):
-    for x in subgroup:
-        get_stats(x)
 
 def main(variants_df_path, counts_df_path, jobs=3):
     # Load variant imbalance file
@@ -197,21 +194,8 @@ def main(variants_df_path, counts_df_path, jobs=3):
 
     # Compute preferred allele
     df = df.apply(get_prefered_allele, axis=1)
-    groups = df.groupby('motif')
-    groups_list = list(groups.groups)
-    j = min(jobs,
-        max(1, mp.cpu_count()))
-    n = len(groups_list) // j
-    subgroups = [[groups.get_group(x) 
-        for x in groups_list[i: i+n]]
-        for i in range(0, len(groups_list), n)]
-    ctx = mp.get_context('forkserver')
-
-    with ctx.Pool(j) as pool:
-        results = [pool.apply_async(aggregate_subgroup, (g, )) for g in subgroups]
-        for r in results:
-            r.get()
+    df.groupby('motif').apply(get_stats)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2], int(sys.argv[3]))
+    main(sys.argv[1], sys.argv[2])
