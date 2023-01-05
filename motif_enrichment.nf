@@ -122,6 +122,7 @@ process collect_files {
         path motif_counts_file
     output:
         path name
+
     script:
     name = "merged_motif_chunks.${file(motif_counts_file[0]).baseName}.bed"
     """
@@ -139,7 +140,7 @@ workflow calcEnrichment {
     main:
         pval_file = filter_uniq_variants(pvals_files.collect())
         counts = motif_counts(moods_scans, pval_file) 
-            | collate(200)
+            | collate(30)
             | collect_files
         motif_ann = pvals_files
             | combine(counts)
