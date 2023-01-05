@@ -97,6 +97,8 @@ process get_motif_stats {
     tag "${pval_file.simpleName}"
     publishDir "${params.outdir}/motif_stats"
     conda params.conda
+    cpus 5
+    label "high_mem"
 
     input:
         tuple path(pval_file), path(counts_file)
@@ -110,7 +112,7 @@ process get_motif_stats {
     # Counts file
     python3 ${projectDir}/bin/motif_stats.py  \
         ${pval_file} \
-        ${counts_file} > ${motif_stats}
+        ${counts_file} ${task.cpus} > ${motif_stats}
     """
 }
 

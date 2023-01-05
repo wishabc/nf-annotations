@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import scipy.stats as stats
 import statsmodels.api as sm
+import multiprocessing as mp
+
 
 # Params
 _complement = {"A": "T", "C": "G", "G": "C", "T": "A"}
@@ -169,8 +171,11 @@ def get_stats(motifs_df):
 
     print('\t'.join(map(str, fields)))
 
+def aggregate_subgroup(subgroup):
+    for x in subgroup:
+        get_stats(x)
 
-def main(variants_df_path, counts_df_path):
+def main(variants_df_path, counts_df_path, jobs=3):
     # Load variant imbalance file
     variants_df = set_index(pd.read_table(variants_df_path))
     if variants_df.empty:
@@ -192,8 +197,21 @@ def main(variants_df_path, counts_df_path):
 
     # Compute preferred allele
     df = df.apply(get_prefered_allele, axis=1)
-    df.groupby('motif').apply(get_stats)
+    groups = df.groupby('motif')
+    groups_list = list(groups.groups)
+    j = min(jobs,
+        max(1, mp.cpu_count()))
+    n = len(groups_list) // j
+    subgroups = [[groups.get_group(x) 
+        for x in groups_list[i: i+n]]
+        for i in range(0, len(groups_list), n)]
+    ctx = mp.get_context('forkserver')
+
+    with ctx.Pool(j) as pool:
+        results = [pool.apply_async(aggregate_subgroup, (g, )) for g in subgroups]
+        for r in results:
+            r.get()
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], int(sys.argv[3]))
