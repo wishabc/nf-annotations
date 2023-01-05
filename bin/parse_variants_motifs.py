@@ -14,7 +14,7 @@ SNV = namedtuple('SNV', ['chrom', 'start', 'end',
 
 def read_pfm(file):
     motif_id = os.path.splitext(os.path.basename(file))[0]
-    pfm = np.loadtxt(sys.argv[2])
+    pfm = np.loadtxt(file)
     pfm += 0.001
     pfm /= pfm.sum(axis=0)[np.newaxis,:]
     return motif_id, pfm
