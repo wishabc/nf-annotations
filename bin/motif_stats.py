@@ -14,6 +14,9 @@ flank_width = 20
 n_shuffles = 1000
 es_fld = 'es_weighted_mean'
 
+class CustomException(Exception):
+    pass
+
 def complement(x):
     return _complement[x]
 
@@ -57,61 +60,47 @@ def get_annotations(snvs, imbalanced):
     inside = snvs['within'] == 1
     
     snvs_in = snvs[inside & imbalanced]
-    if len(snvs_in) > 0:
+
+    try:
+        if len(snvs_in) == 0:
+            raise CustomException
+        
         pred = 'log_es'
 
         if pred == 'log_es':
-            lim = (-3, 3)
-            nbins = lim[1] * 8 + 1
-            fit_lim = (-2, 2)
             predictor_array = snvs_in[es_fld]
             x_0 = 0
         elif pred == 'raw_es':
-            lim = (0, 1)
-            nbins = 25
             predictor_array = logtr(snvs_in[es_fld])
-            fit_lim = (0.2, 0.8)
             x_0 = 0.5
         elif pred == 'signed_fdr':
-            lim = (-25, 25)
-            nbins = 25
             predictor_array = -np.log10(snvs_in['min_fdr']) * np.sign(snvs_in['es_weighted_mean'])
-            fit_lim = (-15, 15)
             x_0 = 0
 
+        if (predictor_array != 0).sum() == 0:
+            raise CustomException
+
         snvs_in['ddg'] = snvs_in['ref_score'] - snvs_in['alt_score']
-
-        bins=np.linspace(*lim, nbins)
-
-        xdiff = (bins[1]-bins[0])/2.0
-        x = bins[:-1]+xdiff
-
-        snvs_in["bin"] = pd.cut(predictor_array, bins)
-        
         
         X = predictor_array
         Y = snvs_in['ddg']
 
         X = sm.add_constant(X)
 
-
         model = sm.OLS(Y, X).fit()
 
         outliers = model.get_influence().cooks_distance[0] > (4/X.shape[0])
 
         model = sm.OLS(Y[~outliers], X[~outliers]).fit()
-
-        xx = np.array(fit_lim)
-        yy = xx * model.params.iloc[1] + model.params.iloc[0]
         
         r2 = model.rsquared
         concordance = get_concordant(predictor_array, snvs_in["ddg"], x0=x_0)
         
-        log_ref_bias = np.log2((predictor_array > 0).sum()) - np.log2((predictor_array < 0).sum())
-    else:
-         r2, concordance, log_ref_bias = np.nan, np.nan, np.nan
+        ref_bias = (predictor_array > 0).sum() / (predictor_array != 0).sum()
+    except CustomException:
+        r2, concordance, ref_bias = np.nan, np.nan, np.nan
 
-    return r2, concordance, log_ref_bias
+    return r2, concordance, ref_bias
 
 
 #Enrichment code
@@ -157,9 +146,9 @@ def get_stats(motifs_df):
     imbalanced = (motifs_df['min_fdr'] <= 0.05) # & ((motifs_df['ard'] > 0.65))# | (df['ard'] < 0.3))
     log_odds, pval, n_inside, n_imb_inside, n_median_inside, n_inside_more_7  = calc_enrichment(motifs_df, imbalanced)
     if imbalanced.sum() == 0:
-        r2, concordance, log_ref_bias = np.nan, np.nan, np.nan
+        r2, concordance, ref_bias = np.nan, np.nan, np.nan
     else:
-        r2, concordance, log_ref_bias = get_annotations(motifs_df, imbalanced)
+        r2, concordance, ref_bias = get_annotations(motifs_df, imbalanced)
 
     fields = [
         motifs_df.name,
@@ -171,7 +160,7 @@ def get_stats(motifs_df):
         n_inside_more_7,
         r2,
         concordance,
-        log_ref_bias
+        ref_bias
     ]
 
     print('\t'.join(map(str, fields)))
