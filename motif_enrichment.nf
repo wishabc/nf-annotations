@@ -122,7 +122,7 @@ process collect_files {
         path name
 
     script:
-    name = "merged_motif_chunks.${file(motif_counts_file[0]).baseName}.bed"
+    name = "merged_motif_chunks.bed"
     """
     for file in ${motif_counts_file}; do
         cat \$file >> merged_motifs.bed
