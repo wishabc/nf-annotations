@@ -21,9 +21,10 @@ process scan_with_moods {
     moods_params = file(params.bg_file).exists() ? "--lo-bg `cat ${params.bg_file}`" : ""
     """
     moods-dna.py --sep ";" -s ${params.alt_fasta_file} \
-        --p-value ${params.motif_pval_tr}
+        --p-value ${params.motif_pval_tr} \
         ${moods_params} \
-        -m "${pwm_path}" -o moods.log
+        -m "${pwm_path}" \
+        -o moods.log
 
     
     cat moods.log | awk '{print \$1}' > chroms.txt
