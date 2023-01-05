@@ -186,7 +186,6 @@ workflow calcEnrichment {
         motif_ann.collectFile(
                 storeDir: "${params.outdir}",
                 keepHeader: true,
-                newLine: true,
                 skip: 1) { item -> [ "${item[2].simpleName}/stats/${item[2].simpleName}.bed", item[1].text]}
     emit:
         counts
