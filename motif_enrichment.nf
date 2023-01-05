@@ -156,9 +156,7 @@ workflow readMoods {
             .splitCsv(header:true, sep:'\t')
             .map(row -> tuple(row.motif, file(row.motif_file)))
         if (file(params.moods_scans_dir).exists() && !params.redo_moods) {
-            moods_logs = Channel.fromPath("${params.moods_scans_dir}/*.moods.log.bed.gz")
-                .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
-            moods_scans = motifs.join(moods_logs)
+            moods_scans = motifs.map(it -> tuple(it[0], it[1], "${params.moods_scans_dir}/${it[0]}.moods.log.bed.gz"))
         } else {
             moods_scans = scan_with_moods(motifs)
         }
@@ -222,6 +220,7 @@ process cut_matrix {
 process calc_index_motif_enrichment {
     tag "${motif_id}"
     conda params.conda
+    publishDir "${params.outdir}/motif_stats_chunks"
     scratch true
 
     input:
@@ -231,7 +230,7 @@ process calc_index_motif_enrichment {
         tuple val(sample_id), path(name)
 
     script:
-    name = "${motif_id}_${sample_id}_enrichment.tsv"
+    name = "${motif_id}.${sample_id}.enrichment.tsv"
     """
     python3 $moduleDir/bin/index_motif_enrichment.py  \
         ${matrix} ${counts_file} ${motif_id} ${params.sample_names} ${sample_id} > ${name}
