@@ -113,7 +113,7 @@ process get_motif_stats {
     # Counts file
     python3 ${projectDir}/bin/motif_enrichment.py  \
         ${pval_file} \
-        ${counts_file} > ${enrichment_file}
+        ${counts_file} > ${motif_stats}
     """
 }
 
@@ -125,7 +125,7 @@ workflow calcEnrichment {
     main:
         pval_file = filter_uniq_variants(pvals_files.collect())
         counts = motif_counts(moods_scans, pval_file) 
-            | collectFile(name: 'motif_hits.bed', storeDir: "${params.outdir}")
+            | collectFile(name: 'motif_hits.bed', storeDir: "${params.outdir}", sort: true)
         motif_ann = get_motif_stats(pvals_files.combine(counts))
     emit:
         motif_ann
