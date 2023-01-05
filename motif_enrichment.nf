@@ -96,7 +96,7 @@ process motif_counts {
 }
 
 process get_motif_stats {
-    tag "${motif_id}"
+    tag "${pval_file.simpleName}"
     publishDir "${params.outdir}/motif_stats"
     conda params.conda
     scratch true
