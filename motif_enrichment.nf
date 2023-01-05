@@ -18,16 +18,13 @@ process scan_with_moods {
     
     script:
     name = "${motif_id}.moods.log.bed.gz"
+    moods_params = file(params.bg_file).exists() ? "--lo-bg `cat ${params.bg_file}`" : ""
     """
-    if [ -f ${params.bg_file}]; then
-        moods-dna.py --sep ";" -s ${params.alt_fasta_file} \
-            --p-value ${params.motif_pval_tr} --lo-bg `cat background_probs.py` \
-            -m "${pwm_path}" -o moods.log
-    else 
-        moods-dna.py --sep ";" -s ${params.alt_fasta_file} \
-            --p-value ${params.motif_pval_tr} \
-            -m "${pwm_path}" -o moods.log
-    fi
+    moods-dna.py --sep ";" -s ${params.alt_fasta_file} \
+        --p-value ${params.motif_pval_tr}
+        ${moods_params} \
+        -m "${pwm_path}" -o moods.log
+
     
     cat moods.log | awk '{print \$1}' > chroms.txt
 
