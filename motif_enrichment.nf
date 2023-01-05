@@ -111,7 +111,7 @@ process get_motif_stats {
     motif_stats = "${pval_file.simpleName}.motif_stats.tsv"
     """
     # Counts file
-    python3 ${projectDir}/bin/motif_enrichment.py  \
+    python3 ${projectDir}/bin/motif_stats.py  \
         ${pval_file} \
         ${counts_file} > ${motif_stats}
     """
