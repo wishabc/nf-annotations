@@ -95,16 +95,16 @@ process motif_counts {
 
 process get_motif_stats {
     tag "${pval_file.simpleName}"
-    publishDir "${params.outdir}/motif_stats"
+    //publishDir "${params.outdir}/motif_stats", pattern: "${motif_stats}"
     conda params.conda
-    cpus 5
+    cpus 1
     label "high_mem"
 
     input:
         tuple path(pval_file), path(counts_file)
 
     output:
-        path motif_stats
+        tuple path(pval_file), path(motif_stats)
     
     script:
     motif_stats = "${pval_file.simpleName}.motif_stats.tsv"
@@ -115,7 +115,22 @@ process get_motif_stats {
         ${counts_file} ${task.cpus} > ${motif_stats}
     """
 }
-
+process collect_files {
+    conda params.conda
+    
+    input:
+        path motif_counts_file
+    output:
+        path name
+    script:
+    name = "merged_motif_chunks.${file(motif_counts_file[0]).baseName}.bed"
+    """
+    for file in ${motif_counts_file}; do
+        cat \$file > merged_motifs.bed
+    done
+    sort-bed merged_motifs.bed > ${name}
+    """
+}
 
 workflow calcEnrichment {
     take:
@@ -124,8 +139,12 @@ workflow calcEnrichment {
     main:
         pval_file = filter_uniq_variants(pvals_files.collect())
         counts = motif_counts(moods_scans, pval_file) 
-            | collectFile(name: 'motif_hits.bed', storeDir: "${params.outdir}", sort: true)
-        motif_ann = get_motif_stats(pvals_files.combine(counts))
+            | collate(200)
+            | collect_files
+        motif_ann = pvals_files
+            | combine(counts)
+            | get_motif_stats
+            | collectFile(storeDir: "${params.outdir}/motif_stats")
     emit:
         motif_ann
 }

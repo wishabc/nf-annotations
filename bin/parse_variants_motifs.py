@@ -27,7 +27,7 @@ def complement(base):
 def seq_logp(mat, seq, bg=None):
     if bg is None:
         bg = [0.25, 0.25, 0.25, 0.25]
-    res=0
+    res = 0
     for i, c in enumerate(seq):
         j = 'ACGT'.find(c)
         res += np.log(mat[j,i]/bg[j])
