@@ -97,6 +97,7 @@ process get_motif_stats {
     tag "${pval_file.simpleName}"
     //publishDir "${params.outdir}/motif_stats", pattern: "${motif_stats}"
     conda params.conda
+    errorStrategy 'terminate'
 
     input:
         tuple path(pval_file), path(counts_file)
