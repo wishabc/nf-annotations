@@ -126,7 +126,7 @@ process collect_files {
     name = "merged_motif_chunks.${file(motif_counts_file[0]).baseName}.bed"
     """
     for file in ${motif_counts_file}; do
-        cat \$file > merged_motifs.bed
+        cat \$file >> merged_motifs.bed
     done
     sort-bed merged_motifs.bed > ${name}
     """
