@@ -11,19 +11,14 @@ from collections import namedtuple
 SNV = namedtuple('SNV', ['chrom', 'start', 'end',
          'name', 'score', 'strand', 'extra'])
 
-fasta = pyfaidx.Fasta(sys.argv[1], sequence_always_upper=True)
-pfm_dir = sys.argv[2]
 
-def load_pfm_dir(basedir):
-    res = {}
-    files = glob(f'{basedir}/*.pfm')
-    for file in files:
-        motif_id = os.path.splitext(os.path.basename(file))[0]
-        pfm = np.loadtxt(file)
-        pfm += 0.001
-        pfm /= pfm.sum(axis=0)[np.newaxis,:]
-        res[motif_id] = pfm
-    return res
+def read_pfm(file):
+    motif_id = os.path.splitext(os.path.basename(file))[0]
+    pfm = np.loadtxt(sys.argv[2])
+    pfm += 0.001
+    pfm /= pfm.sum(axis=0)[np.newaxis,:]
+    return motif_id, pfm
+
 
 def complement(base):
     _comp = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
@@ -52,83 +47,88 @@ def ddg(seq, ref, alt, offset, pfm):
 
     return ref_score, alt_score
     
-# Load PFMs
-pfms = load_pfm_dir(pfm_dir) 
-"chrom,start,end,id,...|"
-for line in sys.stdin:
-    fields = line.strip('\n').split("|")
+def main(fasta_path, pwm_path, input_iterator):
+    fasta = pyfaidx.Fasta(fasta_path, sequence_always_upper=True)
+    # Load PFM
+    motif_id, pfm = read_pfm(pwm_path)
 
-    snv_info = fields[0].split("\t")
-    snv_chrom = snv_info[0]
-    snv_start = int(snv_info[1])
-    snv_end = int(snv_info[2])
-    snv_dbsnp = snv_info[3] 
-    snv_ref = snv_info[4]
-    snv_alt = snv_info[5]
+    "chrom,start,end,id,...|"
+    for line in input_iterator:
+        fields = line.strip('\n').split("|")
 
-    elems=fields[1].split(";")
+        snv_info = fields[0].split("\t")
+        snv_chrom = snv_info[0]
+        snv_start = int(snv_info[1])
+        snv_end = int(snv_info[2])
+        snv_dbsnp = snv_info[3] 
+        snv_ref = snv_info[4]
+        snv_alt = snv_info[5]
 
-    variants_dict = {}
-    for elem in elems:
-        elem_info = elem.split("\t")
-        chrom=str(elem_info[0])
-        start=int(elem_info[1])
-        end=int(elem_info[2])
-        name=os.path.splitext(elem_info[3])[0]
-        score=float(elem_info[4])
-        strand=str(elem_info[5])
-        seq=str(elem_info[6])
+        elems=fields[1].split(";")
 
-        overlaps_variant = start <= snv_start and end >= snv_end
-        variants_dict.setdefault(name, []).append(
-            SNV(chrom=chrom, start=start, end=end, name=name,
-                score=score, strand=strand, 
-                extra=overlaps_variant)
-            )
+        variants_dict = {}
+        for elem in elems:
+            elem_info = elem.split("\t")
+            chrom=str(elem_info[0])
+            start=int(elem_info[1])
+            end=int(elem_info[2])
+            name=os.path.splitext(elem_info[3])[0]
+            score=float(elem_info[4])
+            strand=str(elem_info[5])
+            seq=str(elem_info[6])
+
+            overlaps_variant = start <= snv_start and end >= snv_end
+            variants_dict.setdefault(name, []).append(
+                SNV(chrom=chrom, start=start, end=end, name=name,
+                    score=score, strand=strand, 
+                    extra=overlaps_variant)
+                )
 
 
 
-    for motif, scores in variants_dict.items():
-        nearest = sorted(
-            scores, 
-            key = lambda x: (x.extra, x.score),
-            reverse=True
-        )[0]
-        pos = snv_start - nearest.start \
-            if nearest.strand == '+' else nearest.end - snv_end
+        for motif, scores in variants_dict.items():
+            nearest = sorted(
+                scores, 
+                key = lambda x: (x.extra, x.score),
+                reverse=True
+            )[0]
+            pos = snv_start - nearest.start \
+                if nearest.strand == '+' else nearest.end - snv_end
 
-        # 'extra' is 1 if variant directly overlaps motif
-        if nearest.extra:
-        
-            pfm = pfms[motif]
+            # 'extra' is 1 if variant directly overlaps motif
+            if nearest.extra:
+                assert motif == motif_id
 
-            seq = fasta[nearest.chrom][nearest.start:nearest.end]
-            if nearest.strand == '-':
-                seq = seq.reverse.complement.seq
-                ref = complement(snv_ref)
-                alt = complement(snv_alt)
+                seq = fasta[nearest.chrom][nearest.start:nearest.end]
+                if nearest.strand == '-':
+                    seq = seq.reverse.complement.seq
+                    ref = complement(snv_ref)
+                    alt = complement(snv_alt)
+                else:
+                    seq = seq.seq
+                    ref = snv_ref
+                    alt = snv_alt
+
+                ref_score, alt_score = ddg(seq, ref, alt, pos, pfm)
             else:
-                seq = seq.seq
-                ref = snv_ref
-                alt = snv_alt
+                ref_score = alt_score = 0
+                seq = '.'
+            out = '\t'.join(map(str, [snv_chrom,
+                                    snv_start,
+                                    snv_end, 
+                                    snv_dbsnp, 
+                                    snv_ref, 
+                                    snv_alt, 
+                                    motif, 
+                                    pos, 
+                                    nearest.extra, 
+                                    nearest.strand,
+                                    ref_score,
+                                    alt_score,
+                                    seq
+                                    ]))
+            print(out)
 
-            ref_score, alt_score = ddg(seq, ref, alt, pos, pfm)
-        else:
-            ref_score = alt_score = 0
-            seq = '.'
-        out = '\t'.join(map(str, [snv_chrom,
-                                  snv_start,
-                                  snv_end, 
-                                  snv_dbsnp, 
-                                  snv_ref, 
-                                  snv_alt, 
-                                  motif, 
-                                  pos, 
-                                  nearest.extra, 
-                                  nearest.strand,
-                                  ref_score,
-                                  alt_score,
-                                  seq
-                                  ]))
-        print(out)
 
+if __name__ == '__main__':
+    main(sys.argv[1], sys.argv[2], sys.stdin)
