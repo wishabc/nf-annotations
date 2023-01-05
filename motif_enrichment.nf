@@ -56,7 +56,7 @@ process filter_uniq_variants {
     echo "${pval_files}" | tr " " "\n" > filelist.txt
     while read file; do
         # extract chr, start, end, ID, ref, alt
-        cat \$file | awk '{print \$1,\$2,\$3,\$4,\$5,\$6}' >> merged_files.bed
+        cat \$file | awk -v OFS='\t' '\$1 ~ /^[^;#]/ {print \$1,\$2,\$3,\$4,\$5,\$6}' >> merged_files.bed
     done < filelist.txt
     sort-bed merged_files.bed | uniq > ${name}
     """
