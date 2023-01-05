@@ -88,7 +88,7 @@ process motif_counts {
         -    \
         | python $projectDir/bin/parse_variants_motifs.py \
             ${params.genome_fasta_file} \
-            \$PWD \
+            ${pwm_path} \
         > ${counts_file}
     """
 }
