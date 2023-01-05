@@ -75,7 +75,7 @@ process motif_counts {
         path counts_file
 
     script:
-    counts_file = "${motif_id}.counts.bed.gz"
+    counts_file = "${motif_id}.counts.bed"
     """
     zcat ${moods_file} | bedmap \
         --skip-unmapped \
@@ -89,8 +89,6 @@ process motif_counts {
         | python $projectDir/bin/parse_variants_motifs.py \
             ${params.genome_fasta_file} \
             \$PWD \
-        | sort-bed - \
-        | bgzip -c \
         > ${counts_file}
     """
 }
