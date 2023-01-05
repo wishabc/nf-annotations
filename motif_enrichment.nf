@@ -181,7 +181,7 @@ workflow calcEnrichment {
             storeDir: "${params.outdir}/stats",
             keepHeader: true,
             newLine: true,
-            skip: 1) { item -> [ "${item[2].simpleName}/motif_stats/${item[2].simpleName}.bed", item[1].text]}
+            skip: 1) { item -> [ "${item[2].simpleName}.bed", item[1].text]}
     emit:
         counts
 }
