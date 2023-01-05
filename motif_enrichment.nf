@@ -99,7 +99,6 @@ process get_motif_stats {
     tag "${pval_file.simpleName}"
     publishDir "${params.outdir}/motif_stats"
     conda params.conda
-    scratch true
 
     input:
         tuple path(pval_file), path(counts_file)
