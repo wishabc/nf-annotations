@@ -29,7 +29,7 @@ def flip_by_strand(x):
         #x['aa'] =  complement(x['aa'])
     return x
 
-def prefered_allele(x, es_fld='aggregated_es_weighted'):
+def prefered_allele(x, es_fld='es_weighted_mean'):
     x["prefered_allele"] = x["ref"] if x[es_fld] >= 0 else x["alt"]
     return x
 
@@ -83,9 +83,9 @@ def get_annotations(motif_id, variants, motif_counts):
                         'within', 'strand', 'ref_score', 'alt_score', 'seq'])
     v = set_index(df)
     v = v.apply(flip_by_strand, axis = 1)
-    es_flds = ['aggregated_es_weighted', 'aggregated_es']
+    es_flds = ['es_weighted_mean', 'es_mean']
     snvs = v.join(variants[es_flds + ['min_fdr']])
-    snvs = snvs.apply(lambda x: prefered_allele(x, 'aggregated_es_weighted'), axis=1)
+    snvs = snvs.apply(lambda x: prefered_allele(x, 'es_weighted_mean'), axis=1)
     var, imbl, log_odds, pval, _, pvals_per_nt, n_imb, n_all = variant_enrichment(snvs)
 
     df_ct_all = pd.crosstab(var['offset'], var['ref'])
@@ -97,7 +97,7 @@ def get_annotations(motif_id, variants, motif_counts):
     snvs_in = snvs[inside & imb]
     if len(snvs_in) > 0:
         pred = 'log_es'
-        es_fld = 'aggregated_es_weighted'
+        es_fld = 'es_weighted_mean'
 
         if pred == 'log_es':
             lim = (-3, 3)
@@ -114,7 +114,7 @@ def get_annotations(motif_id, variants, motif_counts):
         elif pred == 'signed_fdr':
             lim = (-25, 25)
             nbins = 25
-            predictor_array = -np.log10(snvs_in['min_fdr']) * np.sign(snvs_in['aggregated_es_weighted_ref'])
+            predictor_array = -np.log10(snvs_in['min_fdr']) * np.sign(snvs_in['es_weighted_mean'])
             fit_lim = (-15, 15)
             x_0 = 0
 
@@ -160,7 +160,6 @@ def get_annotations(motif_id, variants, motif_counts):
     
 def main(motif_id, all_variants, motif_counts, out_path):
     variants = pd.read_table(all_variants, header=0)
-    variants['min_fdr'] = variants[['fdrp_bh_ref', 'fdrp_bh_alt']].min(axis=1)
     variants = set_index(variants)
 
     motif_counts = get_annotations(motif_id=motif_id, motif_counts=motif_counts, variants=variants)
