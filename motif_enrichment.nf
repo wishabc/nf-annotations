@@ -42,25 +42,40 @@ process scan_with_moods {
     """
 }
 
+process filter_uniq_variants {
+    conda params.conda
+    scratch true
 
-process motif_enrichment {
-    publishDir "${params.outdir}/${pval_file.simpleName}/counts", pattern: "${counts_file}"
-    publishDir "${params.outdir}/${pval_file.simpleName}/enrichment", pattern: "${enrichment_file}"
-    //scratch true
-    errorStrategy "terminate"
+    input:
+        path(pval_files)
+    output:
+        path name
+    script:
+    name = "merged.snps.sorted.uniq.bed"
+    """
+    echo "${pval_files}" | tr " " "\n" > filelist.txt
+    while read file; do
+        # extract chr, start, end, ID, ref, alt
+        cat \$file | awk '{print \$1,\$2,\$3,\$4,\$5,\$6}' >> merged_files.bed
+    done < filelist.txt
+    sort-bed merged_files.bed | uniq > ${name}
+    """
+}
+
+process motif_counts {
+    scratch true
     tag "${motif_id}"
     conda params.conda
 
     input:
-        tuple val(motif_id), path(pwm_path), path(moods_file), path(pval_file)
+        tuple val(motif_id), path(pwm_path), path(moods_file)
+        path pval_file
 
     output:
-        tuple val(motif_id), path(counts_file), path(pval_file), emit: counts
-        tuple val(motif_id), path(enrichment_file), path(pval_file), emit: enrichment
+        path counts_file
 
     script:
     counts_file = "${motif_id}.counts.bed.gz"
-    enrichment_file = "${motif_id}.enrichment.bed.gz"
     """
     zcat ${moods_file} | bedmap \
         --skip-unmapped \
@@ -69,7 +84,7 @@ process motif_enrichment {
         --delim "|" \
         --multidelim ";" \
         --echo \
-        --echo-map <(sort-bed ${pval_file}) \
+        --echo-map <(cat ${pval_file}) \
         -    \
         | python $projectDir/bin/parse_variants_motifs.py \
             ${params.genome_fasta_file} \
@@ -77,34 +92,71 @@ process motif_enrichment {
         | sort-bed - \
         | bgzip -c \
         > ${counts_file}
-
-    if ! [ -f ${counts_file} ]; then
-        exit 1
-    fi
-
-    python3 ${projectDir}/bin/motif_enrichment.py  \
-        ${pval_file} \
-        ${counts_file} \
-        ${motif_id} | bgzip -c > ${enrichment_file}
     """
 }
 
 process get_motif_stats {
     tag "${motif_id}"
+    publishDir "${params.outdir}/motif_stats"
     conda params.conda
     scratch true
 
     input:
-        tuple val(motif_id), path(counts_file), path(pval_file)
+        tuple path(pval_file), path(counts_file)
 
     output:
-        tuple val(motif_id), path(name), path(pval_file)
+        path motif_stats
     
     script:
-    name = "${motif_id}.motif_stats.tsv"
+    motif_stats = "${pval_file.simpleName}.motif_stats.tsv"
     """
-    python3 $moduleDir/bin/motif_stats.py ${motif_id} ${pval_file} ${counts_file} ${name}
+    # Counts file
+    python3 ${projectDir}/bin/motif_enrichment.py  \
+        ${pval_file} \
+        ${counts_file} > ${enrichment_file}
     """
+}
+
+
+workflow calcEnrichment {
+    take:
+        moods_scans
+        pvals_files
+    main:
+        pval_file = filter_uniq_variants(pvals_files)
+        counts = motif_counts(moods_scans, pval_file) 
+            | collectFile(name: 'motif_hits.bed', storeDir: "${params.outdir}")
+        motif_ann = get_motif_stats(pvals_files.combine(counts))
+    emit:
+        motif_ann
+}
+
+params.redo_moods = false
+workflow readMoods {
+    // Check if moods_scans_dir exists, if not run motifEnrichment pipeline
+    main:
+        motifs = Channel.fromPath(params.motifs_list)
+            .splitCsv(header:true, sep:'\t')
+            .map(row -> tuple(row.motif, file(row.motif_file)))
+        if (file(params.moods_scans_dir).exists() && !params.redo_moods) {
+            moods_logs = Channel.fromPath("${params.moods_scans_dir}/*.moods.log.bed.gz")
+                .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
+            moods_scans = motifs.join(moods_logs)
+        } else {
+            moods_scans = scan_with_moods(motifs)
+        }
+    emit:
+        moods_scans
+}
+
+workflow {
+    pvals = Channel.fromPath("${params.pval_file_dir}/*.bed")
+        .map(it -> file(it))
+    motifs = Channel.fromPath(params.motifs_list)
+        .splitCsv(header:true, sep:'\t')
+        .map(row -> tuple(row.motif, file(row.motif_file)))
+    moods_scans = readMoods()
+    calcEnrichment(moods_scans, pvals)
 }
 
 
@@ -168,64 +220,6 @@ process calc_index_motif_enrichment {
         ${matrix} ${counts_file} ${motif_id} ${params.sample_names} ${sample_id} > ${name}
     """
 
-}
-
-
-workflow calcEnrichment {
-    take:
-        args
-    main:
-        counts = motif_enrichment(args).counts //, motifs.map(it -> it[2]).collect())
-        motif_ann = get_motif_stats(counts)
-        // Workaround because collectFile doesn't support variable in storeDir
-        motif_ann
-            | map(it -> it[2].simpleName)
-            | unique()
-            | map(it -> file("${params.outdir}/${it}/stats").mkdirs())
-
-        motif_ann.collectFile(
-                storeDir: "${params.outdir}",
-                keepHeader: true,
-                skip: 1) { item -> [ "${item[2].simpleName}/stats/${item[2].simpleName}.bed", item[1].text]}
-    emit:
-        counts
-}
-
-params.redo_moods = false
-workflow readMoods {
-    // Check if moods_scans_dir exists, if not run motifEnrichment pipeline
-    main:
-        motifs = Channel.fromPath(params.motifs_list)
-            .splitCsv(header:true, sep:'\t')
-            .map(row -> tuple(row.motif, file(row.motif_file)))
-        if (file(params.moods_scans_dir).exists() && !params.redo_moods) {
-            moods_logs = Channel.fromPath("${params.moods_scans_dir}/*.moods.log.bed.gz")
-                .map(it -> tuple(file(it).name.replace('.moods.log.bed.gz', ''), file(it)))
-            moods_scans = motifs.join(moods_logs)
-        } else {
-            moods_scans = scan_with_moods(motifs)
-        }
-    emit:
-        moods_scans
-}
-
-workflow test {
-    motifs = Channel.fromPath(params.motifs_list)
-        .splitCsv(header:true, sep:'\t')
-        .map(row -> tuple(row.motif, file(row.motif_file), "${params.moods_scans_dir}/${row.motif}.moods.log.bed.gz"))
-        .filter { !file(it[2]).exists() }
-        .map(it -> tuple(it[0], it[1]))
-    scan_with_moods(motifs)
-}
-
-workflow {
-    pvals = Channel.fromPath("${params.pval_file_dir}/*.bed")
-        .map(it -> file(it))
-    motifs = Channel.fromPath(params.motifs_list)
-        .splitCsv(header:true, sep:'\t')
-        .map(row -> tuple(row.motif, file(row.motif_file)))
-    moods_scans = readMoods()
-    calcEnrichment(moods_scans.combine(pvals))
 }
 
 workflow indexEnrichment {
