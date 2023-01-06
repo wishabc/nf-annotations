@@ -189,7 +189,7 @@ process motif_hits_intersect {
     script:
     counts_file = "${motif_id}.hits.bed"
     """
-    zcat ${moods_file} | bedmap --indicator  --fraction-map 1 ${index_file} - > ${counts_file}
+    zcat ${moods_file} | bedmap --indicator --sweep-all --fraction-map 1 ${index_file} - > ${counts_file}
     """
 }
 
