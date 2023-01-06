@@ -196,9 +196,10 @@ process motif_hits_intersect {
 process cut_matrix {
     conda params.conda
     tag "samples ${interval}"
+    scratch true
 
     input:
-        val(sample_id)
+        val sample_id
 
     output:
         tuple val(interval), path(name)
