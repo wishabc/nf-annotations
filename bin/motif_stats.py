@@ -110,7 +110,7 @@ def calc_enrichment(motifs_df, imbalanced):
     n_imbalanced = np.histogram(motifs_df['offset'][imbalanced], bins=bins)[0]
     n_not_imbalanced = n_all - n_imbalanced
     n_inside = np.nansum(n_all[flank_width:-flank_width])
-    if n_imbalanced.sum() == 0:
+    if n_imbalanced[flank_width:-flank_width].sum() == 0 or n_not_imbalanced[flank_width:-flank_width].sum() == 0:
         return np.nan, np.nan, n_inside, 0, 0, 0
     log_odds = np.log2((n_imbalanced[flank_width:-flank_width].sum() / n_imbalanced.sum()) / (n_not_imbalanced[flank_width:-flank_width].sum() / n_not_imbalanced.sum()) )
     # log_odds_per_nt = np.log2((n_imbalanced / n_imbalanced.sum()) / (n_not_imbalanced / n_not_imbalanced.sum()))
