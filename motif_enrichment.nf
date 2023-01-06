@@ -179,8 +179,6 @@ process motif_hits_intersect {
     publishDir "${params.outdir}/counts", pattern: "${counts_file}"
     tag "${motif_id}"
     conda params.conda
-    memory { 16.GB * task.attempt }
-    scratch true
 
     input:
         tuple val(motif_id), path(moods_file), path(index_file)
@@ -249,7 +247,29 @@ workflow indexEnrichment {
     out = motif_hits_intersect(moods_scans.combine(index))
         | combine(c_mat)
         | calc_index_motif_enrichment
-        | flatten
         | collectFile(name: 'motif_enrichment.tsv', 
                       storeDir: "$launchDir/${params.outdir}")
+}
+
+workflow debug_counts {
+    samples_count = file(params.sample_names).countLines().intdiv(params.step)
+    sample_names = Channel.of(0..samples_count).map(it -> it * params.step + 1)
+    index = Channel.fromPath(file(params.index_file))
+
+    moods_scans = readMoods().map(it -> tuple(it[0], it[2]))
+
+    c_mat = cut_matrix(sample_names)
+    out = motif_hits_intersect(moods_scans.combine(index)
+            .filter { !file("$launchDir/${params.outdir}/counts/${it[0]}.hits.bed").exists() })
+}
+
+workflow debug2 {
+    samples_count = file(params.sample_names).countLines().intdiv(params.step)
+    sample_names = Channel.of(0..samples_count).map(it -> it * params.step + 1)
+    index = Channel.fromPath(file(params.index_file))
+
+    moods_scans = readMoods().map(it -> tuple(it[0], it[2]))
+
+    c_mat = cut_matrix(sample_names)
+    out = motif_hits_intersect(moods_scans.combine(index))
 }
