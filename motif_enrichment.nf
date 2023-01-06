@@ -244,8 +244,7 @@ workflow indexEnrichment {
     moods_scans = readMoods().map(it -> tuple(it[0], it[2]))
 
     c_mat = cut_matrix(sample_names)
-    out = motif_hits_intersect(moods_scans.combine(index))
-        | combine(c_mat)
+    out = motif_hits_intersect(moods_scans.combine(index)).combine(c_mat)
         | calc_index_motif_enrichment
         | collectFile(name: 'motif_enrichment.tsv', 
                       storeDir: "$launchDir/${params.outdir}")
@@ -268,8 +267,10 @@ workflow debug2 {
     sample_names = Channel.of(0..samples_count).map(it -> it * params.step + 1)
     index = Channel.fromPath(file(params.index_file))
 
-    moods_scans = readMoods().map(it -> tuple(it[0], it[2]))
-
     c_mat = cut_matrix(sample_names)
-    out = motif_hits_intersect(moods_scans.combine(index))
+    motif_hits = readMoods()
+        | map(it -> tuple(it[0], file("$launchDir/${params.outdir}/counts/${it[0]}.hits.bed")))
+        | combine(c_mat)
+        | filter { !file("$launchDir/${params.outdir}/motif_stats_chunks/${it[0]}.${it[2]}.enrichment.tsv").exists() }
+        | calc_index_motif_enrichment
 }
