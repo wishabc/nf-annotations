@@ -238,7 +238,10 @@ process calc_index_motif_enrichment {
 
 workflow indexEnrichment {
     samples_count = file(params.sample_names).countLines().intdiv(params.step)
-    sample_names = Channel.of(0..samples_count).map(it -> it * params.step + 1)
+    sample_names = Channel.of(0..samples_count).
+        | map(it -> it * params.step + 1)
+        | toInteger()
+
     index = Channel.fromPath(file(params.index_file))
 
     moods_scans = readMoods().map(it -> tuple(it[0], it[2]))
@@ -252,7 +255,9 @@ workflow indexEnrichment {
 
 workflow debug_counts {
     samples_count = file(params.sample_names).countLines().intdiv(params.step)
-    sample_names = Channel.of(0..samples_count).map(it -> it * params.step + 1)
+    sample_names = Channel.of(0..samples_count).
+        | map(it -> it * params.step + 1)
+        | toInteger()
     index = Channel.fromPath(file(params.index_file))
 
     moods_scans = readMoods().map(it -> tuple(it[0], it[2]))
