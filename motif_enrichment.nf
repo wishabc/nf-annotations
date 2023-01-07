@@ -47,7 +47,7 @@ process filter_uniq_variants {
     scratch true
 
     input:
-        path(pval_files)
+        path pval_files
     output:
         path name
     script:
@@ -72,7 +72,7 @@ process motif_counts {
         path pval_file
 
     output:
-        path counts_file
+        tuple val(motif_id), path(counts_file)
 
     script:
     counts_file = "${motif_id}.counts.bed"
@@ -93,6 +93,28 @@ process motif_counts {
     """
 }
 
+process collect_counts {
+    conda params.conda
+    scratch true
+    
+    input:
+        tuple val(motif_ids), path(motif_counts_files)
+
+    output:
+        tuple val(prefix), path(name)
+
+    script:
+    prefix = motif_ids[0]
+    name = "${prefix}.merged.bed"
+    """
+    echo "${motif_counts_files}" | tr " " "\n" > filelist.txt
+    while read file; do
+        cat \$file >> merged_motifs.bed
+    done < filelist.txt
+    sort-bed merged_motifs.bed > ${name}
+    """
+}
+
 process get_motif_stats {
     tag "${pval_file.simpleName}"
     publishDir "${params.outdir}/motif_stats", pattern: "${motif_stats}"
@@ -100,34 +122,17 @@ process get_motif_stats {
     errorStrategy 'terminate'
 
     input:
-        tuple path(pval_file), path(counts_file)
+        tuple path(pval_file), val(prefix), path(counts_file)
 
     output:
         tuple path(pval_file), path(motif_stats)
     
     script:
-    motif_stats = "${pval_file.simpleName}.${counts_file[0].simpleName}.motif_stats.tsv"
+    motif_stats = "${pval_file.baseName}.${prefix}.stats.tsv"
     """
     # Counts file
     python3 ${projectDir}/bin/motif_stats.py  \
         ${pval_file} ${counts_file} > ${motif_stats}
-    """
-}
-process collect_files {
-    conda params.conda
-    
-    input:
-        path motif_counts_file
-    output:
-        path name
-
-    script:
-    name = "merged_motif_chunks.bed"
-    """
-    for file in ${motif_counts_file}; do
-        cat \$file >> merged_motifs.bed
-    done
-    sort-bed merged_motifs.bed > ${name}
     """
 }
 
@@ -138,15 +143,15 @@ workflow calcEnrichment {
     main:
         pval_file = filter_uniq_variants(pvals_files.collect(sort: true))
         counts = motif_counts(moods_scans, pval_file)
-            | collect(sort: true)
-            | flatten()
             | collate(30)
-            | collect_files
+            | collect_counts
 
         motif_ann = pvals_files
             | combine(counts)
             | get_motif_stats
-            | collectFile(storeDir: "${params.outdir}/stats") { it -> ["${it[0].simpleName}.txt", it[1].text] }
+            | collectFile(
+                    storeDir: "${params.outdir}/stats"
+                ) { it -> ["${it[0].simpleName}.txt", it[1].text] }
     emit:
         motif_ann
 }
