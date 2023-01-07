@@ -255,7 +255,7 @@ workflow indexEnrichment {
 
 workflow debug_counts {
     samples_count = file(params.sample_names).countLines().intdiv(params.step)
-    sample_names = Channel.of(0..samples_count).
+    sample_names = Channel.of(0..samples_count)
         | map(it -> it * params.step + 1)
         | toInteger()
     index = Channel.fromPath(file(params.index_file))
