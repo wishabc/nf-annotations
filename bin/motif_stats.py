@@ -109,33 +109,26 @@ def calc_enrichment(motifs_df, imbalanced):
     n_all = np.histogram(motifs_df['offset'], bins=bins)[0]
     n_imbalanced = np.histogram(motifs_df['offset'][imbalanced], bins=bins)[0]
     n_not_imbalanced = n_all - n_imbalanced
-    n_inside = np.nansum(n_all[flank_width:-flank_width])
-    if n_imbalanced[flank_width:-flank_width].sum() == 0 or n_not_imbalanced[flank_width:-flank_width].sum() == 0:
-        return np.nan, np.nan, n_inside, 0, 0, 0
-    log_odds = np.log2((n_imbalanced[flank_width:-flank_width].sum() / n_imbalanced.sum()) / (n_not_imbalanced[flank_width:-flank_width].sum() / n_not_imbalanced.sum()) )
-    # log_odds_per_nt = np.log2((n_imbalanced / n_imbalanced.sum()) / (n_not_imbalanced / n_not_imbalanced.sum()))
 
-    perm = np.zeros(n_shuffles)
-    # perm_per_nt = np.zeros((n_shuffles, len(bins) - 1))
+    total_inside = np.nansum(n_all[flank_width:-flank_width])
+    total_imbalanced_inside = np.nansum(n_imbalanced[flank_width:-flank_width])
+    if total_imbalanced_inside == 0 or total_inside - total_imbalanced_inside == 0:
+        return np.nan, np.nan, total_inside, 0, 0, 0
 
-    for i in range(n_shuffles):
-        n_exp_imbalanced = np.histogram(motifs_df['offset'][np.random.permutation(imbalanced)], bins=bins)[0] + 1
-        n_exp_not_imbalanced = n_all - n_exp_imbalanced + 1 
-
-        perm[i] = np.log2( (n_exp_imbalanced[flank_width:-flank_width].sum() / n_exp_imbalanced.sum()) / (n_exp_not_imbalanced[flank_width:-flank_width].sum() / n_exp_not_imbalanced.sum()) )
-        # perm_per_nt[i,:] = np.log2( (n_exp_imbalanced / np.sum(n_exp_imbalanced)) / (n_exp_not_imbalanced / np.sum(n_exp_not_imbalanced)))
-
-    pval = -1 * stats.norm.logsf(log_odds,
-                    loc=np.nanmean(perm, axis=0),
-                    scale=np.nanstd(perm, axis=0)) / np.log(10)
-    # pvals_per_nt = -1 * stats.norm.logsf(log_odds_per_nt,
-    #             loc=np.nanmean(perm_per_nt, axis=0), 
-    #             scale=np.nanstd(perm_per_nt, axis=0)) / np.log(10)
+    log_odds = np.log2(total_imbalanced_inside) - np.log2(total_inside - total_imbalanced_inside) - \
+        np.log2(np.nansum(n_imbalanced) - total_imbalanced_inside) + \
+            np.log2(np.nansum(n_all) - np.nansum(n_imbalanced) - total_inside + total_imbalanced_inside)
+    pval = -stats.hypergeom.logsf(
+        total_imbalanced_inside,
+        np.nansum(n_all),
+        np.nansum(n_imbalanced),
+        total_inside
+    ) / np.log(10)
 
     return [
         log_odds,
         pval,
-        n_inside,
+        total_inside,
         np.nansum(n_imbalanced[flank_width:-flank_width]),
         np.nanmedian(n_all[flank_width:-flank_width]),
         np.nansum(n_imbalanced[flank_width:-flank_width]>=7)
