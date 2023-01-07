@@ -119,7 +119,6 @@ process get_motif_stats {
     tag "${pval_file.simpleName}"
     publishDir "${params.outdir}/motif_stats", pattern: "${motif_stats}"
     conda params.conda
-    errorStrategy 'terminate'
 
     input:
         tuple path(pval_file), val(prefix), path(counts_file)
@@ -151,7 +150,7 @@ workflow calcEnrichment {
             | get_motif_stats
             | collectFile(
                     storeDir: "${params.outdir}/stats"
-                ) { it -> ["${it[0].simpleName}.txt", it[1].text] }
+                ) { it -> ["${it[0].simpleName}.motif_stats.txt", it[1].text] }
     emit:
         motif_ann
 }
