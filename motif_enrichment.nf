@@ -103,10 +103,10 @@ process get_motif_stats {
         tuple path(pval_file), path(counts_file)
 
     output:
-        path motif_stats
+        tuple path(pval_file), path(motif_stats)
     
     script:
-    motif_stats = "${pval_file.simpleName}.motif_stats.tsv"
+    motif_stats = "${pval_file.simpleName}.${counts_file[0].simpleName}.motif_stats.tsv"
     """
     # Counts file
     python3 ${projectDir}/bin/motif_stats.py  \
@@ -137,13 +137,16 @@ workflow calcEnrichment {
         pvals_files
     main:
         pval_file = filter_uniq_variants(pvals_files.collect(sort: true))
-        counts = motif_counts(moods_scans, pval_file) 
+        counts = motif_counts(moods_scans, pval_file)
+            | collect(sort: true)
+            | flatten()
             | collate(30)
             | collect_files
+
         motif_ann = pvals_files
             | combine(counts)
             | get_motif_stats
-            | collectFile(storeDir: "${params.outdir}") { it.text }
+            | collectFile(storeDir: "${params.outdir}/stats") { it -> ["${it[0].simpleName}.txt", it[1].text] }
     emit:
         motif_ann
 }
