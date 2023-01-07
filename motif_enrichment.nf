@@ -136,7 +136,7 @@ workflow calcEnrichment {
         moods_scans
         pvals_files
     main:
-        pval_file = filter_uniq_variants(pvals_files.collect())
+        pval_file = filter_uniq_variants(pvals_files.collect(sort: true))
         counts = motif_counts(moods_scans, pval_file) 
             | collate(30)
             | collect_files
@@ -238,7 +238,7 @@ process calc_index_motif_enrichment {
 
 workflow indexEnrichment {
     samples_count = file(params.sample_names).countLines().intdiv(params.step)
-    sample_names = Channel.of(0..samples_count).
+    sample_names = Channel.of(0..samples_count)
         | map(it -> it * params.step + 1)
         | toInteger()
 
