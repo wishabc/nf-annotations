@@ -95,7 +95,7 @@ process motif_counts {
 
 process get_motif_stats {
     tag "${pval_file.simpleName}"
-    //publishDir "${params.outdir}/motif_stats", pattern: "${motif_stats}"
+    publishDir "${params.outdir}/motif_stats", pattern: "${motif_stats}"
     conda params.conda
     errorStrategy 'terminate'
 
@@ -143,7 +143,7 @@ workflow calcEnrichment {
         motif_ann = pvals_files
             | combine(counts)
             | get_motif_stats
-            | collectFile(storeDir: "${params.outdir}/motif_stats") { it.text }
+            | collectFile(storeDir: "${params.outdir}") { it.text }
     emit:
         motif_ann
 }
