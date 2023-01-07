@@ -166,10 +166,9 @@ workflow readMoods {
 
 workflow {
     pvals = Channel.fromPath("${params.pval_file_dir}/*.bed")
-        .map(it -> file(it))
-    motifs = Channel.fromPath(params.motifs_list)
-        .splitCsv(header:true, sep:'\t')
-        .map(row -> tuple(row.motif, file(row.motif_file)))
+        | map(it -> file(it))
+        | collect(sort: true)
+        | flatten()
     moods_scans = readMoods()
     calcEnrichment(moods_scans, pvals)
 }
