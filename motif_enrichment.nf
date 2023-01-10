@@ -182,7 +182,7 @@ workflow {
 }
 
 workflow test {
-    pvals = Channel.fromPath("${params.pval_file_dir}/*.bed")
+    pvals_files = Channel.fromPath("${params.pval_file_dir}/*.bed")
         | map(it -> file(it))
     pval_file = filter_uniq_variants(pvals_files.collect(sort: true))
 
