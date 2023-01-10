@@ -181,6 +181,15 @@ workflow {
     calcEnrichment(moods_scans, pvals)
 }
 
+workflow test {
+    pvals = Channel.fromPath("${params.pval_file_dir}/*.bed")
+        | map(it -> file(it))
+    pval_file = filter_uniq_variants(pvals_files.collect(sort: true))
+
+    moods_scans = readMoods()
+    counts = motif_counts(moods_scans, pval_file)
+}
+
 
 process motif_hits_intersect {
     publishDir "${params.outdir}/counts", pattern: "${counts_file}"
@@ -258,31 +267,4 @@ workflow indexEnrichment {
         | calc_index_motif_enrichment
         | collectFile(name: 'motif_enrichment.tsv', 
                       storeDir: "$launchDir/${params.outdir}")
-}
-
-workflow debug_counts {
-    samples_count = file(params.sample_names).countLines().intdiv(params.step)
-    sample_names = Channel.of(0..samples_count)
-        | map(it -> it * params.step + 1)
-        | toInteger()
-    index = Channel.fromPath(file(params.index_file))
-
-    moods_scans = readMoods().map(it -> tuple(it[0], it[2]))
-
-    c_mat = cut_matrix(sample_names)
-    out = motif_hits_intersect(moods_scans.combine(index)
-            .filter { !file("$launchDir/${params.outdir}/counts/${it[0]}.hits.bed").exists() })
-}
-
-workflow debug2 {
-    samples_count = file(params.sample_names).countLines().intdiv(params.step)
-    sample_names = Channel.of(0..samples_count).map(it -> it * params.step + 1)
-    index = Channel.fromPath(file(params.index_file))
-
-    c_mat = cut_matrix(sample_names)
-    motif_hits = readMoods()
-        | map(it -> tuple(it[0], file("$launchDir/${params.outdir}/counts/${it[0]}.hits.bed")))
-        | combine(c_mat)
-        | filter { !file("$launchDir/${params.outdir}/motif_stats_chunks/${it[0]}.${it[2]}.enrichment.tsv").exists() }
-        | calc_index_motif_enrichment
 }
