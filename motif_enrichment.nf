@@ -66,6 +66,7 @@ process motif_counts {
     scratch true
     tag "${motif_id}"
     conda params.conda
+    publishDir "${params.outdir}/counts"
 
     input:
         tuple val(motif_id), path(pwm_path), path(moods_file)
