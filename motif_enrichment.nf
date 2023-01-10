@@ -99,13 +99,13 @@ process collect_counts {
     scratch true
     
     input:
-        tuple val(motif_ids), path(motif_counts_files)
+        path motif_counts_files
 
     output:
         tuple val(prefix), path(name)
 
     script:
-    prefix = motif_ids[0]
+    prefix = motif_counts_files[0].replace('.counts.bed', '')
     name = "${prefix}.merged.bed"
     """
     echo "${motif_counts_files}" | tr " " "\n" > filelist.txt
