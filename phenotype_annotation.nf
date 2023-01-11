@@ -49,24 +49,32 @@ process make_ldsc_annotation {
 
 // TODO wrap in apptainer
 process calc_ld {
-    publishDir "${params.outdir}/l2_logs", pattern: "${name}.log"
-    publishDir "${params.outdir}/${annotation_file.simpleName}/", pattern: "${name}.l2.ldscore.gz"
-    publishDir "${params.outdir}/${annotation_file.simpleName}/", pattern: "${name}.l2.M*"
-    publishDir "${params.outdir}/${annotation_file.simpleName}/l2", pattern: "${annotation_file}"
+    publishDir "${outdir}/l2_logs", pattern: "${name}.log", enabled: !is_baseline
+    publishDir "${outdir}", pattern: "${name}.l2.ldscore.gz"
+    publishDir "${outdir}", pattern: "${name}.l2.M*"
+    publishDir "${outdir}/l2", pattern: "${annotation_file}", enabled: !is_baseline
     tag "chr${chrom}:${annotation_file.simpleName}"
     scratch true
     conda params.ldsc_conda
 
     input:
         tuple val(chrom), path(annotation_file)
+        val process_type
     
     output:
         tuple val(annotation_file.simpleName), path("${name}*"), path(annotation_file)
     
     script:
-    name = "l2/${annotation_file.simpleName}.${chrom}"
+    is_baseline = process_type == 'baseline'
+    if (is_baseline) {
+        outdir = file(params.base_ann_path).parent
+        name = "${annotation_file.simpleName}.${chrom}"
+    } else {
+        outdir = "${params.outdir}/${annotation_file.simpleName}/"
+        name = "l2/${annotation_file.simpleName}.${chrom}"
+    }
     """
-    mkdir result
+    mkdir l2
     # Check if --print-snps parameter is needed
     ${params.ldsc_scripts_path}/ldsc.py \
         --print-snps ${params.tested_snps} \
@@ -126,7 +134,7 @@ workflow calcBaseline {
     data = Channel.of(1..22).map(
         it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true))
     )
-    calc_ld(data)
+    calc_ld(data, 'baseline')
 }
 
 workflow {
@@ -134,7 +142,8 @@ workflow {
         "${params.annotations_dir}/*"
     )
     data = Channel.of(1..22).combine(custom_annotations)
-    lds = make_ldsc_annotation(data) | calc_ld
+    anns = make_ldsc_annotation(data) 
+    lds = calc_ld(anns, 'data')
     ldsc_data = lds.map(it -> tuple(it[0], [it[1], it[2]].flatten()))
         .groupTuple(size: 22)
         .map(

@@ -46,6 +46,7 @@ Moods scans are automatically created if you provide non-existent directory in `
 ## Phenotypes associations analysis
 ### UKBB associations
 1) Fill in parameters in ```params.config``` file, section ```LDSC data```
+2) (optional) If baseline LD scores are not calculated, run ```nextflow run <src-dir>/phenotype_annotation.nf -profile Altius -resume -entry calcBaseline```. They will be saved to parent directory of `params.base_ann_path` with the specified prefix.
 2) Run LDSC on annotation files with
 ```nextflow run <src-dir>/phenotype_annotation.nf -profile Altius -resume```
 
