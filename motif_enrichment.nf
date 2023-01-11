@@ -171,23 +171,18 @@ workflow readMoods {
     emit:
         moods_scans
 }
-
-workflow {
-    pvals = Channel.fromPath("${params.pval_file_dir}/*.bed")
-        | map(it -> file(it))
-        | collect(sort: true)
-        | flatten()
-    moods_scans = readMoods()
-    calcEnrichment(moods_scans, pvals)
+workflow filterUniqPvals {
+    main:
+        out = Channel.fromPath("${params.pval_file_dir}/*.bed")
+            | map(it -> file(it))
+            | collect(sort: true)
+            | flatten()
+    emit:
+        out
 }
-
-workflow test {
-    pvals_files = Channel.fromPath("${params.pval_file_dir}/*.bed")
-        | map(it -> file(it))
-    pval_file = filter_uniq_variants(pvals_files.collect(sort: true))
-
+workflow {
     moods_scans = readMoods()
-    counts = motif_counts(moods_scans, pval_file)
+    calcEnrichment(moods_scans, filterUniqPvals())
 }
 
 

@@ -1,4 +1,6 @@
 #!/usr/bin/env nextflow
+include { filterUniqPvals } from "./motif_enrichment"
+
 params.conda = "$moduleDir/environment.yml"
 
 params.phenotypes_data = "/home/sabramov/phenotypes_data"
@@ -48,9 +50,9 @@ process make_ldsc_annotation {
 // TODO wrap in apptainer
 process calc_ld {
     publishDir "${params.outdir}/l2_logs", pattern: "${name}.log"
-    publishDir "${params.outdir}/${annotation_file.simpleName}/l2", pattern: "${name}.l2.ldscore.gz"
-    publishDir "${params.outdir}/${annotation_file.simpleName}/l2", pattern: "${name}.l2.M*"
-    publishDir "${params.outdir}/${annotation_file.simpleName}/l2/result", pattern: "${annotation_file}"
+    publishDir "${params.outdir}/${annotation_file.simpleName}/", pattern: "${name}.l2.ldscore.gz"
+    publishDir "${params.outdir}/${annotation_file.simpleName}/", pattern: "${name}.l2.M*"
+    publishDir "${params.outdir}/${annotation_file.simpleName}/l2", pattern: "${annotation_file}"
     tag "chr${chrom}:${annotation_file.simpleName}"
     scratch true
     conda params.ldsc_conda
@@ -62,7 +64,7 @@ process calc_ld {
         tuple val(annotation_file.simpleName), path("${name}*"), path(annotation_file)
     
     script:
-    name = "result/${annotation_file.simpleName}.${chrom}"
+    name = "l2/${annotation_file.simpleName}.${chrom}"
     """
     mkdir result
     # Check if --print-snps parameter is needed
@@ -120,13 +122,13 @@ workflow LDSC {
         run_ldsc.out
 }
 
-
 workflow calcBaseline {
     data = Channel.of(1..22).map(
         it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true))
     )
     calc_ld(data)
 }
+
 workflow {
     custom_annotations = Channel.fromPath(
         "${params.annotations_dir}/*"
@@ -142,7 +144,5 @@ workflow {
 }
 
 workflow annotateWithPheno {
-    pvals = Channel.fromPath("${params.pval_file_dir}/*.bed")
-        .map(it -> file(it))
-    annotate_with_phenotypes(pvals)
+    out = filterUniqPvals() | annotate_with_phenotypes
 }
