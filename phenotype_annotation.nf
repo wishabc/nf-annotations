@@ -49,10 +49,10 @@ process make_ldsc_annotation {
 
 // TODO wrap in apptainer
 process calc_ld {
-    publishDir "${outdir}/l2_logs", pattern: "${name}.log", enabled: !is_baseline
+    publishDir "${outdir}/l2_logs", pattern: "${name}.log", enabled: (process_type != 'baseline')
     publishDir "${outdir}", pattern: "${name}.l2.ldscore.gz"
     publishDir "${outdir}", pattern: "${name}.l2.M*"
-    publishDir "${outdir}/l2", pattern: "${annotation_file}", enabled: !is_baseline
+    publishDir "${outdir}/l2", pattern: "${annotation_file}", enabled: (process_type != 'baseline')
     tag "chr${chrom}:${annotation_file.simpleName}"
     scratch true
     conda params.ldsc_conda
