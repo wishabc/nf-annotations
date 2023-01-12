@@ -88,11 +88,11 @@ process calc_ld {
 // TODO wrap in apptainer
 process run_ldsc {
     conda params.ldsc_conda
-    publishDir "${params.outdir}/${prefix}/ldsc", pattern: "${name}.results"
+    publishDir "${params.outdir}/ldsc/${prefix}", pattern: "${name}.results"
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.logs"
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.part_delete"
     tag "${prefix}:${phen_id}"
-    scratch true
+    //scratch true
 
     input:
         tuple val(phen_id), path(sumstats_file), val(prefix), path(ld_files)
