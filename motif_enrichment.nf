@@ -155,6 +155,7 @@ workflow calcEnrichment {
     main:
         pval_file = filterUniqPvals(pvals_files)
         counts = motif_counts(moods_scans, pval_file)
+            | map(it -> it[1])
             | collate(30)
             | collect_counts
 
