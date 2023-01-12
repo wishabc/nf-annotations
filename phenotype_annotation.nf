@@ -140,7 +140,7 @@ workflow calcBaseline {
 }
 
 workflow {
-    custom_annotations = Channel.fromPath("${params.annotations_dir}/*") 
+    custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
         | map(it -> file(it))
         | filterUniqVariants
     data = Channel.of(1..22).combine(custom_annotations)
