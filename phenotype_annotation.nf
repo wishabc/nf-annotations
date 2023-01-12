@@ -51,10 +51,10 @@ process make_ldsc_annotation {
 
 // TODO wrap in apptainer
 process calc_ld {
-    publishDir "${outdir}/l2_logs", pattern: "${name}.log", enabled: is_baseline
+    publishDir "${outdir}/l2_logs", pattern: "${name}.log", enabled: !is_baseline
     publishDir "${outdir}", pattern: "${name}.l2.ldscore.gz"
     publishDir "${outdir}", pattern: "${name}.l2.M*"
-    publishDir "${outdir}/l2", pattern: "${annotation_file}", enabled: is_baseline
+    publishDir "${outdir}/l2", pattern: "${annotation_file}", enabled: !is_baseline
     tag "chr${chrom}:${annotation_file.simpleName}"
     scratch true
     conda params.ldsc_conda
@@ -66,7 +66,6 @@ process calc_ld {
         tuple val(annotation_file.simpleName), path("${name}*"), path(annotation_file)
     
     script:
-    is_baseline = (process_type == 'baseline')
     if (is_baseline) {
         outdir = file(params.base_ann_path).parent
         name = "${annotation_file.simpleName}.${chrom}"
