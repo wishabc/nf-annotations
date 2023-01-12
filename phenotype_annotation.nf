@@ -28,7 +28,6 @@ process annotate_with_phenotypes {
 process make_ldsc_annotation {
     conda params.conda
     tag "chr${chrom}:${annotation.simpleName}"
-    scratch true
 
     input:
         tuple val(chrom), path(annotation)
