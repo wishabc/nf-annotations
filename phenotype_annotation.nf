@@ -46,7 +46,7 @@ process make_ldsc_annotation {
     zcat ${baseannotation} \
         | awk -v OFS='\t' -F'\t' '(NR > 1) { print \$1,\$2-1,\$2,\$3,\$4 }'\
         | bedtools intersect -wa -c -a stdin -b annot_numchr.bed \
-        | awk -v OFS='\t' '{ print \$1,\$3,\$4,\$5}' | gzip >> ${name}
+        | awk -v OFS='\t' '{ print \$1,\$3,\$4,\$5,\$6}' | gzip >> ${name}
     """
 }
 
