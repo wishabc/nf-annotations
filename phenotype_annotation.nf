@@ -41,7 +41,7 @@ process make_ldsc_annotation {
     baseannotation = "${params.base_ann_path}${suffix}"
     name = "${annotation.simpleName}.${suffix}"
     """
-    cat ${annotation} |  sed -e "s/^chr//"   > annot_numchr.bed
+    cat ${annotation} |  sed -e "s/^chr//" | sort-bed -  > annot_numchr.bed
     echo "CHR\tBP\tSNP\tCM\t${annotation.simpleName}" | gzip > ${name}
     zcat ${baseannotation} \
         | awk -v OFS='\t' -F'\t' '(NR > 1) { print \$1,\$2-1,\$2,\$3,\$4 }'\
