@@ -105,7 +105,7 @@ process collect_counts {
         tuple val(prefix), path(name)
 
     script:
-    prefix = motif_counts_files[0].replace('.counts.bed', '')
+    prefix = motif_counts_files[0].replaceAll('.counts.bed', '')
     name = "${prefix}.merged.bed"
     """
     echo "${motif_counts_files}" | tr " " "\n" > filelist.txt
