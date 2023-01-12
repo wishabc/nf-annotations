@@ -135,13 +135,11 @@ process get_motif_stats {
     """
 }
 
-workflow filterUniqPvals {
+workflow filterUniqVariants {
     take:
         pvals_files
     main:
-        out = pvals_files
-            | collect(sort: true)
-            | filter_uniq_variants
+        out = filter_uniq_variants(pvals_files)
     emit:
         out
 }
@@ -152,7 +150,10 @@ workflow calcEnrichment {
         moods_scans
         pvals_files
     main:
-        pval_file = filterUniqPvals(pvals_files)
+        pval_file = pvals_files 
+            | collect(sort: true)
+            | filterUniqVariants
+
         counts = motif_counts(moods_scans, pval_file)
             | map(it -> it[1])
             | collate(30)

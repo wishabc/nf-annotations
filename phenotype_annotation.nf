@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-include { filterUniqPvals } from "./motif_enrichment"
+include { filterUniqVariants } from "./motif_enrichment"
 
 params.conda = "$moduleDir/environment.yml"
 
@@ -28,7 +28,7 @@ process annotate_with_phenotypes {
 process make_ldsc_annotation {
     conda params.conda
     tag "chr${chrom}:${annotation.simpleName}"
-    //scratch true
+    scratch true
 
     input:
         tuple val(chrom), path(annotation)
@@ -41,11 +41,12 @@ process make_ldsc_annotation {
     baseannotation = "${params.base_ann_path}${suffix}"
     name = "${annotation.simpleName}.${suffix}"
     """
+    cat ${annotation} |  sed -e "s/^chr//" > annot_numchr.bed
     echo "CHR\tBP\tSNP\tCM\t${annotation.simpleName}" | gzip > ${name}
     zcat ${baseannotation} \
         | awk -v OFS='\t' -F'\t' '(NR > 1) { print \$1,\$2-1,\$2,\$3,\$4 }'\
-        | bedtools intersect -wa -c -a stdin -b ${annotation} > myf.txt
-    cat myf.txt | awk -v OFS='\t' '{ print \$1,\$3,\$4,\$5}' | gzip >> ${name}
+        | bedtools intersect -wa -c -a stdin -b annot_numchr.bed \
+        | awk -v OFS='\t' '{ print \$1,\$3,\$4,\$5}' | gzip >> ${name}
     """
 }
 
@@ -139,9 +140,9 @@ workflow calcBaseline {
 }
 
 workflow {
-    custom_annotations = Channel.fromPath(
-        "${params.annotations_dir}/*"
-    )
+    custom_annotations = Channel.fromPath("${params.annotations_dir}/*") 
+        | map(it -> file(it))
+        | filterUniqVariants
     data = Channel.of(1..22).combine(custom_annotations)
     anns = make_ldsc_annotation(data) 
     lds = calc_ld(anns)
@@ -156,6 +157,7 @@ workflow {
 workflow annotateWithPheno {
     out =  Channel.fromPath("${params.pval_file_dir}/*.bed")
         | map(it -> file(it))
-        | filterUniqPvals
+        | collect(sort: true)
+        | filterUniqVariants
         | annotate_with_phenotypes
 }
