@@ -142,7 +142,6 @@ workflow filterUniqPvals {
     main:
         out = pvals_files
             | collect(sort: true)
-            | flatten()
             | filter_uniq_variants
     emit:
         out
