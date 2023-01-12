@@ -71,7 +71,7 @@ process calc_ld {
         outdir = file(params.base_ann_path).parent
         name = "${annotation_file.simpleName}.${chrom}"
     } else {
-        outdir = "${params.outdir}/${annotation_file.simpleName}/"
+        outdir = "${params.outdir}/${annotation_file.simpleName}"
         name = "l2/${annotation_file.simpleName}.${chrom}"
     }
     """
@@ -90,8 +90,8 @@ process calc_ld {
 process run_ldsc {
     conda params.ldsc_conda
     publishDir "${params.outdir}/${prefix}/ldsc", pattern: "${name}.results"
-    publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.logs"
-    publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.part_delete"
+    publishDir "${params.outdir}/${prefix}/ldsc_logs", pattern: "${name}.logs"
+    publishDir "${params.outdir}/${prefix}/ldsc_logs", pattern: "${name}.part_delete"
     tag "${prefix}:${phen_id}"
     scratch true
 
