@@ -28,7 +28,7 @@ process annotate_with_phenotypes {
 process make_ldsc_annotation {
     conda params.conda
     tag "chr${chrom}:${annotation.simpleName}"
-    scratch true
+    //scratch true
 
     input:
         tuple val(chrom), path(annotation)
@@ -44,8 +44,8 @@ process make_ldsc_annotation {
     echo "CHR\tBP\tSNP\tCM\t${annotation.simpleName}" | gzip > ${name}
     zcat ${baseannotation} \
         | awk -v OFS='\t' -F'\t' '(NR > 1) { print \$1,\$2-1,\$2,\$3,\$4 }'\
-        | bedtools intersect -wa -c -a stdin -b ${annotation} \
-        | awk -v OFS='\t' '{ print \$1,\$3,\$4,\$5}' | gzip >> ${name}
+        | bedtools intersect -wa -c -a stdin -b ${annotation} > myf.txt\
+    cat myf.txt | awk -v OFS='\t' '{ print \$1,\$3,\$4,\$5}' | gzip >> ${name}
     """
 }
 
@@ -92,7 +92,7 @@ process run_ldsc {
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.logs"
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.part_delete"
     tag "${prefix}:${phen_id}"
-    //scratch true
+    scratch true
 
     input:
         tuple val(phen_id), path(sumstats_file), val(prefix), path(ld_files)
