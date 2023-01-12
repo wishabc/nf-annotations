@@ -50,8 +50,9 @@ process filter_uniq_variants {
         path pval_files
     output:
         path name
+
     script:
-    name = (pval_files?.baseName ?? "merged.snps.sorted") + ".uniq.bed"
+    name = (pval_files?.baseName ?: "merged.snps.sorted") + ".uniq.bed"
     """
     echo "${pval_files}" | tr " " "\n" > filelist.txt
     while read file; do
