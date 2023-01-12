@@ -117,7 +117,7 @@ process collect_counts {
 }
 
 process get_motif_stats {
-    tag "${pval_file.simpleName}"
+    tag "${pval_file.simpleName}:${prefix}"
     publishDir "${params.outdir}/motif_stats", pattern: "${motif_stats}"
     conda params.conda
 

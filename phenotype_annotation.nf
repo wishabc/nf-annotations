@@ -65,7 +65,7 @@ process calc_ld {
         tuple val(annotation_file.simpleName), path("${name}*"), path(annotation_file)
     
     script:
-    is_baseline = process_type == 'baseline'
+    is_baseline = (process_type == 'baseline')
     if (is_baseline) {
         outdir = file(params.base_ann_path).parent
         name = "${annotation_file.simpleName}.${chrom}"
