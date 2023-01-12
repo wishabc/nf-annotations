@@ -153,5 +153,8 @@ workflow {
 }
 
 workflow annotateWithPheno {
-    out = filterUniqPvals() | annotate_with_phenotypes
+    out =  Channel.fromPath("${params.pval_file_dir}/*.bed")
+        | map(it -> file(it))
+        | filterUniqPvals
+        | annotate_with_phenotypes
 }

@@ -136,12 +136,25 @@ process get_motif_stats {
     """
 }
 
+workflow filterUniqPvals {
+    take:
+        pvals_files
+    main:
+        out = pvals_files
+            | collect(sort: true)
+            | flatten()
+            | filter_uniq_variants
+    emit:
+        out
+}
+
+
 workflow calcEnrichment {
     take:
         moods_scans
         pvals_files
     main:
-        pval_file = filter_uniq_variants(pvals_files.collect(sort: true))
+        pval_file = filterUniqPvals(pvals_files)
         counts = motif_counts(moods_scans, pval_file)
             | collate(30)
             | collect_counts
@@ -171,18 +184,12 @@ workflow readMoods {
     emit:
         moods_scans
 }
-workflow filterUniqPvals {
-    main:
-        out = Channel.fromPath("${params.pval_file_dir}/*.bed")
-            | map(it -> file(it))
-            | collect(sort: true)
-            | flatten()
-    emit:
-        out
-}
+
 workflow {
+    pvals_files = Channel.fromPath("${params.pval_file_dir}/*.bed")
+        | map(it -> file(it))
     moods_scans = readMoods()
-    calcEnrichment(moods_scans, filterUniqPvals())
+    calcEnrichment(moods_scans, pvals_files)
 }
 
 
