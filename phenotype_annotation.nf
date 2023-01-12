@@ -4,6 +4,8 @@ include { filterUniqPvals } from "./motif_enrichment"
 params.conda = "$moduleDir/environment.yml"
 
 params.phenotypes_data = "/home/sabramov/phenotypes_data"
+
+is_baseline = false
 // Annotates with pheWAS, clinvar, finemapping, grasp, ebi-gwas phenotypes
 process annotate_with_phenotypes {
     conda params.conda
@@ -49,17 +51,16 @@ process make_ldsc_annotation {
 
 // TODO wrap in apptainer
 process calc_ld {
-    publishDir "${outdir}/l2_logs", pattern: "${name}.log", enabled: (process_type != 'baseline')
+    publishDir "${outdir}/l2_logs", pattern: "${name}.log", enabled: is_baseline
     publishDir "${outdir}", pattern: "${name}.l2.ldscore.gz"
     publishDir "${outdir}", pattern: "${name}.l2.M*"
-    publishDir "${outdir}/l2", pattern: "${annotation_file}", enabled: (process_type != 'baseline')
+    publishDir "${outdir}/l2", pattern: "${annotation_file}", enabled: is_baseline
     tag "chr${chrom}:${annotation_file.simpleName}"
     scratch true
     conda params.ldsc_conda
 
     input:
         tuple val(chrom), path(annotation_file)
-        val process_type
     
     output:
         tuple val(annotation_file.simpleName), path("${name}*"), path(annotation_file)
@@ -134,7 +135,8 @@ workflow calcBaseline {
     data = Channel.of(1..22).map(
         it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true))
     )
-    calc_ld(data, 'baseline')
+    is_baseline = true
+    calc_ld(data)
 }
 
 workflow {
@@ -143,7 +145,7 @@ workflow {
     )
     data = Channel.of(1..22).combine(custom_annotations)
     anns = make_ldsc_annotation(data) 
-    lds = calc_ld(anns, 'data')
+    lds = calc_ld(anns)
     ldsc_data = lds.map(it -> tuple(it[0], [it[1], it[2]].flatten()))
         .groupTuple(size: 22)
         .map(
