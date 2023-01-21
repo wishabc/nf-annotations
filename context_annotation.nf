@@ -10,7 +10,9 @@ process extract_context {
     scratch true
 
     input:
-        path(variants)
+        path variants
+    output:
+        path name
 
     script:
     name = "variants_context.bed"
