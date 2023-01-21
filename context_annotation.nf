@@ -8,6 +8,7 @@ params.conda = "$moduleDir/environment.yml"
 process extract_context {
     conda params.conda
     scratch true
+    publishDir "${params.oudir}"
 
     input:
         path variants
