@@ -4,6 +4,8 @@ include { filterUniqVariants } from "./motif_enrichment"
 
 // Put in the Apptainer
 params.conda = "$moduleDir/environment.yml"
+params.window = 20
+
 
 process extract_context {
     conda params.conda
@@ -18,7 +20,7 @@ process extract_context {
     script:
     name = "variants_context.bed"
     """
-    cat ${variants} | awk -v OFS='\t' '{ print \$1,\$2,\$3 }' > variants.bed 
+    cat ${variants} | awk -v OFS='\t' '{ print \$1,\$2-${params.window},\$3+${params.window} }' > variants.bed 
     bedtools getfasta -fi ${params.genome_fasta_file} -bed variants.bed -tab > ${name}
     """
 }
