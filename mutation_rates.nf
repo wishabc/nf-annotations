@@ -40,7 +40,7 @@ process merge_and_sort {
     name = "mut_rates.annotation.bed"
     """
     for file in ${bed_files}; do
-        awk 'NR>1' \$file > tmp.bed
+        awk 'NR>1' \$file >> tmp.bed
     done
     head -1 ${bed_files[0]} > ${name}
     sort-bed tmp.bed >> ${name}
