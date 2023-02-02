@@ -2,7 +2,7 @@
 
 process process_mutation_rates {
     tag "${vcf.simpleName}"
-    scratch true
+    scratch false
     conda params.conda
     label "highmem"
 
