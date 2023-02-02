@@ -56,6 +56,8 @@ workflow annotateMutationRates {
 }
 
 workflow {
-    Channel.fromPath("${params.vcfs_dir}*.vcf.gz")
+    params.variants = "/net/seq/data2/projects/sabramov/ENCODE4/dnase-cavs/output/final.ag_files_binom.origin/Normal.aggregation.bed"
+    params.vcfs_dir = "/net/seq/data2/projects/sabramov/shamilMutationRates"
+    Channel.fromPath("${params.vcfs_dir}/*.vcf.gz")
         | annotateMutationRates
 }
