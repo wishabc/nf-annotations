@@ -52,7 +52,7 @@ process filter_uniq_variants {
         path name
 
     script:
-    name = (pval_files?.baseName ?: "merged.snps.sorted") + ".uniq.bed"
+    name = (pval_files.size() > 1 ? pval_files[0].baseName : "merged.snps.sorted") + ".uniq.bed"
     """
     echo "${pval_files}" | tr " " "\n" > filelist.txt
     while read file; do
