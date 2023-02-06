@@ -180,9 +180,7 @@ def remove_phen_name_punctuation(phenotype_name):
 
 def main(phenotypes_dir, snps_path, out_path):
     print('Reading files')
-    snps = pd.read_table(snps_path)
-    snps_positions = snps[['#chr', 'start', 'end', 'ID', 'ref', 'alt']]
-    del snps
+    snps_positions = pd.read_table(snps_path, header=None, names=['#chr', 'start', 'end', 'ID', 'ref', 'alt'])
     snps_positions['posID'] = snps_positions['#chr'] + '_' + snps_positions['end'].astype(str)
     grasp = os.path.join(phenotypes_dir, 'pheno', 'grasp_pheno.tsv')
     ebi = os.path.join(phenotypes_dir, 'pheno', 'gwas_catalog.tsv')
