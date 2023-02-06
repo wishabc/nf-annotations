@@ -9,7 +9,6 @@ is_baseline = false
 // Annotates with pheWAS, clinvar, finemapping, grasp, ebi-gwas phenotypes
 process annotate_with_phenotypes {
     conda params.conda
-    tag "${sample_id}"
     publishDir "${params.outdir}/phenotypes"
 
     input:
