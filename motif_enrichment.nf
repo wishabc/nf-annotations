@@ -157,7 +157,7 @@ workflow calcEnrichment {
 
         counts = motif_counts(moods_scans, pval_file)
             | map(it -> it[1])
-            | collate(30)
+            | collate(params.motif_chunk)
             | collect_counts
 
         motif_ann = pvals_files

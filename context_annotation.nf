@@ -4,7 +4,6 @@ include { filterUniqVariants } from "./motif_enrichment"
 
 // Put in the Apptainer
 params.conda = "$moduleDir/environment.yml"
-params.window = 20
 
 
 process extract_context {
