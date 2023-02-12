@@ -138,6 +138,40 @@ workflow calcBaseline {
     calc_ld(data)
 }
 
+process filter_cavs {
+    tag "${prefix}"
+
+    input:
+        path pval_file
+
+    output:
+        path name
+    
+    script:
+    prefix = pval_file.simpleName
+    name = "${prefix}.fdr${params.fdr_tr}.bed"
+    """
+    head -1 ${pval_file} > ${name}
+    cat ${pval_file} | awk '((\$NF <= ${params.fdr_tr}) && (NR>1)) {print}' >> ${name}
+    """
+}
+
+
+workflow fromPvalFiles {
+    params.fdr_tr = 0.05
+    custom_annotations = Channel.fromPath("${params.pval_file_dir}/*.bed") 
+        | map(it -> file(it))
+        | filter_cavs
+    data = Channel.of(1..22).combine(custom_annotations)
+    anns = make_ldsc_annotation(data) 
+    lds = calc_ld(anns)
+    ldsc_data = lds.map(it -> tuple(it[0], [it[1], it[2]].flatten()))
+        .groupTuple(size: 22)
+        .map(
+            it -> tuple(it[0], it[1].flatten())
+        )
+    LDSC(ldsc_data)
+}
 workflow {
     custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
         | map(it -> file(it))
