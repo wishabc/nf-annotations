@@ -171,6 +171,7 @@ workflow LDSC {
             .map(row -> tuple(row.phen_id, file(row.sumstats_file)))
             | combine(ld_data)
             | run_ldsc
+
         out = ldsc_res.results
             | map(it -> it[1])
             | collect()
@@ -221,8 +222,9 @@ workflow {
 
 // defunc
 workflow test {
-        Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase-annotations/LDSC.clusters/output/*/ldsc/*.results")
-            | map(it -> file(it))
+        t = Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase-annotations/LDSC.clusters/output/*/ldsc/*.results")
+        t.view()
+        t.map(it -> file(it))
             | collect()
             | collect_ldsc_results
 }
