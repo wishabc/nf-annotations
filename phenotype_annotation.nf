@@ -157,8 +157,7 @@ process collect_ldsc_results {
     echo 'group_name\tphenotype_id\t`head -1 ${ldsc_files[0]}`' > ${name}
     echo '${ldsc_files}' | tr '' '\n' > filelist.txt
     while read line; do
-        customAnnotation=`tail -1 \$line`
-        basename "\$line" .results | tr "." "\t" | xargx -I % echo "%\t\$customAnnotation" >> ${name}
+        basename "\$line" .results | tr "." "\t" | xargs -I % echo "%\t`tail -1 \$line`" >> ${name}
     done < filelist.txt
     """
 }
