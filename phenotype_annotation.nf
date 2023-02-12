@@ -175,7 +175,7 @@ workflow LDSC {
 
         out = ldsc_res.results
             | map(it -> it[1])
-            | collect()
+            | collect(sort: true)
             | collect_ldsc_results
     emit:
         out
@@ -224,8 +224,7 @@ workflow {
 // defunc
 workflow test {
         t = Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase-annotations/LDSC.clusters/output/**/ldsc/*.results")
-        t.map(it -> file(it))
-            //| collect()
+        t.map(it -> file(it)).collect(sort: true)
             | view()
             // | collect_ldsc_results
 }
