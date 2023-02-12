@@ -225,7 +225,7 @@ workflow {
 workflow test {
         t = Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase-annotations/LDSC.clusters/output/**/ldsc/*.results")
         t.map(it -> file(it))
-            | collect()
+            //| collect()
             | view()
             // | collect_ldsc_results
 }
