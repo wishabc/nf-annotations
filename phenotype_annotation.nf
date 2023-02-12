@@ -74,8 +74,12 @@ process calc_ld {
         name = "l2/${annotation_file.simpleName}.${chrom}"
     }
     """
+    export OPENBLAS_NUM_THREADS=${task.cpus}
+    export GOTO_NUM_THREADS=${task.cpus}
+    export OMP_NUM_THREADS=${task.cpus}
+    
     mkdir l2
-    # Check if --print-snps parameter is needed
+    # TODO: Check if --print-snps parameter is needed
     ${params.ldsc_scripts_path}/ldsc.py \
         --print-snps ${params.tested_snps} \
         --ld-wind-cm 1.0 \
