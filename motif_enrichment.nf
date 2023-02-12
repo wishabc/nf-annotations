@@ -54,7 +54,7 @@ process filter_uniq_variants {
     script:
     name = (pval_files.size() > 1 ? pval_files[0].baseName : "merged.snps.sorted") + ".uniq.bed"
     """
-    echo "${pval_files}" | tr " " "\n" > filelist.txt
+    echo "${pval_files}" | tr ' ' '\n' > filelist.txt
     while read file; do
         # extract chr, start, end, ID, ref, alt
         cat \$file | awk -v OFS='\t' '\$1 ~ /^[^;#]/ {print \$1,\$2,\$3,\$4,\$5,\$6}' >> merged_files.bed

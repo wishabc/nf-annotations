@@ -154,8 +154,8 @@ process collect_ldsc_results {
     script:
     name = "ldsc_result.tsv"
     """
-    echo "group_name\tphenotype_id\t`head -1 ${ldsc_files[0]}`"" > ${name}
-    echo '${ldsc_files}' | tr " " "\n" > filelist.txt
+    echo 'group_name\tphenotype_id\t`head -1 ${ldsc_files[0]}`' > ${name}
+    echo '${ldsc_files}' | tr '' '\n' > filelist.txt
     while read line; do
         basename "\$line" .results | tr "." "\t" | xargx -I % echo "%\t`tail -1 \$line`" >> ${name}
     done < filelist.txt
