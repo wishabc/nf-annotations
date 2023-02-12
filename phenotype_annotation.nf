@@ -24,6 +24,24 @@ process annotate_with_phenotypes {
     """
 }
 
+process filter_cavs {
+    tag "${prefix}"
+
+    input:
+        path pval_file
+
+    output:
+        path name
+    
+    script:
+    prefix = pval_file.simpleName
+    name = "${prefix}.fdr${params.fdr_tr}.bed"
+    """
+    head -1 ${pval_file} > ${name}
+    cat ${pval_file} | awk '((\$NF <= ${params.fdr_tr}) && (NR>1)) {print}' >> ${name}
+    """
+}
+
 process make_ldsc_annotation {
     conda params.conda
     tag "chr${chrom}:${annotation.simpleName}"
@@ -102,7 +120,9 @@ process run_ldsc {
         tuple val(phen_id), path(sumstats_file), val(prefix), path(ld_files)
     
     output:
-        tuple val(phen_id), path("${name}*")
+        tuple val(phen_id), path("${name}.results"), emit: results
+        tuple val(phen_id), path("${name}.*"), emit: all_data
+
 
     script:
     name = "${prefix}.${phen_id}"
@@ -121,17 +141,42 @@ process run_ldsc {
 }
 
 
+process collect_ldsc_results {
+    scratch true
+
+    input:
+        paths ldsc_files
+    
+    output:
+        path name
+
+    script:
+    name = "ldsc_result.tsv"
+    """
+    echo "group_name\tphenotype_id\t`head -1 ${ldsc_files[0]}`"" > ${name}
+    echo "${ldsc_files}" | tr " " "\n" > filelist.txt
+    while read line; do
+        echo "`basename "\$line" .results | tr "." "\t"`\t`tail -1 \$line`" >> ${name}
+    done < filelist.txt
+    """
+}
+
+
 workflow LDSC {
     take:
         ld_data
     main:
-        phens = Channel.fromPath(params.phenotypes_meta)
+        ldsc_res = Channel.fromPath(params.phenotypes_meta)
             .splitCsv(header:true, sep:'\t')
             .map(row -> tuple(row.phen_id, file(row.sumstats_file)))
-        d = phens.combine(ld_data)
-        run_ldsc(d)
+            | combine(ld_data)
+            | run_ldsc
+        out = ldsc_res.results
+            | map(it -> it[1])
+            | collect()
+            | collect_ldsc_results
     emit:
-        run_ldsc.out
+        out
 }
 
 workflow calcBaseline {
@@ -142,53 +187,44 @@ workflow calcBaseline {
     calc_ld(data)
 }
 
-process filter_cavs {
-    tag "${prefix}"
-
-    input:
-        path pval_file
-
-    output:
-        path name
-    
-    script:
-    prefix = pval_file.simpleName
-    name = "${prefix}.fdr${params.fdr_tr}.bed"
-    """
-    head -1 ${pval_file} > ${name}
-    cat ${pval_file} | awk '((\$NF <= ${params.fdr_tr}) && (NR>1)) {print}' >> ${name}
-    """
+workflow fromAnnotations {
+    take:
+        annotations
+    main:
+        data = Channel.of(1..22).combine(annotations)
+        anns = make_ldsc_annotation(data) 
+        lds = calc_ld(anns)
+        ldsc_data = lds.map(it -> tuple(it[0], [it[1], it[2]].flatten()))
+            .groupTuple(size: 22)
+            .map(
+                it -> tuple(it[0], it[1].flatten())
+            )
+        out = LDSC(ldsc_data)
+    emit:
+        out
 }
-
 
 workflow fromPvalFiles {
     params.fdr_tr = 0.05
-    custom_annotations = Channel.fromPath("${params.pval_file_dir}/*.bed") 
+    Channel.fromPath("${params.pval_file_dir}/*.bed") 
         | map(it -> file(it))
         | filter_cavs
-    data = Channel.of(1..22).combine(custom_annotations)
-    anns = make_ldsc_annotation(data) 
-    lds = calc_ld(anns)
-    ldsc_data = lds.map(it -> tuple(it[0], [it[1], it[2]].flatten()))
-        .groupTuple(size: 22)
-        .map(
-            it -> tuple(it[0], it[1].flatten())
-        )
-    LDSC(ldsc_data)
+        | fromAnnotations
+   
 }
 workflow {
     custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
         | map(it -> file(it))
         | filterUniqVariants
-    data = Channel.of(1..22).combine(custom_annotations)
-    anns = make_ldsc_annotation(data) 
-    lds = calc_ld(anns)
-    ldsc_data = lds.map(it -> tuple(it[0], [it[1], it[2]].flatten()))
-        .groupTuple(size: 22)
-        .map(
-            it -> tuple(it[0], it[1].flatten())
-        )
-    LDSC(ldsc_data)
+        | fromAnnotations
+}
+
+// defunc
+workflow test {
+        Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase-annotations/LDSC.clusters/output/*/ldsc/*.results")
+            | map(it -> file(it))
+            | collect()
+            | collect_ldsc_results
 }
 
 workflow annotateWithPheno {
