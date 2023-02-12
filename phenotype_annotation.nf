@@ -145,7 +145,8 @@ process collect_ldsc_results {
     scratch true
 
     input:
-        paths ldsc_files
+        // expected to be more than one file
+        path ldsc_files
     
     output:
         path name
