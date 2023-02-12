@@ -143,6 +143,7 @@ process run_ldsc {
 
 process collect_ldsc_results {
     scratch true
+    publishDir "${params.outdir}"
 
     input:
         // expected to be more than one file
