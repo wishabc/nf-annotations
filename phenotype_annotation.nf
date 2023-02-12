@@ -158,7 +158,8 @@ process collect_ldsc_results {
     head -1 ${ldsc_files[0]} | xargs -I % echo "group_name\tphenotype_id\t%" > ${name}
     echo '${ldsc_files}' | tr '' '\n' > filelist.txt
     while read line; do
-        basename "\$line" .results | tr "." "\t" | xargs -I % echo "%\t`tail -1 \$line`" >> ${name}
+        echo "\$line `basename "\$line" .results | tr "." "\t"`"
+        basename "\$line" .results | tr "." "\t" | xargs -I % echo "%\t`tail -1 \$line`\n" >> ${name}
     done < filelist.txt
     """
 }
