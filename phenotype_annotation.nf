@@ -225,7 +225,7 @@ workflow {
 process test_pr {
 
     input:
-        tuple val(t1), val(t2)
+        tuple tuple(val(t1), val(t2))
     
     output:
         val stdout
