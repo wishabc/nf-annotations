@@ -111,8 +111,7 @@ process calc_ld {
 process run_ldsc {
     conda params.ldsc_conda
     publishDir "${params.outdir}/${prefix}/ldsc", pattern: "${name}.results"
-    publishDir "${params.outdir}/${prefix}/ldsc_logs", pattern: "${name}.logs"
-    publishDir "${params.outdir}/${prefix}/ldsc_logs", pattern: "${name}.part_delete"
+    publishDir "${params.outdir}/${prefix}/ldsc_logs", pattern: "${name}.log"
     tag "${prefix}:${phen_id}"
     scratch true
 
@@ -226,11 +225,10 @@ workflow {
 
 // defunc
 workflow test {
-        t = Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase-annotations/LDSC.clusters/output/**/ldsc/*.results")
-        t   
-            | map(it -> file(it))
-            | collect(sort: true)
-            | collect_ldsc_results
+    t = Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase-annotations/LDSC.clusters/output/**/ldsc/*.results") 
+        | map(it -> file(it))
+        | collect(sort: true)
+        | collect_ldsc_results
 }
 
 workflow annotateWithPheno {
