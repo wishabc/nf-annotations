@@ -119,8 +119,8 @@ process run_ldsc {
         tuple val(phen_id), path(sumstats_file), val(prefix), path(ld_files)
     
     output:
-        tuple val(phen_id), path("${name}.results"), emit: results
-        tuple val(phen_id), path("${name}.*"), emit: all_data
+        tuple path("${name}.results"), path("${name}.log"), emit: results
+        tuple val(prefix), val(phen_id), path("${name}.*"), emit: all_data
 
 
     script:
@@ -146,7 +146,7 @@ process collect_ldsc_results {
 
     input:
         // expected to be more than one file
-        path ldsc_files
+        tuple path(ldsc_files), path()
     
     output:
         path name
@@ -176,7 +176,6 @@ workflow LDSC {
             | run_ldsc
 
         out = ldsc_res.results
-            | map(it -> it[1])
             | collect(sort: true)
             | collect_ldsc_results
     emit:
@@ -225,10 +224,10 @@ workflow {
 
 // defunc
 workflow test {
-    t = Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase-annotations/LDSC.clusters/output/**/ldsc/*.results") 
-        | map(it -> file(it))
-        | collect(sort: true)
-        | collect_ldsc_results
+    Channel.of(1..22)
+        | combine(Channel.of(22..44))
+        | collect(sort: true, flat: false)
+        | view()
 }
 
 workflow annotateWithPheno {
@@ -238,3 +237,4 @@ workflow annotateWithPheno {
         | filterUniqVariants
         | annotate_with_phenotypes
 }
+
