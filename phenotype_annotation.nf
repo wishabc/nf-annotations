@@ -222,12 +222,24 @@ workflow {
         | fromAnnotations
 }
 
+process test {
+
+    input:
+        tuple val(t1), val(t2)
+    
+    output:
+        val stdout
+    script:
+    """
+    echo ${t1} 
+    """
+}
 // defunc
 workflow test {
     Channel.of(1..22)
         | combine(Channel.of(22..44))
         | collect(sort: true, flat: false)
-        | view()
+        | test
 }
 
 workflow annotateWithPheno {
