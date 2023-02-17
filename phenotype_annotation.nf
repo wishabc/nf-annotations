@@ -119,7 +119,8 @@ process run_ldsc {
         tuple val(phen_id), path(sumstats_file), val(prefix), path(ld_files)
     
     output:
-        tuple path("${name}.results"), path("${name}.log"), emit: results
+        path "${name}.results" emit: results
+        path "${name}.log", emit: logs
         tuple val(prefix), val(phen_id), path("${name}.*"), emit: all_data
 
 
@@ -146,10 +147,11 @@ process collect_ldsc_results {
 
     input:
         // expected to be more than one file
-        tuple path(ldsc_files), path()
+        path ldsc_files
     
     output:
-        path name
+        tuple path(name), path(pr_h2)
+        
 
     script:
     name = "ldsc_result.tsv"
@@ -175,9 +177,8 @@ workflow LDSC {
             | combine(ld_data)
             | run_ldsc
 
-        out = ldsc_res.results
-            | collect(sort: true)
-            | collect_ldsc_results
+        ldsc = ldsc_res.results.collect(sort: true)
+        out = collect_ldsc_results(results)
     emit:
         out
 }
@@ -220,27 +221,6 @@ workflow {
         | map(it -> file(it))
         | filterUniqVariants
         | fromAnnotations
-}
-
-process test_pr {
-
-    input:
-        tuple tuple(val(t1), val(t2))
-    
-    output:
-        val stdout
-
-    script:
-    """
-    echo ${t1} 
-    """
-}
-// defunc
-workflow test {
-    Channel.of(1..22)
-        | combine(Channel.of(22..44))
-        | collect(sort: true, flat: false)
-        | test_pr
 }
 
 workflow annotateWithPheno {
