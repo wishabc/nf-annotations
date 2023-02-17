@@ -128,6 +128,9 @@ process run_ldsc {
     name = "${prefix}.${phen_id}"
     pref = "${prefix}."
     """
+    export OPENBLAS_NUM_THREADS=${task.cpus}
+    export GOTO_NUM_THREADS=${task.cpus}
+    export OMP_NUM_THREADS=${task.cpus}
     ${params.ldsc_scripts_path}/ldsc.py \
         --h2 ${sumstats_file} \
         --ref-ld-chr ${params.base_ann_path},${pref} \
