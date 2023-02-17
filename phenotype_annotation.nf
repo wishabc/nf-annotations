@@ -119,7 +119,7 @@ process run_ldsc {
         tuple val(phen_id), path(sumstats_file), val(prefix), path(ld_files)
     
     output:
-        path "${name}.results" emit: results
+        path "${name}.results", emit: results
         path "${name}.log", emit: logs
         tuple val(prefix), val(phen_id), path("${name}.*"), emit: all_data
 
