@@ -177,6 +177,7 @@ workflow LDSC {
         ldsc_res = Channel.fromPath(params.phenotypes_meta)
             | splitCsv(header:true, sep:'\t')
             | map(row -> tuple(row.phen_id, file(row.sumstats_file)))
+            | filter { it[1].exists() }
             | combine(ld_data)
             | run_ldsc
 
