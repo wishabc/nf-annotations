@@ -82,7 +82,6 @@ process munge_sumstats {
         path("${prefix}*"), emit: all
     
     script:
-    baseannotation = "${params.base_ann_path}${suffix}"
     prefix = "UKBB_${sumstats_file.simpleName}"
     """
     python ${params.ldsc_scripts_path}/munge_sumstats.py \
