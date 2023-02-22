@@ -135,8 +135,8 @@ process calc_ld {
 // TODO wrap in apptainer
 process run_ldsc_cell_types {
     conda params.ldsc_conda
-    publishDir "${params.outdir}/${prefix}/ldsc", pattern: "${name}.cell_type_results.txt"
-    publishDir "${params.outdir}/${prefix}/ldsc_logs", pattern: "${name}.log"
+    publishDir "${params.outdir}/ldsc", pattern: "${name}.cell_type_results.txt"
+    publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.log"
     tag "${phen_id}"
     scratch true
 
@@ -152,14 +152,13 @@ process run_ldsc_cell_types {
 
     script:
     name = "${phen_id}"
-    pref = "${prefix}."
     """
     export OPENBLAS_NUM_THREADS="${task.cpus}"
     export GOTO_NUM_THREADS="${task.cpus}"
     export OMP_NUM_THREADS="${task.cpus}"
 
     find ./data_files | xargs -I % basename % \
-        | cut -d . -f 1 | sort | uniq \ 
+        | cut -d"." -f 1 | sort | uniq \ 
         | awk -v OFS='\t' '{ print \$1,"./data_files/"\$1}' > per_sample.ldcts
     
     ${params.ldsc_scripts_path}/ldsc.py \
