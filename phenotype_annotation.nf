@@ -153,13 +153,11 @@ process run_ldsc_cell_types {
     script:
     name = "${phen_id}"
     """
-    #export OPENBLAS_NUM_THREADS="${task.cpus}"
-    #export GOTO_NUM_THREADS="${task.cpus}"
-    #export OMP_NUM_THREADS="${task.cpus}"
+    export OPENBLAS_NUM_THREADS="${task.cpus}"
+    export GOTO_NUM_THREADS="${task.cpus}"
+    export OMP_NUM_THREADS="${task.cpus}"
 
-    #find ./data_files | xargs -I % basename % \
-    #    | cut -d"." -f 1 | sort | uniq \ 
-    #    | awk -v OFS='\t' '{ print \$1,"./data_files/"\$1 }' > per_sample.ldcts
+
     
     ${params.ldsc_scripts_path}/ldsc.py \
         --h2-cts ${sumstats_file} \
