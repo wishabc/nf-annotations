@@ -156,8 +156,7 @@ process run_ldsc_cell_types {
     export GOTO_NUM_THREADS="${task.cpus}"
     export OMP_NUM_THREADS="${task.cpus}"
 
-    find ./data_files | xargs -I % basename % \
-        | cut -d"." -f 1 | sort | uniq \ 
+    ls -1 ./data_files | cut -d"." -f 1 | sort | uniq \ 
         | awk -v OFS='\t' '{ print \$1,"data_files/"\$1"." }' > per_sample.ldcts
     
     ${params.ldsc_scripts_path}/ldsc.py \
