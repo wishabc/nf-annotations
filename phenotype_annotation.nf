@@ -243,7 +243,7 @@ workflow LDSCcellTypes {
             | filter { it[1].exists() }
             | munge_sumstats
             
-        ldsc_res = run_ldsc(sumstats, ld_data.map(it -> it[1]).collect())
+        ldsc_res = run_ldsc_cell_types(sumstats, ld_data.map(it -> it[1]).collect())
 
         l = ldsc_res.results.collect(sort: true)
         out = collect_ldsc_results(l)
@@ -261,7 +261,7 @@ workflow LDSC {
             | map(row -> tuple(row.phen_id, file(row.sumstats_file)))
             | filter { it[1].exists() }
             | combine(ld_data)
-            | run_ldsc
+            | run_ldsc_single_sample
 
         l = ldsc_res.results.collect(sort: true)
         out = collect_ldsc_results(l)
