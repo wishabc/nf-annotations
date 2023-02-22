@@ -42,6 +42,31 @@ process filter_cavs {
     """
 }
 
+process munge_sumstats {
+    conda params.conda
+    tag "${phen_id}"
+    publishDir "${params.outdir}/munge_sumstats", pattern: "${prefix}.sumstats.gz"
+    publishDir "${params.outdir}/munge_sumstats_logs", pattern: "${prefix}.log"
+    scratch true
+
+    input:
+        tuple val(phen_id), path(sumstats_file)
+
+    output:
+        tuple val(phen_id), path("${prefix}.sumstats.gz")
+        path("${prefix}*")
+    
+    script:
+    baseannotation = "${params.base_ann_path}${suffix}"
+    prefix = "UKBB_${sumstats_file.simpleName}"
+    """
+    python ${params.ldsc_scripts_path}/munge_sumstats.py \
+        --sumstats ${sumstats_file} \
+        --merge-alleles ${params.tested_snps} \
+        --out ${name}
+    """
+}
+
 process make_ldsc_annotation {
     conda params.conda
     tag "chr${chrom}:${annotation.simpleName}"
@@ -108,7 +133,47 @@ process calc_ld {
     """
 }
 // TODO wrap in apptainer
-process run_ldsc {
+process run_ldsc_cell_types {
+    conda params.ldsc_conda
+    publishDir "${params.outdir}/${prefix}/ldsc", pattern: "${name}.cell_type_results.txt"
+    publishDir "${params.outdir}/${prefix}/ldsc_logs", pattern: "${name}.log"
+    tag "${phen_id}"
+    scratch true
+
+    input:
+        tuple val(phen_id), path(sumstats_file)
+        path("data_files/*")
+    
+    output:
+        path "${name}.cell_type_results.txt", emit: results
+        path "${name}.log", emit: logs
+        tuple val(phen_id), path("${name}.*"), emit: all_data
+
+
+    script:
+    name = "${phen_id}"
+    pref = "${prefix}."
+    """
+    export OPENBLAS_NUM_THREADS=${task.cpus}
+    export GOTO_NUM_THREADS=${task.cpus}
+    export OMP_NUM_THREADS=${task.cpus}
+
+    find ./data_files | xargs -I % basename % | cut -d . -f 1 \ 
+        | sort | uniq | awk -v OFS='\t' '{ print \$1,"./data_files/"\$1}' > per_sample.ldcts
+    ${params.ldsc_scripts_path}/ldsc.py \
+        --h2-cts ${sumstats_file} \
+        --ref-ld-chr ${params.base_ann_path} \
+        --ref-ld-chr-cts per_sample.ldcts \
+        --frqfile-chr ${params.frqfiles} \
+        --w-ld-chr ${params.weights} \
+        --overlap-annot \
+        --print-coefficients \
+        --print-delete-vals \
+        --out ${name}
+    """
+}
+
+process run_ldsc_single_sample {
     conda params.ldsc_conda
     publishDir "${params.outdir}/${prefix}/ldsc", pattern: "${name}.results"
     publishDir "${params.outdir}/${prefix}/ldsc_logs", pattern: "${name}.log"
@@ -169,6 +234,24 @@ process collect_ldsc_results {
     """
 }
 
+workflow LDSCcellTypes {
+    take:
+        ld_data
+    main:
+        sumstats = Channel.fromPath(params.phenotypes_meta)
+            | splitCsv(header:true, sep:'\t')
+            | map(row -> tuple(row.phen_id, file(row.sumstats_file)))
+            | filter { it[1].exists() }
+            | munge_sumstats
+            
+        ldsc_res = run_ldsc(sumstats, ld_data.map(it -> it[1]).collect())
+
+        l = ldsc_res.results.collect(sort: true)
+        out = collect_ldsc_results(l)
+    emit:
+        out
+}
+
 
 workflow LDSC {
     take:
@@ -207,7 +290,8 @@ workflow fromAnnotations {
             .map(
                 it -> tuple(it[0], it[1].flatten())
             )
-        out = LDSC(ldsc_data)
+        //out = LDSC(ldsc_data)
+        out = LDSCcellTypes(ldsc_data)
     emit:
         out
 }
