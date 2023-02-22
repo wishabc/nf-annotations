@@ -78,8 +78,8 @@ process munge_sumstats {
         tuple val(phen_id), path(sumstats_file)
 
     output:
-        tuple val(phen_id), path("${prefix}.sumstats.gz")
-        path("${prefix}*")
+        tuple val(phen_id), path("${prefix}.sumstats.gz"), emit: result
+        path("${prefix}*"), emit: all
     
     script:
     baseannotation = "${params.base_ann_path}${suffix}"
@@ -242,8 +242,8 @@ workflow LDSCcellTypes {
             | map(row -> tuple(row.phen_id, file(row.sumstats_file)))
             | filter { it[1].exists() }
             | munge_sumstats
-            
-        ldsc_res = run_ldsc_cell_types(sumstats, ld_data.map(it -> it[1]).collect(sort: true))
+        
+        ldsc_res = run_ldsc_cell_types(sumstats.result, ld_data.map(it -> it[1]).collect(sort: true))
 
         l = ldsc_res.results.collect(sort: true)
         out = collect_ldsc_results(l)
