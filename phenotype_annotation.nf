@@ -42,31 +42,6 @@ process filter_cavs {
     """
 }
 
-process munge_sumstats {
-    conda params.conda
-    tag "${phen_id}"
-    publishDir "${params.outdir}/munge_sumstats", pattern: "${prefix}.sumstats.gz"
-    publishDir "${params.outdir}/munge_sumstats_logs", pattern: "${prefix}.log"
-    scratch true
-
-    input:
-        tuple val(phen_id), path(sumstats_file)
-
-    output:
-        tuple val(phen_id), path("${prefix}.sumstats.gz")
-        path("${prefix}*")
-    
-    script:
-    baseannotation = "${params.base_ann_path}${suffix}"
-    prefix = "UKBB_${sumstats_file.simpleName}"
-    """
-    python ${params.ldsc_scripts_path}/munge_sumstats.py \
-        --sumstats ${sumstats_file} \
-        --merge-alleles ${params.tested_snps} \
-        --out ${name}
-    """
-}
-
 process make_ldsc_annotation {
     conda params.conda
     tag "chr${chrom}:${annotation.simpleName}"
@@ -89,6 +64,31 @@ process make_ldsc_annotation {
         | awk -v OFS='\t' -F'\t' '(NR > 1) { print \$1,\$2-1,\$2,\$3,\$4 }'\
         | bedtools intersect -wa -c -a stdin -b annot_numchr.bed \
         | awk -v OFS='\t' '{ print \$1,\$3,\$4,\$5,\$6}' | gzip >> ${name}
+    """
+}
+
+process munge_sumstats {
+    conda params.conda
+    tag "${phen_id}"
+    publishDir "${params.outdir}/munge_sumstats", pattern: "${prefix}.sumstats.gz"
+    publishDir "${params.outdir}/munge_sumstats_logs", pattern: "${prefix}.log"
+    scratch true
+
+    input:
+        tuple val(phen_id), path(sumstats_file)
+
+    output:
+        tuple val(phen_id), path("${prefix}.sumstats.gz")
+        path("${prefix}*")
+    
+    script:
+    baseannotation = "${params.base_ann_path}${suffix}"
+    prefix = "UKBB_${sumstats_file.simpleName}"
+    """
+    python ${params.ldsc_scripts_path}/munge_sumstats.py \
+        --sumstats ${sumstats_file} \
+        --merge-alleles ${params.tested_snps} \
+        --out ${name}
     """
 }
 
@@ -160,6 +160,7 @@ process run_ldsc_cell_types {
 
     find ./data_files | xargs -I % basename % | cut -d . -f 1 \ 
         | sort | uniq | awk -v OFS='\t' '{ print \$1,"./data_files/"\$1}' > per_sample.ldcts
+    
     ${params.ldsc_scripts_path}/ldsc.py \
         --h2-cts ${sumstats_file} \
         --ref-ld-chr ${params.base_ann_path} \
