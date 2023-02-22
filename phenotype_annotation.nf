@@ -240,7 +240,7 @@ workflow LDSCcellTypes {
             | splitCsv(header:true, sep:'\t')
             | map(row -> tuple(row.phen_id, file(row.sumstats_file)))
             | filter { it[1].exists() }
-            | munge_sumstats
+            // | munge_sumstats
         
         ldsc_res = run_ldsc_cell_types(sumstats.result, ld_data.map(it -> it[1]).collect(sort: true))
 
