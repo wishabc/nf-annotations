@@ -244,7 +244,7 @@ workflow LDSCcellTypes {
         
         ldsc_res = run_ldsc_cell_types(sumstats, ld_data.map(it -> it[1]).collect(sort: true))
 
-        l = ldsc_res.results.collect(sort: true)
+        out = ldsc_res.results.collect(sort: true)
         // out = collect_ldsc_results(l) FIXME
     emit:
         out
