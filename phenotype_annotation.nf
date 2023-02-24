@@ -93,10 +93,10 @@ process munge_sumstats {
 
 // TODO wrap in apptainer
 process calc_ld {
-    publishDir "${outdir}/l2_logs", pattern: "${name}.log", enabled: !is_baseline
+    publishDir "${outdir}/logs", pattern: "${name}.log", enabled: !is_baseline
     publishDir "${outdir}", pattern: "${name}.l2.ldscore.gz"
     publishDir "${outdir}", pattern: "${name}.l2.M*"
-    publishDir "${outdir}/l2", pattern: "${annotation_file}", enabled: !is_baseline
+    publishDir "${outdir}", pattern: "${annotation_file}", enabled: !is_baseline
     tag "chr${chrom}:${annotation_file.simpleName}"
     scratch true
     conda params.ldsc_conda
@@ -105,22 +105,21 @@ process calc_ld {
         tuple val(chrom), path(annotation_file)
     
     output:
-        tuple val(annotation_file.simpleName), path("${name}*"), path(annotation_file)
+        tuple val(annotation_file.simpleName), path("${name}.l2.*"), path(annotation_file), emit: result
+        path("${name}.log"), emit: logs
     
     script:
     if (is_baseline) {
         outdir = file(params.base_ann_path).parent
-        name = "${annotation_file.simpleName}.${chrom}"
     } else {
-        outdir = "${params.outdir}/${annotation_file.simpleName}"
-        name = "l2/${annotation_file.simpleName}.${chrom}"
+        outdir = "${params.outdir}/l2/${annotation_file.simpleName}"
     }
+    name = "${annotation_file.simpleName}.${chrom}"
     """
     export OPENBLAS_NUM_THREADS=${task.cpus}
     export GOTO_NUM_THREADS=${task.cpus}
     export OMP_NUM_THREADS=${task.cpus}
     
-    mkdir l2
     # TODO: Check if --print-snps parameter is needed
     ${params.ldsc_scripts_path}/ldsc.py \
         --print-snps ${params.tested_snps} \
@@ -246,7 +245,7 @@ workflow LDSCcellTypes {
         ldsc_res = run_ldsc_cell_types(sumstats, ld_data.map(it -> it[1]).collect(sort: true))
 
         l = ldsc_res.results.collect(sort: true)
-        out = collect_ldsc_results(l)
+        // out = collect_ldsc_results(l) FIXME
     emit:
         out
 }
@@ -274,7 +273,7 @@ workflow calcBaseline {
         it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true))
     )
     is_baseline = true
-    calc_ld(data)
+    calc_ld(data).result
 }
 
 workflow fromAnnotations {
@@ -283,14 +282,19 @@ workflow fromAnnotations {
     main:
         data = Channel.of(1..22).combine(annotations)
         anns = make_ldsc_annotation(data) 
-        lds = calc_ld(anns)
+        lds = calc_ld(anns).result
         ldsc_data = lds.map(it -> tuple(it[0], [it[1], it[2]].flatten()))
             .groupTuple(size: 22)
             .map(
                 it -> tuple(it[0], it[1].flatten())
             )
-        //out = LDSC(ldsc_data)
-        out = LDSCcellTypes(ldsc_data)
+        if (params.by_cell_type) {
+            out = LDSCcellTypes(ldsc_data)
+        } else {
+            out = LDSC(ldsc_data)
+            
+        }
+        
     emit:
         out
 }
