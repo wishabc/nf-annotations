@@ -117,6 +117,23 @@ process collect_counts {
     """
 }
 
+process tabix_index {
+    conda params.conda
+    publishDir "${params.outdir}"
+
+    input:
+        path counts
+
+    output:
+        tuple path(name), path("${name}.tbi")
+    script:
+    name = "all_counts.merged.bed.gz"
+    """
+    sort-bed ${counts} | bgzip -c > ${name}
+    tabix ${name}
+    """
+}
+
 process get_motif_stats {
     tag "${pval_file.simpleName}:${prefix}"
     conda params.conda
@@ -159,6 +176,10 @@ workflow calcEnrichment {
             | map(it -> it[1])
             | collate(params.motif_chunk)
             | collect_counts
+        
+        counts 
+            | collectFile(name: "all.counts.bed") 
+            | tabix_index
 
         motif_ann = pvals_files
             | combine(counts)
@@ -252,7 +273,6 @@ process calc_index_motif_enrichment {
     python3 $moduleDir/bin/index_motif_enrichment.py  \
         ${matrix} ${counts_file} ${motif_id} ${params.sample_names} ${sample_id} > ${name}
     """
-
 }
 
 workflow indexEnrichment {
