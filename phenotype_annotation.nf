@@ -216,7 +216,7 @@ process collect_ldsc_results {
         path ldsc_files
     
     output:
-        tuple path(name)
+        path name
         
 
     script:
