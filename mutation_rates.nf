@@ -1,4 +1,6 @@
 #!/usr/bin/env nextflow
+include { filterUniqVariants } from "./motif_enrichment"
+
 
 process process_mutation_rates {
     tag "${vcf.simpleName}"
