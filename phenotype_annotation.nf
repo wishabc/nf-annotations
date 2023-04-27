@@ -222,7 +222,10 @@ process collect_ldsc_results {
     script:
     name = "ldsc_result.tsv"
     """
+    # copy header from the first file
     head -1 ${ldsc_files[0]} | xargs -I % echo "group_name\tphenotype_id\t%" > ${name}
+    
+    # Aggregate the data
     echo '${ldsc_files}' | tr ' ' '\n' > filelist.txt
     while read line; do
         echo "\$line `basename "\$line" .results | tr "." "\t"`"
@@ -322,3 +325,8 @@ workflow annotateWithPheno {
         | annotate_with_phenotypes
 }
 
+workflow mergeResults {
+    Channel.fromPath(
+        "/net/seq/data2/projects/sabramov/ENCODE4/dnase-annotations/LDSC.clusters/output/*/ldsc/*.results"
+    ).collect(sort: true, flat: true) | collect_ldsc_results
+}
