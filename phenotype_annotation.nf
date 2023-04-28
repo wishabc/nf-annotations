@@ -213,7 +213,7 @@ process collect_ldsc_results {
 
     input:
         // expected to be more than one file
-        path ldsc_files
+        val ldsc_files
     
     output:
         path name
@@ -226,7 +226,7 @@ process collect_ldsc_results {
     head -1 ${ldsc_files[0]} | xargs -I % echo "group_name\tphenotype_id\t%" > ${name}
     
     # Aggregate the data
-    echo '${ldsc_files}' | tr ' ' '\n' > filelist.txt
+    echo '${ldsc_files.join("\n")}' > filelist.txt
     while read line; do
         echo "\$line `basename "\$line" .results | tr "." "\t"`"
         tail -1 "\$line" > ann.txt
