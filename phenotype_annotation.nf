@@ -228,8 +228,7 @@ process collect_ldsc_results {
     # Aggregate the data
     echo '${ldsc_files.join("\n")}' > filelist.txt
     while read line; do
-        tail -1 "\$line" > ann.txt
-        basename "\$line" .results | tr "." "\t" | xargs -I % echo "%\t`cat ann.txt`" >> ${name}
+        basename "\$line" .results | tr "." "\t" | xargs -I % echo "%\t`tail -1 "\$line"`" >> ${name}
     done < filelist.txt
     """
 }
