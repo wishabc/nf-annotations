@@ -95,28 +95,6 @@ process motif_counts {
     """
 }
 
-process collect_counts {
-    conda params.conda
-    scratch true
-    
-    input:
-        path motif_counts_files
-
-    output:
-        tuple val(prefix), path(name)
-
-    script:
-    prefix = motif_counts_files[0].name.replaceAll('.counts.bed', '')
-    name = "${prefix}.merged.bed"
-    """
-    echo "${motif_counts_files}" | tr " " "\n" > filelist.txt
-    while read file; do
-        cat \$file >> merged_motifs.bed
-    done < filelist.txt
-    sort-bed merged_motifs.bed > ${name}
-    """
-}
-
 process tabix_index {
     conda params.conda
     publishDir "${params.outdir}"
@@ -153,68 +131,6 @@ process get_motif_stats {
     """
 }
 
-workflow filterUniqVariants {
-    take:
-        pvals_files
-    main:
-        out = filter_uniq_variants(pvals_files)
-    emit:
-        out
-}
-
-
-workflow calcEnrichment {
-    take:
-        moods_scans
-        pvals_files
-    main:
-        pval_file = pvals_files 
-            | collect(sort: true)
-            | filterUniqVariants
-
-        counts = motif_counts(moods_scans, pval_file)
-            | map(it -> it[1])
-            | collate(params.motif_chunk)
-            | collect_counts
-        
-        counts 
-            | collectFile(name: "all.counts.bed") 
-            | tabix_index
-
-        motif_ann = pvals_files
-            | combine(counts)
-            | get_motif_stats
-            | collectFile(
-                    storeDir: "${params.outdir}/stats"
-                ) { it -> ["${it[0].simpleName}.motif_stats.txt", it[1].text] }
-    emit:
-        motif_ann
-}
-
-params.redo_moods = false
-workflow readMoods {
-    // Check if moods_scans_dir exists, if not run motifEnrichment pipeline
-    main:
-        motifs = Channel.fromPath(params.motifs_list)
-            .splitCsv(header:true, sep:'\t')
-            .map(row -> tuple(row.motif, file(row.motif_file)))
-        if (file(params.moods_scans_dir).exists() && !params.redo_moods) {
-            moods_scans = motifs.map(it -> tuple(it[0], it[1], "${params.moods_scans_dir}/${it[0]}.moods.log.bed.gz"))
-        } else {
-            moods_scans = scan_with_moods(motifs)
-        }
-    emit:
-        moods_scans
-}
-
-workflow {
-    pvals_files = Channel.fromPath("${params.pval_file_dir}/*.bed")
-        | map(it -> file(it))
-    moods_scans = readMoods()
-    calcEnrichment(moods_scans, pvals_files)
-}
-
-
 process motif_hits_intersect {
     publishDir "${params.outdir}/counts", pattern: "${counts_file}"
     tag "${motif_id}"
@@ -229,7 +145,8 @@ process motif_hits_intersect {
     script:
     counts_file = "${motif_id}.hits.bed"
     """
-    zcat ${moods_file} | bedmap --indicator --sweep-all --fraction-map 1 ${index_file} - > ${counts_file}
+    zcat ${moods_file} | bedmap --indicator --sweep-all --fraction-map 1 \
+        ${index_file} - > ${counts_file}
     """
 }
 
@@ -271,8 +188,82 @@ process calc_index_motif_enrichment {
     name = "${motif_id}.${sample_id}.enrichment.tsv"
     """
     python3 $moduleDir/bin/index_motif_enrichment.py  \
-        ${matrix} ${counts_file} ${motif_id} ${params.sample_names} ${sample_id} > ${name}
+        ${matrix} ${counts_file} ${motif_id} \
+        ${params.sample_names} ${sample_id} > ${name}
     """
+}
+
+// Development workflows
+workflow filterUniqVariants {
+    take:
+        pvals_files
+    main:
+        out = filter_uniq_variants(pvals_files)
+    emit:
+        out
+}
+
+
+workflow calcEnrichment {
+    take:
+        counts
+        pvals_files
+    main:
+        motif_ann = pvals_files
+            | combine(counts)
+            | get_motif_stats
+            | collectFile(
+                    storeDir: "${params.outdir}/stats"
+                ) { it -> ["${it[0].simpleName}.motif_stats.txt", it[1].text] }
+    emit:
+        motif_ann
+}
+
+workflow motifCounts {
+    take:
+        pvals_files
+        moods_scans
+    main:
+        pval_file = pvals_files 
+            | collect(sort: true)
+            | filterUniqVariants
+
+        counts = motif_counts(moods_scans, pval_file)
+            | map(it -> it[1])
+            | collectFile(name: "all.counts.bed") 
+            | tabix_index
+    emit:
+        counts
+}
+
+workflow readMotifsList {
+    main:
+        scans = Channel.fromPath(params.motifs_list)
+            | splitCsv(header:true, sep:'\t')
+            | map(row -> tuple(row.motif, file(row.motif_file)))
+    emit:
+        scans
+}
+
+// ------------ Entry workflows -------------------
+workflow scanWithMoods {
+    readMotifsList() | scan_with_moods
+}
+
+workflow {
+    pvals_files = Channel.fromPath("${params.pval_file_dir}/*.bed")
+        | map(it -> file(it))
+    moods_scans = readMotifsList()
+        | map(it -> tuple(it[0], it[1],
+            "${params.moods_scans_dir}/${it[0]}.moods.log.bed.gz"))
+    motifCounts(pvals_files, moods_scans)
+}
+
+workflow cavsEnrichment {
+    pvals_files = Channel.fromPath("${params.pval_file_dir}/*.bed")
+        | map(it -> file(it))
+
+    calcEnrichment("${params.outdir}/all_counts.merged.bed.gz", pvals_files)
 }
 
 workflow indexEnrichment {
@@ -283,10 +274,13 @@ workflow indexEnrichment {
 
     index = Channel.fromPath(file(params.index_file))
 
-    moods_scans = readMoods().map(it -> tuple(it[0], it[2]))
+    moods_scans = readMoods()
+        | map(it -> tuple(it[0], it[2]))
+        | combine(index)
 
     c_mat = cut_matrix(sample_names)
-    out = motif_hits_intersect(moods_scans.combine(index)).combine(c_mat)
+    out = motif_hits_intersect(moods_scans)
+        | combine(c_mat)
         | calc_index_motif_enrichment
         | collectFile(name: 'motif_enrichment.tsv', 
                       storeDir: "$launchDir/${params.outdir}")

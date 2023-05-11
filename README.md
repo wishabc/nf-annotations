@@ -36,7 +36,9 @@ Moods scans are automatically created if you provide non-existent directory in `
 ### CAVs motif enrichment
 1) Fill in parameters in ```params.config``` file, section ```Motif enrichment for index```
 2) Run motif enrichment on CAV p-value files (see [here](https://github.com/wishabc/nf-babachi)) with 
-```nextflow run <src-dir>/motif_enrichment.nf -profile Altius -resume```
+```nextflow run <src-dir>/motif_enrichment.nf -profile Altius -resume -entry scanWithMoods``` (just once for motif collection)
+```nextflow run <src-dir>/motif_enrichment.nf -profile Altius -resume``` (just once for set of unique variants)
+```nextflow run <src-dir>/motif_enrichment.nf -profile Altius -resume -entry cavsEnrichment```
 
 ### Index motif enrichment
 1) Fill in parameters in ```params.config``` file, section ```Motif enrichment for index```
