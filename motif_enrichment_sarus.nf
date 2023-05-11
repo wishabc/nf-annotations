@@ -5,6 +5,8 @@ params.conda = "$moduleDir/environment.yml"
 
 params.window = 20
 
+params.sarus = "/home/sabramov/projects/ENCODE4/sarus/sarus/sarus-latest.jar"
+
 
 process cut_sequence {
     conda params.conda
@@ -46,7 +48,7 @@ process scan_with_sarus {
     name = "${motif_id}"
     """
     ${pwm_path}
-    java -cp $moduleDir/sarus.jar ru.autosome.SARUS \
+    java -cp ${params.sarus} ru.autosome.SARUS \
         ${fasta_file} \
         ${pwm_path} \
         -10000000 \
