@@ -24,7 +24,7 @@ process cut_sequence {
      '{print \$1,\$2-${params.window},\$3+${params.window}," "\$1"@"\$3"@"\$5"@"\$6"@ref"}' > regions.bed
     
     bedtools getfasta -fi ${params.genome_fasta_file} \
-        -bed regions.bed -name > ${fasta_file}
+        -bed regions.bed -nameOnly > ${fasta_file}
     
     python3 $moduleDir/bin/change_context_to_alt.py ${fasta_file} ${params.window} out.fa
     
