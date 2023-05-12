@@ -37,8 +37,7 @@ process scan_with_sarus {
     tag "${motif_id}"
 
     input:
-        tuple val(motif_id), path(pwm_path)
-        path fasta_file
+        tuple val(motif_id), path(pwm_path), path(fasta_file)
     
     output:
         tuple val(motif_id), path(name)
@@ -100,7 +99,9 @@ workflow runSarus {
         motifs
     main:
         unique_variants = filterUniqVariants(pval_files) | cut_sequence
-        out = scan_with_sarus(motifs, unique_variants)
+        out = motifs 
+            | combine(unique_variants)
+            | scan_with_sarus
     emit:
         out
 }
