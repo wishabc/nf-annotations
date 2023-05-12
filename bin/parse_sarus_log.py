@@ -30,10 +30,10 @@ def main(log_iterator, motif_length, window_size, out_file, motif):
     pd.DataFrame(result, 
         columns=['#chr', 'start', 'end', 'ref', 'alt', 'suffix', 
                 'motif_score', 'motif_pos', 'motif_orient', 'motif']
-    ).to_csv(out_file, sep='\t', index=False)
+        ).to_csv(out_file, sep='\t', index=False)
             
 
 
 if __name__ == '__main__':
-    motif_name = os.path.splitext(os.path.basename(sys.argv[4]))[0]
-    main(sys.stdin, int(sys.argv[1]), int(sys.argv[2]), sys.argv[3], motif_name)
+    motif_name = os.path.splitext(os.path.basename(sys.argv[5]))[0]
+    main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4], motif_name)

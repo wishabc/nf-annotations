@@ -6,7 +6,7 @@ params.conda = "$moduleDir/environment.yml"
 params.window = 20
 
 params.sarus = "/home/sabramov/projects/ENCODE4/sarus/sarus/sarus-latest.jar"
-
+params.ape = "/home/sabramov/projects/ENCODE4/sarus/sarus/ape.jar"
 
 process cut_sequence {
     conda params.conda
@@ -32,12 +32,27 @@ process cut_sequence {
     """
 }
 
+process precalc_thresholds {
+    conda params.conda
+
+    input:
+        path "./pwms/"
+    
+    output:
+        path "./motif_thresholds"
+    
+    script:
+    """
+    java -cp ${params.ape} ru.autosome.ape.PrecalculateThresholds ./pwms ./motif_thresholds
+    """
+}
+
 process scan_with_sarus {
     conda params.conda
     tag "${motif_id}"
 
     input:
-        tuple val(motif_id), path(pwm_path), path(fasta_file)
+        tuple val(motif_id), path(pwm_path), path(pval_mapping), path(fasta_file)
     
     output:
         tuple val(motif_id), path(name)
@@ -51,8 +66,9 @@ process scan_with_sarus {
         -10000000 \
         --transpose \
         --threshold-mode score \
-        --output-scoring-mode score \
-        | python3 $moduleDir/bin/parse_sarus_log.py \
+        --pvalues-file ${pval_mapping} \
+        --output-scoring-mode logpvalue > sarus.log
+    python3 $moduleDir/bin/parse_sarus_log.py sarus.log \
             `cat ${pwm_path} | wc -l` ${params.window} ${name} ${pwm_path}
     """
 }
@@ -100,7 +116,15 @@ workflow runSarus {
         motifs
     main:
         unique_variants = filterUniqVariants(pval_files) | cut_sequence
+        thresholds = motifs
+            | map(it -> it[1])
+            | collect()
+            | precalc_thresholds
+            | flatten()
+            | map(it -> tuple(it.baseName, it))
+
         out = motifs 
+            | join(thresholds)
             | combine(unique_variants)
             | scan_with_sarus
     emit:
