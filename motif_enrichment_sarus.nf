@@ -118,7 +118,7 @@ workflow runSarus {
         unique_variants = filterUniqVariants(pval_files) | cut_sequence
         thresholds = motifs
             | map(it -> it[1])
-            | collect()
+            | collect(sort: true)
             | precalc_thresholds
             | flatten()
             | map(it -> tuple(it.baseName, it))
