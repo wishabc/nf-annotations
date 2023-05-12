@@ -50,7 +50,6 @@ process scan_with_sarus {
         ${pwm_path} \
         -10000000 \
         --transpose \
-        --pfm \
         --threshold-mode score \
         --output-scoring-mode score \
         | python3 $moduleDir/bin/parse_sarus_log.py \
