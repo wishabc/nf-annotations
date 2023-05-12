@@ -1,8 +1,8 @@
 import sys
 import pandas as pd
+import os
 
-
-def main(log_iterator, motif_length, window_size, out_file):
+def main(log_iterator, motif_length, window_size, out_file, motif):
     result = []
     chrom = end = ref = alt = suffix = None
     for line in log_iterator:
@@ -24,15 +24,16 @@ def main(log_iterator, motif_length, window_size, out_file):
             motif_score = float(motif_score)
 
             result.append(
-                [chrom, end - 1, end, ref, alt, suffix, motif_score, motif_pos, motif_orient]
+                [chrom, end - 1, end, ref, alt, suffix, motif_score, motif_pos, motif_orient, motif]
             )
     
     pd.DataFrame(result, 
-        names=['#chr', 'start', 'end', 'ref', 'alt', 'suffix', 
-                'motif_score', 'motif_pos', 'motif_orient']
+        columns=['#chr', 'start', 'end', 'ref', 'alt', 'suffix', 
+                'motif_score', 'motif_pos', 'motif_orient', 'motif']
     ).to_csv(out_file, sep='\t', index=False)
             
 
 
 if __name__ == '__main__':
-    main(sys.stdin, int(sys.argv[1]), int(sys.argv[2]), sys.argv[3])
+    motif_name = os.path.splitext(os.path.basename(sys.argv[4]))[0]
+    main(sys.stdin, int(sys.argv[1]), int(sys.argv[2]), sys.argv[3], motif_name)

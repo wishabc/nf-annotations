@@ -52,7 +52,7 @@ process scan_with_sarus {
         --threshold-mode score \
         --output-scoring-mode score \
         | python3 $moduleDir/bin/parse_sarus_log.py \
-            `cat ${pwm_path} | wc -l` ${params.window} ${name}
+            `cat ${pwm_path} | wc -l` ${params.window} ${name} ${pwm_path}
     """
 }
 
