@@ -36,10 +36,10 @@ process precalc_thresholds {
     conda params.conda
 
     input:
-        path "./pwms/"
+        path "./pwms/*"
     
     output:
-        path "./motif_thresholds"
+        path "./motif_thresholds/*"
     
     script:
     """
