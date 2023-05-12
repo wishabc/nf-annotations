@@ -10,7 +10,6 @@ params.sarus = "/home/sabramov/projects/ENCODE4/sarus/sarus/sarus-latest.jar"
 
 process cut_sequence {
     conda params.conda
-    scratch true
 
     input:
         path pval_file
