@@ -99,8 +99,8 @@ workflow runSarus {
         pval_files
         motifs
     main:
-        uniq_vars = filterUniqVariants(pval_files) | cut_sequence
-        out = scan_with_sarus(uniq_vars, motifs)
+        unique_variants = filterUniqVariants(pval_files) | cut_sequence
+        out = scan_with_sarus(motifs, unique_variants)
     emit:
         out
 }
