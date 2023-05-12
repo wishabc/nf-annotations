@@ -13,4 +13,7 @@ def main(fasta_file, window, out_file):
                 out.write(line[:window + 1] + alt + line[window + 1:], line)
 
 if __name__ == '__main__':
-    main(*sys.argv[1:])        
+    fasta = sys.argv[1]
+    window = int(sys.argv[2])
+    out_file = sys.argv[3]
+    main(fasta, window, out_file)        
