@@ -43,12 +43,14 @@ process scan_with_sarus {
         tuple val(motif_id), path(name)
     
     script:
-    name = "${motif_id}"
+    name = "${motif_id}.sarus.tsv"
     """
     java -cp ${params.sarus} ru.autosome.SARUS \
         ${fasta_file} \
         ${pwm_path} \
         -10000000 \
+        --transpose \
+        --pfm \
         --threshold-mode score \
         --output-scoring-mode score \
         | python3 $moduleDir/bin/parse_sarus_log.py \
