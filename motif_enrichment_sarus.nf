@@ -47,14 +47,14 @@ process scan_with_sarus {
     script:
     name = "${motif_id}"
     """
-    ${pwm_path}
     java -cp ${params.sarus} ru.autosome.SARUS \
         ${fasta_file} \
         ${pwm_path} \
         -10000000 \
         --threshold-mode score \
         --output-scoring-mode score \
-        | python3 $moduleDir/bin/parse_sarus_log.py ${name}
+        | python3 $moduleDir/bin/parse_sarus_log.py \
+            `cat ${pwm_path} | wc -l` ${params.window} ${name}
     """
 }
 
