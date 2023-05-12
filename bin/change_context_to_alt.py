@@ -10,7 +10,7 @@ def main(fasta_file, window, out_file):
                 out.write(line.replace('@ref', '@alt'))
             else:
                 assert ref == line[window]
-                out.write(line[:window + 1] + alt + line[window + 1:], line)
+                out.write(line[:window] + alt + line[window + 1:])
 
 if __name__ == '__main__':
     fasta = sys.argv[1]
