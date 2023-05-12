@@ -39,11 +39,12 @@ process precalc_thresholds {
         path "./pwms/*"
     
     output:
-        path "./motif_thresholds/*"
+        path "motif_thresholds/*.thr"
     
     script:
     """
-    java -cp ${params.ape} ru.autosome.ape.PrecalculateThresholds ./pwms ./motif_thresholds
+    java -cp ${params.ape} ru.autosome.ape.PrecalculateThresholds \
+        ./pwms ./motif_thresholds --transpose
     """
 }
 
