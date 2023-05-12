@@ -122,6 +122,7 @@ workflow runSarus {
             | precalc_thresholds
             | flatten()
             | map(it -> tuple(it.baseName, it))
+            | view()
 
         out = motifs 
             | join(thresholds)
