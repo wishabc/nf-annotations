@@ -126,6 +126,7 @@ workflow runSarus {
         out = motifs 
             | join(thresholds)
             | combine(unique_variants)
+            | take(3)
             | scan_with_sarus
     emit:
         out
