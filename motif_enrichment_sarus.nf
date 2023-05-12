@@ -6,7 +6,7 @@ params.conda = "$moduleDir/environment.yml"
 params.window = 20
 
 params.sarus = "/home/sabramov/projects/ENCODE4/sarus/sarus/sarus-latest.jar"
-params.ape = "/home/sabramov/projects/ENCODE4/sarus/sarus/ape.jar"
+params.ape = "/home/sabramov/projects/ENCODE4/sarus/macro-perfectos-ape/ape.jar"
 
 process cut_sequence {
     conda params.conda
