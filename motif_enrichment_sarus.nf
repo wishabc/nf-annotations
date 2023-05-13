@@ -108,7 +108,7 @@ process tabix_index {
     name = "all_counts.signif.bed.gz"
     """
     cat ${counts} \
-        | awk '((NR==1) || (\$8==1)) {print;}' > signif_only.bed
+        | awk '((NR==1) || (\$9==1)) {print;}' > signif_only.bed
     sort-bed signif_only.bed | bgzip -c > ${name}
     tabix ${name}
     """
