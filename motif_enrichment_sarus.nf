@@ -112,7 +112,6 @@ workflow runSarus {
         out = motifs 
             | join(thresholds)
             | combine(unique_variants)
-            | take(3)
             | scan_with_sarus
         
         out.map(it -> it[1])

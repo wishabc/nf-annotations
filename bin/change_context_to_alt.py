@@ -6,7 +6,7 @@ def main(fasta_file, window, out_file):
     with open(fasta_file) as f, open(out_file, 'w') as out:
         for line in f:
             if line.startswith('>'):
-                _, _, ref, alt, _ = line.split('@')
+                _, _, _, ref, alt, _ = line.split('@')
                 out.write(line.replace('@ref', '@alt'))
             else:
                 assert ref == line[window]
