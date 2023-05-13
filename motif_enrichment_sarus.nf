@@ -51,16 +51,16 @@ process precalc_thresholds {
 process scan_with_sarus {
     conda params.conda
     tag "${motif_id}"
-    publishDir "${params.outdir}/sarus"
+    publishDir "${params.outdir}/sarus_logs"
 
     input:
         tuple val(motif_id), path(pwm_path), path(pval_mapping), path(fasta_file)
     
     output:
-        tuple val(motif_id), path(name)
+        tuple val(motif_id), path(name), path(pwm_path)
     
     script:
-    name = "${motif_id}.sarus.tsv"
+    name = "${motif_id}.sarus.log"
     """
     java -cp ${params.sarus} ru.autosome.SARUS \
         ${fasta_file} \
@@ -69,8 +69,25 @@ process scan_with_sarus {
         --transpose \
         --threshold-mode score \
         --pvalues-file ${pval_mapping} \
-        --output-scoring-mode logpvalue > sarus.log
-    python3 $moduleDir/bin/parse_sarus_log.py sarus.log \
+        --output-scoring-mode logpvalue > ${name}
+    """
+}
+
+process parse_log {
+    conda params.conda
+    tag "${motif_id}"
+    publishDir "${params.outdir}/sarus"
+
+    input:
+        tuple val(motif_id), path(sarus_log), path(pwm_path)
+    
+    output:
+        tuple val(motif_id), path(name)
+
+    script:
+    name = "${motif_id}.sarus.tsv"
+    """
+    python3 $moduleDir/bin/parse_sarus_log.py ${sarus_log} \
             `cat ${pwm_path} | wc -l` ${params.window} ${name} ${pwm_path}
     """
 }
@@ -113,6 +130,7 @@ workflow runSarus {
             | join(thresholds)
             | combine(unique_variants)
             | scan_with_sarus
+            | parse_log
         
         out.map(it -> it[1])
             | collectFile(name: 'all.sarus.tsv') 
