@@ -1,39 +1,47 @@
 import sys
 import pandas as pd
 import os
+from parse_variants_motifs import read_pfm
+import numpy as np
 
-def main(log_iterator, motif_length, window_size, out_file, motif):
-    result = []
-    chrom = end = ref = alt = suffix = None
-    for line in log_iterator:
-        if line.startswith('>'):
-            chrom, end, ref, alt, suffix = line.strip()[2:].split('@')
-            end = int(end)
-        else:
-            motif_score, motif_pos, motif_orient = line.strip('\n').split()
-            difference = window_size - motif_length
-            if difference < 0:
-                raise AssertionError
-            motif_pos = int(motif_pos)
-            # max motif pos
+def choose_best(data, motif_id):
+    key, value = data
+    chrom, end, ref, alt = key.split('@')
+    end = int(end)
+    best_elem = max(value, key=lambda x: x[1]) # allele, p-value, position, orientation
+    return [[chrom, end - 1, end, ref, alt, motif_id, *x] for x in value if (x[2] == best_elem[2]) and (x[3] == best_elem[3])]
 
-            motif_pos = motif_pos if line[2] == '-' else window_size - 1 - motif_pos 
-            if motif_pos > motif_length:
-                continue
-            motif_pos -= window_size
-            motif_score = float(motif_score)
 
-            result.append(
-                [chrom, end - 1, end, ref, alt, suffix, motif_score, motif_pos, motif_orient, motif]
-            )
+def main(sarus_log, motif_length, window_size, out_file, motif_path):
+    result = {}
     
-    pd.DataFrame(result, 
-        columns=['#chr', 'start', 'end', 'ref', 'alt', 'suffix', 
-                'motif_score', 'motif_pos', 'motif_orient', 'motif']
+    motif_id, pfm = read_pfm(motif_path)
+    with open(sarus_log) as f:
+        for line in f:
+            if line.startswith('>'):
+                key, allele = line.strip()[1:].rsplit('@', 1)
+            else:
+                motif_score, motif_pos, motif_orient = line.strip('\n')
+                difference = window_size - motif_length
+                if difference < 0:
+                    raise AssertionError
+                motif_pos = int(motif_pos)
+                # max motif pos
+
+                motif_pos = motif_pos if line[2] == '-' else window_size - 1 - motif_pos 
+                if motif_pos > motif_length:
+                    continue
+                motif_pos -= window_size
+                motif_score = float(motif_score)
+                result.setdefault(key, []).append([allele, motif_score, motif_pos, motif_orient])
+    
+ 
+    pd.DataFrame([choose_best(x, motif_id) for x in result.items()], 
+        columns=['#chr', 'start', 'end', 'ref', 'alt', 'allele', 
+                'motif_logpval', 'motif_pos', 'motif_orient', 'motif']
         ).to_csv(out_file, sep='\t', index=False)
             
 
 
 if __name__ == '__main__':
-    motif_name = os.path.splitext(os.path.basename(sys.argv[5]))[0]
-    main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4], motif_name)
+    main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4], sys.argv[5])
