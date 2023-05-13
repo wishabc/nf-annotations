@@ -16,6 +16,7 @@ def main(sarus_log, motif_length, window_size, out_file, motif_path):
     result = {}
     
     motif_id, pfm = read_pfm(motif_path)
+    print('Processing started')
     with open(sarus_log) as f:
         for line in tqdm(f.readlines()):
             if line.startswith('>'):
