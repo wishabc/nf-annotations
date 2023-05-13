@@ -20,7 +20,7 @@ def choose_best(data, motif_id, tr):
     else:
         stats.extend([other_pval, best_pval])
 
-    return [chrom, end - 1, end, ref, alt, motif_id, *stats]
+    return [chrom, end - 1, end, rs_id, ref, alt, motif_id, *stats]
 
 
 def main(sarus_log, motif_length, window_size, out_file, motif_path, tr=4):
