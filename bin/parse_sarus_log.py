@@ -29,24 +29,25 @@ def main(sarus_log, motif_length, window_size, out_file, motif_path, tr=4):
     motif_id, pfm = read_pfm(motif_path)
     print('Processing started')
     with open(sarus_log) as f:
-        for line in tqdm(f.readlines()):
-            if line.startswith('>'):
-                key, allele = line.strip('\n')[1:].rsplit('@', 1)
-            else:
-                motif_score, motif_pos, motif_orient = line.strip('\n').split()
-                difference = window_size + 1 - motif_length
-                if difference < 0:
-                    raise AssertionError
-                motif_pos = int(motif_pos)
-                # max motif pos
+        d = f.readlines()
+    for line in tqdm(d):
+        if line.startswith('>'):
+            key, allele = line.strip('\n')[1:].rsplit('@', 1)
+        else:
+            motif_score, motif_pos, motif_orient = line.strip('\n').split()
+            difference = window_size + 1 - motif_length
+            if difference < 0:
+                raise AssertionError
+            motif_pos = int(motif_pos)
+            # max motif pos
 
-                motif_pos = motif_pos - difference if line[2] == '-' else window_size - motif_pos 
-                if motif_pos < 0 or motif_pos >= motif_length:
-                    continue
-                motif_score = float(motif_score)
-                result.setdefault(key, []).append([allele, motif_score, motif_pos, motif_orient])
-    
- 
+            motif_pos = motif_pos - difference if line[2] == '-' else window_size - motif_pos 
+            if motif_pos < 0 or motif_pos >= motif_length:
+                continue
+            motif_score = float(motif_score)
+            result.setdefault(key, []).append([allele, motif_score, motif_pos, motif_orient])
+    del d
+
     pd.DataFrame([choose_best(x, motif_id, tr) for x in tqdm(result.items())], 
         columns=['#chr', 'start', 'end', 'ID', 'ref', 'alt', 'motif',
                 'motif_pos', 'signif_hit', 'motif_orient', 'motif_logpval_ref', 'motif_logpval_alt',]
