@@ -116,7 +116,7 @@ workflow runSarus {
             | scan_with_sarus
         
         out.map(it -> it[1])
-            | collectFile('all.sarus.tsv') 
+            | collectFile(name: 'all.sarus.tsv') 
             | tabix_index
     emit:
         out
