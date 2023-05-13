@@ -22,7 +22,11 @@ def main(sarus_log, motif_length, window_size, out_file, motif_path):
             if line.startswith('>'):
                 key, allele = line.strip()[1:].rsplit('@', 1)
             else:
-                motif_score, motif_pos, motif_orient = line.strip('\n')
+                try:
+                    motif_score, motif_pos, motif_orient = line.strip('\n').split()
+                except:
+                    print(line)
+                    raise
                 difference = window_size - motif_length
                 if difference < 0:
                     raise AssertionError
