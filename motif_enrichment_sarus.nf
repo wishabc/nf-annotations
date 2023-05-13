@@ -88,7 +88,7 @@ process parse_log {
     script:
     name = "${motif_id}.sarus.tsv"
     """
-    python3 $moduleDir/bin/parse_sarus_log.py ${sarus_log} \
+    python3 $moduleDir/bin/parse_sarus_log.py ${sarus_log} ${params.genome_fasta_file} \
             `head -1 ${pwm_path} | wc -w` ${params.window} ${name} ${pwm_path}
     """
 }
