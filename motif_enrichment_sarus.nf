@@ -77,7 +77,7 @@ process parse_log {
     conda params.conda
     tag "${motif_id}"
     publishDir "${params.outdir}/sarus"
-    label "high_mem"
+    label "med_mem"
 
     input:
         tuple val(motif_id), path(sarus_log), path(pwm_path)
@@ -96,6 +96,7 @@ process parse_log {
 process tabix_index {
     conda params.conda
     publishDir "${params.outdir}"
+    label "med_mem"
 
     input:
         path counts
