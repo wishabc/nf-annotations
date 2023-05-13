@@ -2,7 +2,7 @@ import sys
 import pandas as pd
 import os
 from parse_variants_motifs import read_pfm
-import numpy as np
+from tqdm import tqdm
 
 def choose_best(data, motif_id):
     key, value = data
@@ -17,7 +17,7 @@ def main(sarus_log, motif_length, window_size, out_file, motif_path):
     
     motif_id, pfm = read_pfm(motif_path)
     with open(sarus_log) as f:
-        for line in f:
+        for line in tqdm(f.readlines()):
             if line.startswith('>'):
                 key, allele = line.strip()[1:].rsplit('@', 1)
             else:
@@ -36,7 +36,7 @@ def main(sarus_log, motif_length, window_size, out_file, motif_path):
                 result.setdefault(key, []).append([allele, motif_score, motif_pos, motif_orient])
     
  
-    pd.DataFrame([choose_best(x, motif_id) for x in result.items()], 
+    pd.DataFrame([choose_best(x, motif_id) for x in tqdm(result.items())], 
         columns=['#chr', 'start', 'end', 'ref', 'alt', 'allele', 
                 'motif_logpval', 'motif_pos', 'motif_orient', 'motif']
         ).to_csv(out_file, sep='\t', index=False)
