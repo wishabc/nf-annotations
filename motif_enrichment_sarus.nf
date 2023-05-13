@@ -51,6 +51,7 @@ process precalc_thresholds {
 process scan_with_sarus {
     conda params.conda
     tag "${motif_id}"
+    publishDir "${params.outdir}/sarus"
 
     input:
         tuple val(motif_id), path(pwm_path), path(pval_mapping), path(fasta_file)
@@ -83,30 +84,14 @@ process tabix_index {
 
     output:
         tuple path(name), path("${name}.tbi")
+
     script:
-    name = "all_counts.merged.bed.gz"
+    name = "all_counts.signif.bed.gz"
     """
-    sort-bed ${counts} | bgzip -c > ${name}
+    cat ${counts} | awk '((NR==1) || (\$8==1)) {print;}' \
+        | sort-bed - \
+        | bgzip -c > ${name}
     tabix ${name}
-    """
-}
-
-process get_motif_stats {
-    tag "${pval_file.simpleName}:${prefix}"
-    conda params.conda
-
-    input:
-        tuple path(pval_file), val(prefix), path(counts_file)
-
-    output:
-        tuple path(pval_file), path(motif_stats)
-    
-    script:
-    motif_stats = "${pval_file.baseName}.${prefix}.stats.tsv"
-    """
-    # Counts file
-    python3 ${projectDir}/bin/motif_stats.py  \
-        ${pval_file} ${counts_file} > ${motif_stats}
     """
 }
 
@@ -129,6 +114,10 @@ workflow runSarus {
             | combine(unique_variants)
             | take(3)
             | scan_with_sarus
+        
+        out.map(it -> it[1])
+            | collectFile('all.sarus.tsv') 
+            | tabix_index
     emit:
         out
 }
