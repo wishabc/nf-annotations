@@ -88,7 +88,6 @@ process parse_log {
     script:
     name = "${motif_id}.sarus.tsv"
     """
-    echo 1
     python3 $moduleDir/bin/parse_sarus_log.py ${sarus_log} \
             `head -1 ${pwm_path} | wc -w` ${params.window} ${name} ${pwm_path}
     """
