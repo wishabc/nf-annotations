@@ -77,6 +77,7 @@ process parse_log {
     conda params.conda
     tag "${motif_id}"
     publishDir "${params.outdir}/sarus"
+    label "med_mem"
 
     input:
         tuple val(motif_id), path(sarus_log), path(pwm_path)
