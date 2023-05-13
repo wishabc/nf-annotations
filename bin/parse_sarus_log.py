@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 def choose_best(data, motif_id, tr):
     key, value = data
-    chrom, end, ref, alt = key.split('@')
+    chrom, end, rs_id, ref, alt = key.split('@')
     end = int(end)
     best_allele, best_pval, best_pos, best_orient = max(value, key=lambda x: x[1]) # allele, p-value, position, orientation
     res = [x for x in value
@@ -48,7 +48,7 @@ def main(sarus_log, motif_length, window_size, out_file, motif_path, tr=4):
     
  
     pd.DataFrame([choose_best(x, motif_id, tr) for x in tqdm(result.items())], 
-        columns=['#chr', 'start', 'end', 'ref', 'alt', 'motif',
+        columns=['#chr', 'start', 'end', 'ID', 'ref', 'alt', 'motif',
                 'motif_pos', 'signif_hit', 'motif_orient', 'motif_logpval_ref', 'motif_logpval_alt',]
         ).to_csv(out_file, sep='\t', index=False)
             

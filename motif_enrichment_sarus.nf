@@ -21,7 +21,7 @@ process cut_sequence {
     fasta_file = "snps_context.fa"
     """
     cat ${pval_file} | awk -v OFS='\t' \
-     '{print \$1,\$2-${params.window},\$3+${params.window}," "\$1"@"\$3"@"\$5"@"\$6"@ref"}' > regions.bed
+        '{print \$1,\$2-${params.window},\$3+${params.window}," "\$1"@"\$3"@"\$4"@"\$5"@"\$6"@ref"}' > regions.bed
     
     bedtools getfasta -fi ${params.genome_fasta_file} \
         -bed regions.bed -nameOnly | sed 's/[YMSRDVBHWK]/N/g' > ${fasta_file}
