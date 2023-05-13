@@ -106,9 +106,9 @@ process tabix_index {
     script:
     name = "all_counts.signif.bed.gz"
     """
-    cat ${counts} | awk '((NR==1) || (\$8==1)) {print;}' \
-        | sort-bed - \
-        | bgzip -c > ${name}
+    cat ${counts} \
+        | awk '((NR==1) || (\$8==1)) {print;}' > signif_only.bed
+    sort-bed signif_only.bed | bgzip -c > ${name}
     tabix ${name}
     """
 }
@@ -134,7 +134,7 @@ workflow runSarus {
             | parse_log
         
         out.map(it -> it[1])
-            | collectFile(name: 'all.sarus.tsv') 
+            | collectFile(name: 'all.sarus.tsv', header: true, skip: 1) 
             | tabix_index
     emit:
         out
