@@ -89,7 +89,7 @@ process parse_log {
     name = "${motif_id}.sarus.tsv"
     """
     python3 $moduleDir/bin/parse_sarus_log.py ${sarus_log} \
-            `cat ${pwm_path} | wc -l` ${params.window} ${name} ${pwm_path}
+            `head -1 ${pwm_path} | wc -w` ${params.window} ${name} ${pwm_path}
     """
 }
 
@@ -135,7 +135,7 @@ workflow runSarus {
             | parse_log
         
         out.map(it -> it[1])
-            | collectFile(name: 'all.sarus.tsv', keepHeader: true, skip: 1) 
+            | collectFile(name: 'all.sarus.bed', keepHeader: true, skip: 1) 
             | tabix_index
     emit:
         out
