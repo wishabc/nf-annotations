@@ -135,7 +135,7 @@ workflow runSarus {
             | parse_log
         
         out.map(it -> it[1])
-            | collectFile(name: 'all.sarus.tsv', header: true, skip: 1) 
+            | collectFile(name: 'all.sarus.tsv', keepHeader: true, skip: 1) 
             | tabix_index
     emit:
         out
