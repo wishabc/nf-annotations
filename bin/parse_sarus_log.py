@@ -4,6 +4,7 @@ import os
 from parse_variants_motifs import read_pfm
 from tqdm import tqdm
 
+
 def choose_best(data, motif_id, tr):
     key, value = data
     chrom, end, ref, alt = key.split('@')
@@ -42,7 +43,6 @@ def main(sarus_log, motif_length, window_size, out_file, motif_path, tr=4):
                 motif_pos = motif_pos - difference if line[2] == '-' else window_size - motif_pos 
                 if motif_pos < 0 or motif_pos >= motif_length:
                     continue
-                motif_pos = window_size - motif_pos
                 motif_score = float(motif_score)
                 result.setdefault(key, []).append([allele, motif_score, motif_pos, motif_orient])
     
