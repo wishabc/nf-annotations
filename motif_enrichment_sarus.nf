@@ -3,7 +3,7 @@ include { filterUniqVariants; readMotifsList } from "./motif_enrichment"
 // Put in the Apptainer
 params.conda = "$moduleDir/environment.yml"
 
-params.window = 20
+params.window = 25
 
 params.sarus = "/home/sabramov/projects/ENCODE4/sarus/sarus/sarus-latest.jar"
 params.ape = "/home/sabramov/projects/ENCODE4/sarus/macro-perfectos-ape/ape.jar"
