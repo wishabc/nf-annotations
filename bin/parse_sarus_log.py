@@ -23,7 +23,7 @@ def choose_best(data, motif_path, motif_length, fasta, tr):
         stats.extend([other_pval, best_pval])
     start = end - 1
 
-    seq = fasta[chrom][start - best_pos:end + motif_length - best_pos]
+    seq = fasta[chrom][start - best_pos:start + motif_length - best_pos]
     if best_orient == '-':
         seq = seq.reverse.complement.seq
         ref = complement(ref)
