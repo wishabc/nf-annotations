@@ -3,7 +3,7 @@ include { filterUniqVariants; readMotifsList } from "./motif_enrichment"
 // Put in the Apptainer
 params.conda = "$moduleDir/environment.yml"
 
-params.window = 25
+params.window = 20
 
 params.sarus = "/home/sabramov/projects/ENCODE4/sarus/sarus/sarus-latest.jar"
 params.ape = "/home/sabramov/projects/ENCODE4/sarus/macro-perfectos-ape/ape.jar"
@@ -77,6 +77,7 @@ process parse_log {
     conda params.conda
     tag "${motif_id}"
     publishDir "${params.outdir}/sarus"
+    errorStrategy { (task.exitStatus == 1) ? 'ignore' : 'retry' }
     label "med_mem"
 
     input:
