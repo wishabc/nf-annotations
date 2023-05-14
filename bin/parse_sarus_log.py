@@ -1,11 +1,13 @@
 import sys
 import pandas as pd
-from parse_variants_motifs import read_pfm
+from parse_variants_motifs import read_pfm, complement, ddg
 from tqdm import tqdm
 import pyfaidx
 
 
-def choose_best(data, motif_id, motif_length, fasta, tr):
+def choose_best(data, motif_path, motif_length, fasta, tr):
+    motif_id, pfm = read_pfm(motif_path)
+    assert motif_length == pfm.shape[1]
     key, value = data
     chrom, end, rs_id, ref, alt = key.split('@')
     end = int(end)
@@ -20,14 +22,23 @@ def choose_best(data, motif_id, motif_length, fasta, tr):
     else:
         stats.extend([other_pval, best_pval])
     start = end - 1
+
     seq = fasta[chrom][start - best_pos:end + motif_length - best_pos]
-    return [chrom, start, end, rs_id, ref, alt, motif_id, *stats, seq]
+    if best_orient == '-':
+        seq = seq.reverse.complement.seq
+        ref = complement(ref)
+        alt = complement(alt)
+    else:
+        seq = seq.seq
+        ref = ref
+        alt = alt
+
+    ref_score, alt_score = ddg(seq, ref, alt, best_pos, pfm)
+    return [chrom, start, end, rs_id, ref, alt, motif_id, *stats, seq, ref_score, alt_score]
 
 
 def main(sarus_log, fasta_path, motif_length, window_size, out_file, motif_path, tr=4):
     result = {}
-    
-    motif_id, pfm = read_pfm(motif_path)
     print('Processing started')
     with open(sarus_log) as f:
         for line in f:
@@ -47,10 +58,10 @@ def main(sarus_log, fasta_path, motif_length, window_size, out_file, motif_path,
                 motif_score = float(motif_score)
                 result.setdefault(key, []).append([allele, motif_score, motif_pos, motif_orient])
     with pyfaidx.Fasta(fasta_path, sequence_always_upper=True) as fasta:
-        pd.DataFrame([choose_best(x, motif_id, motif_length, fasta, tr=tr) for x in tqdm(result.items())], 
+        pd.DataFrame([choose_best(x, motif_path, motif_length, fasta, tr=tr) for x in tqdm(result.items())], 
             columns=['#chr', 'start', 'end', 'ID', 'ref', 'alt', 'motif',
                     'motif_pos', 'signif_hit', 'motif_orient',
-                    'motif_logpval_ref', 'motif_logpval_alt', 'seq']
+                    'motif_logpval_ref', 'motif_logpval_alt', 'seq', 'motif_ref_score', 'motif_alt_score']
             ).to_csv(out_file, sep='\t', index=False)
             
 
