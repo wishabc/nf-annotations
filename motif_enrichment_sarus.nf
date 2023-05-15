@@ -94,7 +94,7 @@ process parse_log {
     """
 }
 
-process tabix_index {
+process filter_and_index {
     conda params.conda
     publishDir "${params.outdir}"
     label "med_mem"
@@ -108,8 +108,14 @@ process tabix_index {
     script:
     name = "all_counts.signif.bed.gz"
     """
-    cat ${counts} \
-        | awk -v OFS='\t' '((NR==1) || (\$9==1)) {print;}' > signif_only.bed
+    echo "${counts}" | tr ' ' '\n' > filelist.txt
+    head -1 ${counts[0]} > signif_only.bed
+    while read line;
+    do
+        cat \$line 
+            | awk -v OFS='\t' '((NR > 1) && (\$9==1)) {print;}' >> signif_only.bed
+    done < filelist.txt
+
     sort-bed signif_only.bed | bgzip -c > ${name}
     tabix ${name}
     """
@@ -135,9 +141,7 @@ workflow runSarus {
             | scan_with_sarus
             | parse_log
         
-        out.map(it -> it[1])
-            | collectFile(name: 'all.sarus.bed', keepHeader: true, skip: 1) 
-            | tabix_index
+        out.map(it -> it[1]) | filter_and_index
     emit:
         out
 }
