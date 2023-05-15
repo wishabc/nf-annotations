@@ -141,7 +141,7 @@ workflow runSarus {
             | scan_with_sarus
             | parse_log
         
-        out.map(it -> it[1]) | filter_and_index
+        out.map(it -> it[1]) | collect() | filter_and_index
     emit:
         out
 }
