@@ -131,68 +131,6 @@ process get_motif_stats {
     """
 }
 
-process motif_hits_intersect {
-    publishDir "${params.outdir}/counts", pattern: "${counts_file}"
-    tag "${motif_id}"
-    conda params.conda
-
-    input:
-        tuple val(motif_id), path(moods_file), path(index_file)
-
-    output:
-        tuple val(motif_id), path(counts_file)
-
-    script:
-    counts_file = "${motif_id}.hits.bed"
-    """
-    zcat ${moods_file} | bedmap --indicator --sweep-all --fraction-map 1 \
-        ${index_file} - > ${counts_file}
-    """
-}
-
-process cut_matrix {
-    conda params.conda
-    tag "samples ${interval}"
-    scratch true
-
-    input:
-        val sample_id
-
-    output:
-        tuple val(interval), path(name)
-
-    script:
-    end = sample_id + params.step - 1
-    interval = "${sample_id}-${end}"
-    name = "${interval}.cut_matrix.npy"
-    """
-    zcat ${params.binary_matrix} | cut -f${interval} > tmp.txt
-    python3 $moduleDir/bin/convert_to_numpy.py tmp.txt ${name}
-    """
-}
-
-
-process calc_index_motif_enrichment {
-    tag "${motif_id}"
-    conda params.conda
-    publishDir "${params.outdir}/motif_stats_chunks"
-    scratch true
-
-    input:
-        tuple val(motif_id), path(counts_file), val(sample_id),  path(matrix)
-    
-    output:
-        tuple val(sample_id), path(name)
-
-    script:
-    name = "${motif_id}.${sample_id}.enrichment.tsv"
-    """
-    python3 $moduleDir/bin/index_motif_enrichment.py  \
-        ${matrix} ${counts_file} ${motif_id} \
-        ${params.sample_names} ${sample_id} > ${name}
-    """
-}
-
 // Development workflows
 workflow filterUniqVariants {
     take:
@@ -264,24 +202,4 @@ workflow cavsEnrichment {
         | map(it -> file(it))
 
     calcEnrichment("${params.outdir}/all_counts.merged.bed.gz", pvals_files)
-}
-
-workflow indexEnrichment {
-    samples_count = file(params.sample_names).countLines().intdiv(params.step)
-    sample_names = Channel.of(0..samples_count)
-        | map(it -> it * params.step + 1)
-        | toInteger()
-
-    index = Channel.fromPath(file(params.index_file))
-
-    moods_scans = readMoods()
-        | map(it -> tuple(it[0], it[2]))
-        | combine(index)
-
-    c_mat = cut_matrix(sample_names)
-    out = motif_hits_intersect(moods_scans)
-        | combine(c_mat)
-        | calc_index_motif_enrichment
-        | collectFile(name: 'motif_enrichment.tsv', 
-                      storeDir: "$launchDir/${params.outdir}")
 }
