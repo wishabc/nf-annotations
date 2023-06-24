@@ -43,7 +43,7 @@ Moods scans are automatically created if you provide non-existent directory in `
 ### Index motif enrichment
 1) Fill in parameters in ```params.config``` file, section ```Motif enrichment for index```
 2) Run motif enrichment on index file with
-```nextflow run <src-dir>/motif_enrichment.nf -profile Altius -entry indexEnrichment -resume```
+```nextflow run <src-dir>/masterlist_enrichment.nf -profile Altius -resume```
 
 ## Phenotypes associations analysis
 ### UKBB associations
