@@ -63,9 +63,7 @@ workflow annotateMutationRates {
 }
 
 workflow {
-    pval_file = Channel.fromPath("${params.pval_file_dir}/*.bed")
-        | map(it -> file(it))
-        | collect(sort: true)
+    pval_file = Channel.fromPath(params.pval_file)
         | filterUniqVariants
     mut_rate_vcfs = Channel.fromPath("${params.vcfs_dir}/*.vcf.gz")
     annotateMutationRates(mut_rate_vcfs, pval_file)
