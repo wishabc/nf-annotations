@@ -14,22 +14,18 @@ process ld_scores {
 	script:
 	name = "${chromosome}.ld.bed"
 	"""
+    echo "chrom chromStart  chromEnd" > variants.bed
     awk -v OFS='\t' '{ print \$1,\$2,\$3 }' ${snps_positions} \
-        | uniq \
-        | python3 reformat_to_r2.py > variants.bed
+        | uniq >> variants.bed
 
 	vcftools --geno-r2 \
 		--gzvcf ${params.genotype_file} \
         --chr ${chromosome} \
 		--minDP 10 \
-		--ld-window-bp 500000 \
+        --bed variants.bed \
+		--ld-window 1 \
 		--chr ${chromosome} \
 		--out ${chromosome}
-    
-    cat ${chromosome}.geno.ld \
-        | awk -v OFS='\t' '{ print \$1,\$2-1,\$2,\$3,\$4,\$5 }' \
-        | bedtools intersect -wa -wb -a stdin -b variants.bed \
-        | awk -v OFS='\t' '\$4==\$10 { print; }' > ${name}
 	"""
 }
 
@@ -44,5 +40,8 @@ workflow ldScores {
         | combine(chroms)
         | ld_scores
         | map(it -> it[1])
-        | collectFile(name: 'ld_scores.geno.ld', storeDir: "$launchDir/${params.outdir}")
+        | collectFile(
+            sort: true
+            name: 'ld_scores.geno.ld',
+            storeDir: "$launchDir/${params.outdir}")
 }
