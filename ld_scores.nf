@@ -15,17 +15,21 @@ process ld_scores {
 	script:
 	name = "${chromosome}.geno.ld"
 	"""
-    echo "chrom chromStart  chromEnd" > variants.bed
-    awk -v OFS='\t' '{ print \$1,\$2,\$3 }' ${snps_positions} >> variants.bed
+    awk -v OFS='\t' '{ print \$1,\$2,\$3 }' ${snps_positions} \
+        | uniq \
+        | python3 reformat_to_r2.py > variants.bed
 
 	vcftools --geno-r2 \
 		--gzvcf ${params.genotype_file} \
         --chr ${chromosome} \
 		--minDP 10 \
-		--bed variants.bed \
-		--ld-window 1 \
+		--ld-window-bp 500000 \
 		--chr ${chromosome} \
 		--out ${chromosome}
+    
+    cat ${chromosome}.geno.ld \
+        | awk -v OFS='\t' '{ print \$1,\$2-1,\$2,\$3,\$4,\$5 }' \
+        | bedtools intersect -wa -a stdin -b variants.bed 
 	"""
 }
 
