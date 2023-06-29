@@ -7,7 +7,7 @@ process ld_scores {
 	scratch true
 
 	input:
-		tuple val(chromosome), path(snps_positions)
+		tuple path(snps_positions), val(chromosome)
 	
 	output:
 		tuple val(chromosome), path(name)
