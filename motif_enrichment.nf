@@ -189,8 +189,7 @@ workflow scanWithMoods {
 }
 
 workflow {
-    pvals_files = Channel.fromPath("${params.pval_file_dir}/*.bed")
-        | map(it -> file(it))
+    pvals_file = Channel.fromPath(params.pval_file)
     moods_scans = readMotifsList()
         | map(it -> tuple(it[0], it[1],
             "${params.moods_scans_dir}/${it[0]}.moods.log.bed.gz"))

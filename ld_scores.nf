@@ -35,8 +35,7 @@ workflow ldScores {
     chroms = Channel.of(1..22)
 		| map(it -> "chr${it}")
 
-    pval_file = pvals_files 
-        | collect(sort: true)
+    pval_file = Channel.fromPath(params.pval_file) 
         | filterUniqVariants
         | combine(chroms)
         | ld_scores
