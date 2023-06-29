@@ -12,7 +12,7 @@ process ld_scores {
 		tuple val(chromosome), path(name)
 	
 	script:
-	name = "${chromosome}.ld.bed"
+	name = "${chromosome}.geno.ld"
 	"""
     echo "chrom chromStart  chromEnd" > variants.bed
     awk -v OFS='\t' '{ print \$1,\$2,\$3 }' ${snps_positions} \
