@@ -4,7 +4,7 @@ include { filterUniqVariants } from "./motif_enrichment"
 
 process process_mutation_rates {
     tag "${vcf.simpleName}"
-    scratch false
+    scratch true
     conda params.conda
     label "highmem"
 

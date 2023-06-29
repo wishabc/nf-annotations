@@ -243,7 +243,9 @@ workflow LDSCcellTypes {
             | filter { it[1].exists() }
             // | munge_sumstats
         
-        ldsc_res = run_ldsc_cell_types(sumstats, ld_data.map(it -> it[1]).collect(sort: true))
+        ldsc_res = run_ldsc_cell_types(
+            sumstats, 
+            ld_data.map(it -> it[1]).collect(sort: true))
 
         out = ldsc_res.results.collect(sort: true)
         // out = collect_ldsc_results(l) FIXME
@@ -263,37 +265,38 @@ workflow LDSC {
             | combine(ld_data)
             | run_ldsc_single_sample
 
-        l = ldsc_res.results.collect(sort: true)
-        out = collect_ldsc_results(l)
+        out = ldsc_res.results
+            | collect(sort: true)
+            | collect_ldsc_results
     emit:
         out
 }
 
 workflow calcBaseline {
-    data = Channel.of(1..22).map(
-        it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true))
-    )
     is_baseline = true
-    calc_ld(data).result
+    data = Channel.of(1..22)
+        | map(it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true)))
+        | calc_ld
 }
 
 workflow fromAnnotations {
     take:
         annotations
     main:
-        data = Channel.of(1..22).combine(annotations)
-        anns = make_ldsc_annotation(data) 
-        lds = calc_ld(anns).result
-        ldsc_data = lds.map(it -> tuple(it[0], [it[1], it[2]].flatten()))
-            .groupTuple(size: 22)
-            .map(
+        ldsc_data = Channel.of(1..22)
+            | combine(annotations)
+            | make_ldsc_annotation
+            | calc_ld
+            | results
+            | map(it -> tuple(it[0], [it[1], it[2]].flatten()))
+            | groupTuple(size: 22)
+            | map(
                 it -> tuple(it[0], it[1].flatten())
             )
         if (params.by_cell_type) {
             out = LDSCcellTypes(ldsc_data)
         } else {
-            out = LDSC(ldsc_data)
-            
+            out = LDSC(ldsc_data)    
         }
         
     emit:
@@ -326,5 +329,7 @@ workflow annotateWithPheno {
 workflow mergeResults {
     Channel.fromPath(
         "/net/seq/data2/projects/sabramov/ENCODE4/dnase-annotations/LDSC.clusters/output/*/ldsc/*.results"
-    ).collect(sort: true, flat: true) | collect_ldsc_results
+    )   
+        | collect(sort: true, flat: true) 
+        | collect_ldsc_results
 }
