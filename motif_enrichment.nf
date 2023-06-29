@@ -59,8 +59,8 @@ process filter_uniq_variants {
     """
     echo ${pval_files[0].extension}
     ${command} ${pval_files} \
-        | awk -v OFS='\t' '\$1 ~ /^[^;#]/ {print \$1,\$2,\$3,\$4,\$5,\$6}' 
-        | sort-bed -
+        | awk -v OFS='\t' '\$1 ~ /^[^;#]/ {print \$1,\$2,\$3,\$4,\$5,\$6}' \
+        | sort-bed - \
         | uniq > ${name}
     """
 }
