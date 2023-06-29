@@ -13,7 +13,7 @@ process ld_scores {
 		tuple val(chromosome), path(name)
 	
 	script:
-	name = "${chromosome}.geno.ld"
+	name = "${chromosome}.ld.bed"
 	"""
     awk -v OFS='\t' '{ print \$1,\$2,\$3 }' ${snps_positions} \
         | uniq \
@@ -29,7 +29,8 @@ process ld_scores {
     
     cat ${chromosome}.geno.ld \
         | awk -v OFS='\t' '{ print \$1,\$2-1,\$2,\$3,\$4,\$5 }' \
-        | bedtools intersect -wa -a stdin -b variants.bed 
+        | bedtools intersect -wa -wb -a stdin -b variants.bed \
+        | awk -v OFS='\t' '\$4==\$10 { print; }' > ${name}
 	"""
 }
 
