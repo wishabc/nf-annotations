@@ -55,6 +55,7 @@ process filter_uniq_variants {
     script:
     // Expected all files to be in the same format
     command = pval_files[0].extension == 'gz' ? 'zcat' : 'cat'
+    name = "unique_variants.bed"
     """
     ${command} ${pval_files} } \
         | awk -v OFS='\t' '\$1 ~ /^[^;#]/ {print \$1,\$2,\$3,\$4,\$5,\$6}' 
