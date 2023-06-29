@@ -4,7 +4,6 @@ include { filterUniqVariants } from "./motif_enrichment"
 process ld_scores {
 	conda params.conda
 	tag "${chromosome}"
-	scratch true
 
 	input:
 		tuple path(snps_positions), val(chromosome)
