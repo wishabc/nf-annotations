@@ -41,7 +41,7 @@ workflow ldScores {
         | ld_scores
         | map(it -> it[1])
         | collectFile(
-            sort: true
+            sort: true,
             name: 'ld_scores.geno.ld',
             storeDir: "$launchDir/${params.outdir}")
 }
