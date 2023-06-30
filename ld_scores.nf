@@ -3,7 +3,7 @@ include { filterUniqVariants } from "./motif_enrichment"
 
 process ld_scores {
 	conda params.conda
-	tag "${snps_positions.simpleName}"
+	tag "${prefix}"
 
 	input:
 		tuple path(snps_positions)
@@ -12,7 +12,8 @@ process ld_scores {
 		tuple path(name)
 	
 	script:
-	name = "${snps_positions.simpleName}.geno.ld"
+    prefix = snps_positions.simpleName
+	name = "${prefix}.geno.ld"
 	"""
     echo "chrom chromStart  chromEnd" > variants.bed
     awk -v OFS='\t' '{ print \$1,\$2,\$3 }' ${snps_positions} \
@@ -20,12 +21,11 @@ process ld_scores {
 
 	vcftools --geno-r2 \
 		--gzvcf ${params.genotype_file} \
-        --chr ${chromosome} \
+        --chr ${prefix} \
 		--minDP 10 \
         --bed variants.bed \
 		--ld-window 1 \
-		--chr ${chromosome} \
-		--out ${chromosome}
+		--out ${prefix}
 	"""
 }
 
@@ -34,13 +34,5 @@ workflow ldScores {
 
 
     pval_file = Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase/cavs/output/by_sample/*.bed") 
-        | filterUniqVariants
         | ld_scores
-        | map(it -> it[1])
-        | collectFile(
-            sort: true,
-            skip: 1,
-            keepHeader: true,
-            name: 'ld_scores.geno.ld',
-            storeDir: "$launchDir/${params.outdir}")
 }
