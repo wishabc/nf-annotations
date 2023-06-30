@@ -6,17 +6,19 @@ process ld_scores {
 	tag "${prefix}"
 
 	input:
-		tuple path(snps_positions)
+		path snps_positions
 	
 	output:
-		tuple path(name)
+		path name
 	
 	script:
     prefix = snps_positions.simpleName
 	name = "${prefix}.geno.ld"
 	"""
     echo "chrom chromStart  chromEnd" > variants.bed
-    awk -v OFS='\t' '{ print \$1,\$2,\$3 }' ${snps_positions} \
+    cat ${snps_positions} \
+        | grep -v '^#' \
+        | awk -v OFS='\t' '{ print \$1,\$2,\$3 }'  \
         | uniq >> variants.bed
 
 	vcftools --geno-r2 \
