@@ -116,13 +116,5 @@ workflow logisticRegression {
 		| splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.motif_id, file(row.indicator_file)))
     
-    data 
-        | process3 
-        | process2 
-        | process1 
-        | motif_hits_intersect
-
-    motif_hits_intersect(process1(process2(process3(data))))
-    
     logistic_regression(motifs, params.matrix)
 }
