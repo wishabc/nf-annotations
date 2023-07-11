@@ -83,3 +83,38 @@ workflow indexEnrichment {
 workflow {
     indexEnrichment()
 }
+
+
+// Workflow 
+process logistic_regression {
+    conda params.r_conda
+    publishDir "${params.outdir}/logreg_results"
+
+    input:
+        tuple val(motif_id), path(indicator_file)
+        path matrix
+    
+    output:
+        tuple val(motif_id), path("${prefix}.metrics.tsv"), path("${prefix}.coeff.tsv")
+    
+    script:
+    prefix = "${motif_id}"
+    """
+    Rscript $moduleDir/bin/motif_enruchment.R \
+        ${matrix} \
+        ${indicator_file} \
+        ${prefix}
+    """
+
+}
+
+workflow {
+    params.r_conda = "/home/afathul/miniconda3/envs/r-kernel"
+    params.samples_file = ""
+    params.matrix = ""
+    motifs = Channel.fromPath(params.samples_file)
+		| splitCsv(header:true, sep:'\t')
+        | map(row -> tuple(row.motif_id, file(row.indicator_file)))
+    
+    logistic_regression(motifs, params.matrix)
+}
