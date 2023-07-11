@@ -108,7 +108,7 @@ process logistic_regression {
 
 }
 
-workflow {
+workflow logisticRegression {
     params.r_conda = "/home/afathul/miniconda3/envs/r-kernel"
     params.samples_file = ""
     params.matrix = ""
