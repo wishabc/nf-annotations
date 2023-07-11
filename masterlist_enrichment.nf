@@ -95,7 +95,7 @@ process logistic_regression {
         path matrix
     
     output:
-        tuple val(motif_id), path("${prefix}.prroc.tsv"), path("${prefix}.coeff.tsv")
+        tuple val(motif_id), path("${prefix}.metrics.tsv"), path("${prefix}.coeff.tsv")
     
     script:
     prefix = "${motif_id}"
@@ -115,6 +115,7 @@ workflow logisticRegression {
     motifs = Channel.fromPath(params.samples_file)
 		| splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.motif_id, file(row.indicator_file)))
+
     
     logistic_regression(motifs, params.matrix)
 }
