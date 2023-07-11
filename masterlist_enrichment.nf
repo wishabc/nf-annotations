@@ -87,7 +87,7 @@ workflow {
 
 // Workflow 
 process logistic_regression {
-    conda "/home/afathul/miniconda3/envs/r-kernel"
+    conda params.r_conda
     publishDir "${params.outdir}/logreg_results"
 
     input:
@@ -109,6 +109,7 @@ process logistic_regression {
 }
 
 workflow logisticRegression {
+    params.r_conda = "/home/afathul/miniconda3/envs/r-kernel"
     params.samples_file = "/net/seq/data2/projects/afathul/motif_enhancement/test1.txt"
     params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
     motifs = Channel.fromPath(params.samples_file)
