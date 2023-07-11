@@ -87,7 +87,7 @@ workflow {
 
 // Workflow 
 process logistic_regression {
-    conda params.r_conda
+    conda "${params.r_conda}"
     publishDir "${params.outdir}/logreg_results"
 
     input:
