@@ -100,7 +100,7 @@ process logistic_regression {
     script:
     prefix = "${motif_id}"
     """
-    Rscript $moduleDir/bin/motif_enruchment.R \
+    Rscript $moduleDir/bin/motif_enrichment.R \
         ${matrix} \
         ${indicator_file} \
         ${prefix}
