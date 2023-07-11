@@ -110,12 +110,13 @@ process logistic_regression {
 
 workflow logisticRegression {
     params.r_conda = "/home/afathul/miniconda3/envs/r-kernel"
-    params.samples_file = "/net/seq/data2/projects/afathul/motif_enhancement/test1.txt"
+    // params.samples_file = "/net/seq/data2/projects/afathul/motif_enhancement/test1.txt"
     params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
-    motifs = Channel.fromPath(params.samples_file)
+    motifs = readMotifsList() // motif_id, motif_path
+        | motif_hits_intersect // motif_id, indicator_file
+    /*motifs = Channel.fromPath(params.samples_file)
 		| splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.motif_id, file(row.indicator_file)))
-
-    
+    */
     logistic_regression(motifs, params.matrix)
 }
