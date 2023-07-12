@@ -153,12 +153,6 @@ workflow logisticRegression {
     params.samples_file = "/net/seq/data2/projects/sabramov/ENCODE4/moods_scans.0104i/**.moods.log.bed.gz"
     params.outdir = "/net/seq/data2/projects/afathul/motif_enhancement"
     motifs = Channel.fromPath(params.samples_file)
-<<<<<<< HEAD
 	| motif_hits_intersect_indicator
 	| logistic_regression
 }
-=======
-        | motif_hits_intersect_indicator
-        | logistic_regression
-}
->>>>>>> afcf4823cf4439f709346a510f44c702a7f84f61
