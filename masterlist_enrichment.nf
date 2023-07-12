@@ -117,7 +117,7 @@ workflow logisticRegression {
         | take(2)
         | motif_hits_intersect
         | view
-        | combine(params.matrix)
+        | combine(file(params.matrix))
         | view
 	    | logistic_regression
         | view
