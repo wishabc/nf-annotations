@@ -113,7 +113,7 @@ workflow logisticRegression {
     params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
     
     motifs = Channel.fromPath("${params.moods_scans_dir}/*")
-        | take(5)
+        | take(2)
         | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_file))
         | motif_hits_intersect
         | combine(Channel.fromPath(params.matrix))
