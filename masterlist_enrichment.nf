@@ -89,10 +89,10 @@ workflow {
 process logistic_regression {
     conda params.r_conda
     publishDir "${params.outdir}/logreg_results"
+    params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
 
     input:
         tuple val(motif_id), path(indicator_file)
-        path matrix
     
     output:
         tuple val(motif_id), path("${prefix}.metrics.tsv"), path("${prefix}.coeff.tsv")
@@ -108,15 +108,32 @@ process logistic_regression {
 
 }
 
+process motif_hits_intersect_indicator {
+    publishDir "${params.outdir}/indicator"
+    conda params.conda
+
+    input:
+	path moods_file
+
+    output:
+        tuple val(motif_id), path(indicator_file)
+
+    script:
+    motif_id = moods_file.getName().split("\\.")[0]
+    indicator_file = "${motif_id}.indicator.txt"
+    """
+    zcat ${moods_file} \
+        | bedmap --indicator --sweep-all \
+        --fraction-map 1 ${masterlist_file} - > ${indicator_file}
+    """
+}
+
 workflow logisticRegression {
     params.r_conda = "/home/afathul/miniconda3/envs/r-kernel"
-    // params.samples_file = "/net/seq/data2/projects/afathul/motif_enhancement/test1.txt"
-    params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
-    motifs = readMotifsList() // motif_id, motif_path
-        | motif_hits_intersect // motif_id, indicator_file
-    /*motifs = Channel.fromPath(params.samples_file)
-		| splitCsv(header:true, sep:'\t')
-        | map(row -> tuple(row.motif_id, file(row.indicator_file)))
-    */
-    logistic_regression(motifs, params.matrix)
+    params.masterlist_file = "/net/seq/data2/projects/afathul/motif_enhancement/masterlist.filtered.bed"
+    params.samples_file = "/net/seq/data2/projects/sabramov/ENCODE4/moods_scans.0104i/**.moods.log.bed.gz"
+    params.outdir = "/net/seq/data2/projects/afathul/motif_enhancement"
+    motifs = Channel.fromPath(params.samples_file)
+	| motif_hits_intersect_indicator
+	| logistic_regression
 }
