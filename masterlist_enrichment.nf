@@ -23,7 +23,6 @@ process cut_matrix {
 }
 
 process motif_hits_intersect {
-    publishDir "${params.outdir}/counts", pattern: "${counts_file}"
     tag "${motif_id}"
     conda params.conda
 
@@ -88,7 +87,8 @@ workflow {
 // Workflow 
 process logistic_regression {
     conda params.r_conda
-    publishDir "${params.outdir}/logreg_results"
+    publishDir "${params.outdir}/metrics", pattern: "${prefix}.metrics.tsv"
+    publishDir "${params.outdir}/coeffs", pattern: "${prefix}.coeff.tsv"
 
     input:
         tuple val(motif_id), path(indicator_file), path(matrix)
@@ -113,10 +113,8 @@ workflow logisticRegression {
     params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
     
     motifs = Channel.fromPath("${params.moods_scans_dir}/*")
-        | take(2)
         | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_file))
         | motif_hits_intersect
         | combine(Channel.fromPath(params.matrix))
 	    | logistic_regression
-        | view
 }
