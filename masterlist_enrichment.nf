@@ -113,9 +113,23 @@ workflow logisticRegression {
     params.outdir = "/net/seq/data2/projects/afathul/motif_enhancement"
     params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
     
-    motifs = Channel.fromPath("${params.moods_scans_dir}/*")
+    coeffs = Channel.fromPath("${params.moods_scans_dir}/*")
         | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_file))
         | motif_hits_intersect
         | combine(Channel.fromPath(params.matrix))
 	    | logistic_regression
+    
+    coeffs | map(it -> it[1])
+        | collectFile(name: 'all.metrics.tsv',
+            storeDir: "${params.outdir}",
+            skip: 1,
+            sort: true,
+            keepHeader: true)
+
+    coeffs | map(it -> it[2])
+        | collectFile(name: 'all.coeff.tsv',
+            storeDir: "${params.outdir}",
+            skip: 1,
+            sort: true,
+            keepHeader: true)
 }
