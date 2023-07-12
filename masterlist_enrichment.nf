@@ -116,7 +116,6 @@ workflow logisticRegression {
         | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_file))
         | take(2)
         | motif_hits_intersect
-        | view
         | combine(file(params.matrix))
         | view
 	    | logistic_regression
