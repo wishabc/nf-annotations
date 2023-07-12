@@ -89,10 +89,9 @@ workflow {
 process logistic_regression {
     conda params.r_conda
     publishDir "${params.outdir}/logreg_results"
-    params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
 
     input:
-        tuple val(motif_id), path(indicator_file)
+        tuple val(motif_id), path(indicator_file), path(matrix)
     
     output:
         tuple val(motif_id), path("${prefix}.metrics.tsv"), path("${prefix}.coeff.tsv")
@@ -111,8 +110,15 @@ workflow logisticRegression {
     params.r_conda = "/home/afathul/miniconda3/envs/r-kernel"
     params.masterlist_file = "/net/seq/data2/projects/afathul/motif_enhancement/masterlist.filtered.bed"
     params.outdir = "/net/seq/data2/projects/afathul/motif_enhancement"
+    params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
+    
     motifs = Channel.fromPath("${params.moods_scans_dir}/*")
         | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_file))
+        | take(2)
         | motif_hits_intersect
+        | view
+        | combine(params.matrix)
+        | view
 	    | logistic_regression
+        | view
 }
