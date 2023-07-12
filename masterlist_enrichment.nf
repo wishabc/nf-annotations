@@ -107,52 +107,12 @@ process logistic_regression {
     """
 }
 
-process motif_hits_intersect_indicator {
-    publishDir "${params.outdir}/indicator"
-    conda params.conda
-
-    input:
-        path moods_file
-
-    output:
-        tuple val(motif_id), path(indicator_file)
-
-    script:
-    motif_id = moods_file.getName().split("\\.")[0]
-    indicator_file = "${motif_id}.indicator.txt"
-    """
-    zcat ${moods_file} \
-        | bedmap --indicator --sweep-all \
-        --fraction-map 1 ${masterlist_file} - > ${indicator_file}
-    """
-}
-
-process motif_hits_intersect_indicator {
-    publishDir "${params.outdir}/indicator"
-    conda params.conda
-
-    input:
-	path moods_file
-
-    output:
-        tuple val(motif_id), path(indicator_file)
-
-    script:
-    motif_id = moods_file.getName().split("\\.")[0]
-    indicator_file = "${motif_id}.indicator.txt"
-    """
-    zcat ${moods_file} \
-        | bedmap --indicator --sweep-all \
-        --fraction-map 1 ${masterlist_file} - > ${indicator_file}
-    """
-}
-
 workflow logisticRegression {
     params.r_conda = "/home/afathul/miniconda3/envs/r-kernel"
     params.masterlist_file = "/net/seq/data2/projects/afathul/motif_enhancement/masterlist.filtered.bed"
-    params.samples_file = "/net/seq/data2/projects/sabramov/ENCODE4/moods_scans.0104i/**.moods.log.bed.gz"
     params.outdir = "/net/seq/data2/projects/afathul/motif_enhancement"
-    motifs = Channel.fromPath(params.samples_file)
-	    | motif_hits_intersect_indicator
+    motifs = Channel.fromPath("${params.moods_scans_dir}/*")
+        | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_file))
+        | motif_hits_intersect_indicator
 	    | logistic_regression
 }
