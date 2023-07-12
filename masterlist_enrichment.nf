@@ -7,7 +7,7 @@ process cut_matrix {
     scratch true
 
     input:
-        tuple val(sample_id), path(binary_matrix)
+        val sample_id
 
     output:
         tuple val(interval), path(name)
@@ -17,7 +17,7 @@ process cut_matrix {
     interval = "${sample_id}-${end}"
     name = "${interval}.cut_matrix.npy"
     """
-    zcat ${binary_matrix} | cut -f${interval} > tmp.txt
+    zcat ${params.binary_matrix} | cut -f${interval} > tmp.txt
     python3 $moduleDir/bin/convert_to_numpy.py tmp.txt ${name}
     """
 }
@@ -28,7 +28,7 @@ process motif_hits_intersect {
     conda params.conda
 
     input:
-        tuple val(motif_id), path(moods_file), path(masterlist_file)
+        tuple val(motif_id), path(moods_file)
 
     output:
         tuple val(motif_id), path(indicator_file)
@@ -38,7 +38,7 @@ process motif_hits_intersect {
     """
     zcat ${moods_file} \
         | bedmap --indicator --sweep-all \
-        --fraction-map 1 ${masterlist_file} - > ${indicator_file}
+        --fraction-map 1 ${params.masterlist_file} - > ${indicator_file}
     """
 }
 
@@ -69,12 +69,10 @@ workflow indexEnrichment {
 
     c_mat = Channel.of(0..chunks_count) // 0, 1, 2, 3 ,4 , 5.. 9
         | map(it -> it * params.step + 1) // 1 201 401 601 1801
-        | combine(file(params.binary_matrix)) // [chunk_n, binary_matrix]
         | cut_matrix // [1, 1-200.cut_matrix.npy], [201, 201-400.cut_matrix.npy]
 
     moods_scans = Channel.fromPath("${moods_scans_dir}/*") // motif_id, moods_path
         | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
-        | combine(file(params.masterlist_file)) // motif_id, motif_path, masterlist
         | motif_hits_intersect // motif_id, indicator_file
         | combine(c_mat) // motif_id, indicator_file, chunk_n, binary_matrix_chunk
         | calc_index_motif_enrichment // enrichment_file
