@@ -87,6 +87,7 @@ workflow {
 // Workflow 
 process logistic_regression {
     conda params.r_conda
+    tag "${motif_id}"
     publishDir "${params.outdir}/metrics", pattern: "${prefix}.metrics.tsv"
     publishDir "${params.outdir}/coeffs", pattern: "${prefix}.coeff.tsv"
 
