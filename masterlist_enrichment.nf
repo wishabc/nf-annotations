@@ -114,10 +114,8 @@ workflow logisticRegression {
     
     motifs = Channel.fromPath("${params.moods_scans_dir}/*")
         | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_file))
-        | take(2)
         | motif_hits_intersect
-        | combine(file(params.matrix))
-        | view
+        | combine(Channel.fromPath(params.matrix))
 	    | logistic_regression
         | view
 }
