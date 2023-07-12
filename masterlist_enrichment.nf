@@ -72,7 +72,8 @@ workflow indexEnrichment {
         | combine(file(params.binary_matrix)) // [chunk_n, binary_matrix]
         | cut_matrix // [1, 1-200.cut_matrix.npy], [201, 201-400.cut_matrix.npy]
 
-    moods_scans = readMotifsList() // motif_id, motif_path
+    moods_scans = Channel.fromPath("${moods_scans_dir}/*") // motif_id, moods_path
+        | map(it -> tuple(it.name, it))
         | combine(file(params.masterlist_file)) // motif_id, motif_path, masterlist
         | motif_hits_intersect // motif_id, indicator_file
         | combine(c_mat) // motif_id, indicator_file, chunk_n, binary_matrix_chunk
