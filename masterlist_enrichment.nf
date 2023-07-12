@@ -105,7 +105,26 @@ process logistic_regression {
         ${indicator_file} \
         ${prefix}
     """
+}
 
+process motif_hits_intersect_indicator {
+    publishDir "${params.outdir}/indicator"
+    conda params.conda
+
+    input:
+        path moods_file
+
+    output:
+        tuple val(motif_id), path(indicator_file)
+
+    script:
+    motif_id = moods_file.getName().split("\\.")[0]
+    indicator_file = "${motif_id}.indicator.txt"
+    """
+    zcat ${moods_file} \
+        | bedmap --indicator --sweep-all \
+        --fraction-map 1 ${masterlist_file} - > ${indicator_file}
+    """
 }
 
 process motif_hits_intersect_indicator {
@@ -134,6 +153,12 @@ workflow logisticRegression {
     params.samples_file = "/net/seq/data2/projects/sabramov/ENCODE4/moods_scans.0104i/**.moods.log.bed.gz"
     params.outdir = "/net/seq/data2/projects/afathul/motif_enhancement"
     motifs = Channel.fromPath(params.samples_file)
+<<<<<<< HEAD
 	| motif_hits_intersect_indicator
 	| logistic_regression
 }
+=======
+        | motif_hits_intersect_indicator
+        | logistic_regression
+}
+>>>>>>> afcf4823cf4439f709346a510f44c702a7f84f61
