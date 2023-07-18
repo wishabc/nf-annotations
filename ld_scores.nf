@@ -34,7 +34,7 @@ process ld_scores {
 workflow {
     params.genotype_file = "/net/seq/data2/projects/sabramov/ENCODE4/dnase-genotypes-round2/output/genotypes/all.filtered.snps.annotated.vcf.gz"
 
-    params.pval_file = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/*.bed"
-    pval_file = Channel.fromPath(params.pval_file) 
+    params.samples_file = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/*.bed"
+    pval_file = Channel.fromPath(params.samples_file) 
         | ld_scores
 }
