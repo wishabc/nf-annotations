@@ -7,15 +7,16 @@ process ld_scores {
     publishDir "${params.outdir}"
 
 	input:
-		path snps_positions
+		tuple val(chrom), path(snps_positions)
 	
 	output:
 		path name
 	
 	script:
     prefix = snps_positions.simpleName
-	name = "${prefix}.geno.ld"
-	"""
+	name = "${chrom}:${prefix}.geno.ld"
+    additional_params = chrom == 'all' ? "" : "--chr ${chrom}"
+ 	"""
     echo "chrom chromStart  chromEnd" > variants.bed
     cat ${snps_positions} \
         | grep -v '^#' \
@@ -27,14 +28,23 @@ process ld_scores {
 		--minDP 10 \
         --bed variants.bed \
 		--ld-window 1 \
-		--out ${prefix}
+		--out ${prefix} \
+        ${additional_params} \
 	"""
 }
 
-workflow {
-    params.genotype_file = "/net/seq/data2/projects/sabramov/ENCODE4/dnase-genotypes-round2/output/genotypes/all.filtered.snps.annotated.vcf.gz"
 
-    params.samples_file = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/*.bed"
-    pval_file = Channel.fromPath(params.samples_file) 
+workflow byChromosome {
+    Channel.of(1..22)
+        | map(it -> "chr${it}")
+        | combine(Channel.fromPath(params.pval_file))
+        | ld_scores
+}
+
+
+workflow bySample {
+    params.by_sample_file = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/*.bed"
+    Channel.fromPath(params.by_sample_file)
+        | map(it -> tuple("all", it))
         | ld_scores
 }
