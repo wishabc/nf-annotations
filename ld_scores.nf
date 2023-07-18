@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-include { filterUniqVariants } from "./motif_enrichment"
+
 
 process ld_scores {
 	conda params.conda
@@ -34,7 +34,7 @@ process ld_scores {
 workflow ldScores {
     params.genotype_file = "/net/seq/data2/projects/sabramov/ENCODE4/dnase-genotypes-round2/output/genotypes/all.filtered.snps.annotated.vcf.gz"
 
-    params.pval_file = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/non_aggregated.all.bed"
+    params.pval_file = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/*.bed"
     pval_file = Channel.fromPath(params.pval_file) 
         | ld_scores
 }
