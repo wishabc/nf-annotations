@@ -4,6 +4,7 @@ include { filterUniqVariants } from "./motif_enrichment"
 process ld_scores {
 	conda params.conda
 	tag "${prefix}"
+    publishDir "${params.outdir}"
 
 	input:
 		path snps_positions
@@ -18,7 +19,7 @@ process ld_scores {
     echo "chrom chromStart  chromEnd" > variants.bed
     cat ${snps_positions} \
         | grep -v '^#' \
-        | awk -v OFS='\t' '{ print \$1,\$2,\$3 }'  \
+        | awk -v OFS='\t' '\$NF == "True" { print \$1,\$2,\$3 }'  \
         | uniq >> variants.bed
 
 	vcftools --geno-r2 \
@@ -33,7 +34,7 @@ process ld_scores {
 workflow ldScores {
     params.genotype_file = "/net/seq/data2/projects/sabramov/ENCODE4/dnase-genotypes-round2/output/genotypes/all.filtered.snps.annotated.vcf.gz"
 
-
-    pval_file = Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase/cavs/output/by_sample/*.bed") 
+    params.pval_file = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/non_aggregated.all.bed"
+    pval_file = Channel.fromPath(params.pval_file) 
         | ld_scores
 }
