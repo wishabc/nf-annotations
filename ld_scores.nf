@@ -13,8 +13,8 @@ process ld_scores {
 		path name
 	
 	script:
-    prefix = snps_positions.simpleName
-	name = "${chrom}:${prefix}.geno.ld"
+    prefix = "${chrom}:${snps_positions.simpleName}"
+	name = "${prefix}.geno.ld"
     additional_params = chrom == 'all' ? "" : "--chr ${chrom}"
  	"""
     echo "chrom chromStart  chromEnd" > variants.bed
