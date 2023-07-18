@@ -20,7 +20,7 @@ process ld_scores {
     echo "chrom chromStart  chromEnd" > variants.bed
     cat ${snps_positions} \
         | grep -v '^#' \
-        | awk -v OFS='\t' '\$NF == "True" { print \$1,\$2,\$3 }'  \
+        | awk -v OFS='\t' '{ print \$1,\$2,\$3 }'  \
         | uniq >> variants.bed
 
 	vcftools --geno-r2 \
