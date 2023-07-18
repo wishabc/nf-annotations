@@ -26,7 +26,6 @@ process ld_scores {
 		--gzvcf ${params.genotype_file} \
 		--minDP 10 \
         --bed variants.bed \
-		--ld-window 1 \
 		--out ${prefix} \
         ${additional_params} \
 	"""
@@ -41,8 +40,10 @@ workflow byChromosome {
         | collectFile(
             storeDir: params.outdir,
             keepHeader: true,
+            sort: true,
             skip: 1,
-            name: "ld_scores.geno.ld")
+            name: "ld_scores.geno.ld"
+        )
 }
 
 
