@@ -9,8 +9,7 @@ process process_mutation_rates {
     label "highmem"
 
     input:
-        path vcf
-        path variants_file
+        tuple path(variants_file), path(vcf)
 
     output:
         path name
@@ -52,10 +51,9 @@ process merge_and_sort {
 
 workflow annotateMutationRates {
     take:
-        vcfs
-        pval_file
+        data
     main:
-        out = process_mutation_rates(vcfs, pval_file) 
+        out = process_mutation_rates(data) 
             | collect(sort: true)
             | merge_and_sort
     emit:
@@ -63,8 +61,9 @@ workflow annotateMutationRates {
 }
 
 workflow {
+    mut_rate_vcfs = Channel.fromPath("${params.vcfs_dir}/*.vcf.gz")
     pval_file = Channel.fromPath(params.pval_file)
         | filterUniqVariants
-    mut_rate_vcfs = Channel.fromPath("${params.vcfs_dir}/*.vcf.gz")
-    annotateMutationRates(mut_rate_vcfs, pval_file)
+        | combine(mut_rate_vcfs)
+        | annotateMutationRates
 }
