@@ -133,3 +133,26 @@ workflow logisticRegression {
             sort: true,
             keepHeader: true)
 }
+
+// New process for generating plot for coeffs
+process tf_by_components {
+    conda params.conda
+    tag "${motif_id}"
+    publishDir "${params.outdir}/metrics", pattern: "${prefix}.metrics.tsv"
+    publishDir "${params.outdir}/coeffs", pattern: "${prefix}.coeff.tsv"
+
+    input:
+        tuple val(motif_id), path(indicator_file), path(matrix)
+    
+    output:
+        tuple val(motif_id), path("${prefix}.metrics.tsv"), path("${prefix}.coeff.tsv")
+    
+    script:
+    prefix = "${motif_id}"
+    """
+    Rscript $moduleDir/bin/coeff_by_components.py \
+        ${matrix} \
+        ${indicator_file} \
+        ${prefix}
+    """
+}
