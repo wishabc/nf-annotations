@@ -26,9 +26,7 @@ process extract_context {
 }
 
 workflow {
-    out =  Channel.fromPath("${params.pval_file_dir}/*.bed")
-        | map(it -> file(it))
-        | collect(sort: true)
+    out =  Channel.fromPath(params.pval_file)
         | filterUniqVariants
         | extract_context
 }
