@@ -4,7 +4,6 @@
 process ld_scores {
 	conda params.conda
 	tag "${prefix}"
-    publishDir "${params.outdir}"
 
 	input:
 		tuple val(chrom), path(snps_positions)
@@ -39,6 +38,11 @@ workflow byChromosome {
         | map(it -> "chr${it}")
         | combine(Channel.fromPath(params.pval_file))
         | ld_scores
+        | collectFile(
+            storeDir: params.outdir,
+            keepHeader: true,
+            skip: 1,
+            name: "ld_scores.geno.ld")
 }
 
 
