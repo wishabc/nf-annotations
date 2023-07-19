@@ -16,7 +16,7 @@ def get_pairs(df, group_name):
     es = df.es.to_numpy()
     result = [(positions - 1)[starts], positions[starts], positions[ends], positions[ends] - positions[starts], es[starts], es[ends]]
     
-    result = pd.DataFrame({y: x for x, y in zip(result, columns)})
+    result = pd.DataFrame({y: x for x, y in zip(result, columns[1:-1])})
     return result.assign(chr=group_name[0], sample_id=group_name[1])[columns]
 
 
