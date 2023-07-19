@@ -148,12 +148,12 @@ workflow logisticRegression {
             sort: true,
             keepHeader: true)
 
-    coeffs | map(it -> it[2])
+    all_coeffs = coeffs | map(it -> it[2])
         | collectFile(name: 'all.coeff.tsv',
             storeDir: "${params.outdir}",
             skip: 1,
             sort: true,
             keepHeader: true)
-
+    tf_by_components(all_coeffs, params.metadf)
 }
 //     tf_by_components(all_coeffs, params.metadf) all_coeffs = 
