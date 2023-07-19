@@ -109,7 +109,7 @@ process logistic_regression {
 
 // New process for generating plot for coeffs
 process tf_by_components {
-    conda params.conda
+    conda params.pyconda
     publishDir "${params.outdir}/plot"
 
     input:
@@ -130,6 +130,7 @@ process tf_by_components {
 
 workflow logisticRegression {
     params.r_conda = "/home/afathul/miniconda3/envs/r-kernel"
+    params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
     params.masterlist_file = "/net/seq/data2/projects/afathul/motif_enhancement/masterlist.filtered.bed"
     params.outdir = "/net/seq/data2/projects/afathul/motif_enhancement"
     params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
