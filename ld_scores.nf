@@ -45,7 +45,7 @@ process sort {
     name = "${ld_scores.baseName}.sorted.bed"
     """
     tail -n+2 ${ld_scores} \
-        | awk -v OFS='\t' '{print \$1,\$2-1,\$2,\$3,\$4,\5}' \
+        | awk -v OFS='\t' '{print \$1,\$2-1,\$2,\$3,\$4,\$5}' \
         | sort-bed - > ${name}
     """
 }
