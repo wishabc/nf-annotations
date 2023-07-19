@@ -35,6 +35,7 @@ process ld_scores {
         ${additional_params} \
 	"""
 }
+
 process sort {
     conda params.conda
     label "high_mem"
@@ -53,9 +54,10 @@ process sort {
         | sort-bed - > ${name}
     """
 }
-process intersect_with_variants {
+
+process intersect_with_tested_variants {
     conda params.conda
-	tag "${variants_file.simpleName}"
+	tag "${prefix}"
 
     input:
         tuple path(ld_scores), path(variants_file)
@@ -64,7 +66,8 @@ process intersect_with_variants {
         path name
     
     script:
-    name = "${variants_file.simpleName}.bed"
+    prefix = variants_file.simpleName
+    name = "${prefix}.bed"
     """
     # Format: chr, start, end, end2, distance, start_es, end_es, sample, chr, start, end, end3 ...
     python3 $moduleDir/bin/find_neighbors.py ${variants_file} \
@@ -76,35 +79,44 @@ process intersect_with_variants {
 }
 
 
-workflow byChromosome {
-    samples = Channel.fromPath("${params.by_sample_dir}/*.bed")
-    Channel.of(1..22)
-        | map(it -> "chr${it}")
-        | combine(samples.collect(sort: true))
-        | filterUniqVariants
-        | ld_scores
-        | collectFile(
-            storeDir: params.outdir,
-            keepHeader: true,
-            sort: true,
-            skip: 1,
-            name: "ld_scores.geno.ld"
-        )
-        | sort
-        | combine(samples)
-        | intersect_with_variants
-        | collectFile(
-            storeDir: params.outdir,
-            name: "ld_scores.annotated_samples.geno.ld"
-        )
+workflow annotateLD {
+    take:
+        samples
+    main:
+        out = Channel.of(1..22)
+            | map(it -> "chr${it}")
+            | combine(samples.collect(sort: true))
+            | filterUniqVariants
+            | ld_scores
+            | collectFile(
+                keepHeader: true,
+                sort: true,
+                skip: 1,
+                name: "ld_scores.geno.ld"
+            )
+            | sort
+            | combine(samples)
+            | intersect_with_tested_variants
+            | collectFile(
+                storeDir: params.outdir,
+                name: "ld_scores.annotated_samples.geno.ld"
+            )
+    emit:
+        out
+}
+workflow {
+    Channel.fromPath("${params.by_sample_dir}/*.bed") 
+        | annotateLD
 }
 
+
+// Defunc
 workflow tmp {
     samples = Channel.fromPath("${params.by_sample_dir}/*.bed")
     Channel.fromPath("${params.outdir}/ld_scores.geno.ld")
         | sort
         | combine(samples)
-        | intersect_with_variants
+        | intersect_with_tested_variants
         | collectFile(
             storeDir: params.outdir,
             name: "ld_scores.annotated_samples.geno.ld"
