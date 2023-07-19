@@ -154,5 +154,5 @@ workflow logisticRegression {
             sort: true,
             keepHeader: true)
 
-    tf_by_components(all_coeffs, params.metadf)
+    tf_by_components(tuple(all_coeffs, params.metadf))
 }
