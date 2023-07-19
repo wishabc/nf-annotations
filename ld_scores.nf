@@ -1,8 +1,5 @@
 #!/usr/bin/env nextflow
 
-params.by_sample_file = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/*.bed"
-
-// sort-bed - \
 process ld_scores {
 	conda params.conda
 	tag "${prefix}"
@@ -22,6 +19,7 @@ process ld_scores {
     cat ${snps_positions} \
         | grep -v '^#' \
         | awk -v OFS='\t' '{ print \$1,\$2,\$3 }'  \
+        | sort-bed - \
         | uniq >> variants.bed
 
 	vcftools --geno-r2 \
@@ -68,16 +66,19 @@ process intersect_with_variants {
     python3 $moduleDir/bin/find_neighbors.py ${variants_file} \
         | sort-bed - \
         | bedtools intersect -a stdin -b ${ld_scores} -wa -wb -sorted \
-        | awk -v OFS='\t' '\$4==\$12 { print; }' > ${name}
+        | awk -v OFS='\t' '\$4==\$12 { print; }'
+        | cut -f-1,3-8,13- > ${name}
     """
 }
 
 
 workflow byChromosome {
-    samples = Channel.fromPath(params.by_sample_file)
+    params.by_sample_dir = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/"
+
+    samples = Channel.fromPath("${params.by_sample_dir}/*.bed")
     Channel.of(1..22)
         | map(it -> "chr${it}")
-        | combine(Channel.fromPath(params.pval_file))
+        | combine(samples.collect(sort: true))
         | ld_scores
         | collectFile(
             storeDir: params.outdir,
@@ -97,7 +98,7 @@ workflow byChromosome {
 
 
 workflow bySample {
-    samples = Channel.fromPath(params.by_sample_file)
+    Channel.fromPath("${params.by_sample_dir}/*.bed")
         | map(it -> tuple("all", it))
         | ld_scores
 }
