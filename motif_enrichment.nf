@@ -42,7 +42,7 @@ process scan_with_moods {
     """
 }
 
-process filter_uniq_variants {
+process filter_tested_variants {
     conda params.conda
     scratch true
 
@@ -58,7 +58,16 @@ process filter_uniq_variants {
     name = pval_files.size() > 1 ? "unique_variants.bed" : "${pval_files[0].simpleName}.bed"
     """
     ${command} ${pval_files} \
-        | awk -v OFS='\t' '\$1 ~ /^[^;#]/ {print \$1,\$2,\$3,\$4,\$5,\$6}' \
+        | awk -v OFS='\t' -v col='is_tested' \
+            'NR==1 {for(i=1;i<=NF;i++){
+                if (\$i==col){
+                    c=i;
+                    break
+                }
+            }
+            ((NR>1) && (\$c == "True")) {
+                print \$1,\$2,\$3,\$4,\$5,\$6
+            }' \
         | sort-bed - \
         | uniq > ${name}
     """
@@ -71,8 +80,7 @@ process motif_counts {
     publishDir "${params.outdir}/counts"
 
     input:
-        tuple val(motif_id), path(pwm_path), path(moods_file)
-        path pval_file
+        tuple val(motif_id), path(pwm_path), path(moods_file), path(pval_file)
 
     output:
         tuple val(motif_id), path(counts_file)
@@ -133,11 +141,11 @@ process get_motif_stats {
 }
 
 // Development workflows
-workflow filterUniqVariants {
+workflow filterTestedVariants {
     take:
-        pvals_files
+        pvals_file
     main:
-        out = filter_uniq_variants(pvals_files)
+        out = filter_tested_variants(pvals_file)
     emit:
         out
 }
@@ -160,14 +168,14 @@ workflow calcEnrichment {
 
 workflow motifCounts {
     take:
-        pvals_files
-        moods_scans
+        pval_file
     main:
-        pval_file = pvals_files 
-            | collect(sort: true)
-            | filterUniqVariants
+        uniq_vars = filterTestedVariants(pvals_files)
 
-        counts = motif_counts(moods_scans, pval_file)
+        counts =  readMotifsList()
+            | map(it -> tuple(it[0], it[1], "${params.moods_scans_dir}/${it[0]}.moods.log.bed.gz"))
+            | combine(uniq_vars)
+            | motif_counts
             | map(it -> it[1])
             | collectFile(name: "all.counts.bed") 
             | tabix_index
@@ -190,11 +198,7 @@ workflow scanWithMoods {
 }
 
 workflow {
-    pvals_file = Channel.fromPath(params.pval_file)
-    moods_scans = readMotifsList()
-        | map(it -> tuple(it[0], it[1],
-            "${params.moods_scans_dir}/${it[0]}.moods.log.bed.gz"))
-    motifCounts(pvals_files, moods_scans)
+    Channel.fromPath(params.pval_file) | motifCounts
 }
 
 workflow cavsEnrichment {

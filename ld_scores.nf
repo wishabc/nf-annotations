@@ -1,4 +1,9 @@
 #!/usr/bin/env nextflow
+include { filterUniqVariants } from "./motif_enrichment"
+
+
+params.by_sample_dir = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/"
+
 
 process ld_scores {
 	conda params.conda
@@ -17,7 +22,6 @@ process ld_scores {
  	"""
     echo "chrom chromStart  chromEnd" > variants.bed
     cat ${snps_positions} \
-        | grep -v '^#' \
         | awk -v OFS='\t' '{ print \$1,\$2,\$3 }'  \
         | sort-bed - \
         | uniq >> variants.bed
@@ -25,7 +29,7 @@ process ld_scores {
 	vcftools --geno-r2 \
 		--gzvcf ${params.genotype_file} \
 		--minDP 10 \
-        --ld-window-bp 50000 \
+        --ld-window-bp 100000 \
         --bed variants.bed \
 		--out ${prefix} \
         ${additional_params} \
@@ -73,12 +77,11 @@ process intersect_with_variants {
 
 
 workflow byChromosome {
-    params.by_sample_dir = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/"
-
     samples = Channel.fromPath("${params.by_sample_dir}/*.bed")
     Channel.of(1..22)
         | map(it -> "chr${it}")
         | combine(samples.collect(sort: true))
+        | filterUniqVariants
         | ld_scores
         | collectFile(
             storeDir: params.outdir,
@@ -87,6 +90,18 @@ workflow byChromosome {
             skip: 1,
             name: "ld_scores.geno.ld"
         )
+        | sort
+        | combine(samples)
+        | intersect_with_variants
+        | collectFile(
+            storeDir: params.outdir,
+            name: "ld_scores.annotated_samples.geno.ld"
+        )
+}
+
+workflow tmp {
+    samples = Channel.fromPath("${params.by_sample_dir}/*.bed")
+    Channel.fromPath("${params.outdir}/ld_scores.geno.ld")
         | sort
         | combine(samples)
         | intersect_with_variants

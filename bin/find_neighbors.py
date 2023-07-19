@@ -35,5 +35,5 @@ def main(sample_df):
 
 if __name__ == '__main__':
     sample_df = pd.read_table(sys.argv[1])
-    result_df = main(sample_df)
+    result_df = main(sample_df[sample_df['is_tested']])
     result_df.to_csv(sys.stdout, index=False, sep='\t', header=False)
