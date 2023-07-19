@@ -35,6 +35,8 @@ process ld_scores {
 }
 process sort {
     conda params.conda
+    label "high_mem"
+
     input:
         path ld_scores
     
