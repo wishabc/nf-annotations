@@ -121,7 +121,7 @@ process tf_by_components {
     script:
     prefix = "16components."
     """
-    Rscript $moduleDir/bin/coeff_by_components.py \
+    python $moduleDir/bin/coeff_by_components.py \
         ${all_coefs} \
         ${motif_meta}
     """
@@ -153,5 +153,6 @@ workflow logisticRegression {
             skip: 1,
             sort: true,
             keepHeader: true)
+
     tf_by_components(all_coeffs, params.metadf)
 }
