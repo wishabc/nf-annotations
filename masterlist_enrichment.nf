@@ -113,7 +113,7 @@ process tf_by_components {
     publishDir "${params.outdir}/plot"
 
     input:
-        tuple path(all_coefs), path(motif_meta)
+        path(all_coefs), path(motif_meta)
     
     output:
         path("${prefix}*.png")
@@ -154,5 +154,5 @@ workflow logisticRegression {
             sort: true,
             keepHeader: true)
 
-    tf_by_components(tuple(all_coeffs, params.metadf))
+    tf_by_components(all_coeffs, params.metadf)
 }
