@@ -1,1 +1,1 @@
-/net/seq/data2/projects/afathul/motif_enhancement/nf-annotations/../motif_enrichment.R
+/net/seq/data2/projects/afathul/motif_enhancement/motif_enrichment/motif_enrichment.R
