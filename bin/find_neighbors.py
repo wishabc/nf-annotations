@@ -10,14 +10,19 @@ def get_pairs(df, group_name):
     for comb in combs:
         assert comb[0] < comb[1]
     if len(combs) == 0:
-        return []
+        return pd.DataFrame([], columns=columns)
     starts, ends = map(list, zip(*combs))
     positions = df.end.to_numpy()
     es = df.es.to_numpy()
-    result = [(positions - 1)[starts], positions[starts], positions[ends], positions[ends] - positions[starts], es[starts], es[ends]]
+    result = [
+        group_name[0],
+        (positions - 1)[starts], positions[starts],
+        positions[ends], positions[ends] - positions[starts],
+        es[starts], es[ends], 
+        group_name[1]
+    ]
     
-    result = pd.DataFrame({y: x for x, y in zip(result, columns[1:-1])})
-    return result.assign(chr=group_name[0], sample_id=group_name[1])[columns]
+    return pd.DataFrame({y: x for x, y in zip(result, columns)})
 
 
 
@@ -29,7 +34,7 @@ def main(sample_df):
     pairs = []
     for group_name in list(groups.groups):
         p = get_pairs(groups.get_group(group_name).reset_index(drop=True), group_name)
-        if len(p) > 0:
+        if len(p.index) > 0:
             pairs.append(p)
     if len(pairs) == 0:
         return pd.DataFrame([], columns=columns)
