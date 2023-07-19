@@ -31,6 +31,8 @@ def main(sample_df):
         p = get_pairs(groups.get_group(group_name).reset_index(drop=True), group_name)
         if len(p) > 0:
             pairs.append(p)
+    if len(pairs) == 0:
+        return pd.DataFrame([], columns=columns)
     return pd.concat(pairs).reset_index(drop=True)
 
 if __name__ == '__main__':
