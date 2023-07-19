@@ -1,5 +1,7 @@
 #!/usr/bin/env nextflow
 
+params.by_sample_file = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/*.bed"
+
 // sort-bed - \
 process ld_scores {
 	conda params.conda
@@ -34,10 +36,10 @@ process ld_scores {
 process sort {
     conda params.conda
     input:
-        path(ld_scores)
+        path ld_scores
     
     output:
-        path(name)
+        path name
     
     script:
     name = "${ld_scores.baseName}.sorted.bed"
@@ -50,6 +52,7 @@ process sort {
 process intersect_with_variants {
     conda params.conda
 	tag "${variants_file.simpleName}"
+
     input:
         tuple path(ld_scores), path(variants_file)
     
@@ -69,7 +72,6 @@ process intersect_with_variants {
 
 
 workflow byChromosome {
-    params.by_sample_file = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/*.bed"
     samples = Channel.fromPath(params.by_sample_file)
     Channel.of(1..22)
         | map(it -> "chr${it}")
@@ -92,7 +94,7 @@ workflow byChromosome {
 
 
 workflow bySample {
-
+    samples = Channel.fromPath(params.by_sample_file)
         | map(it -> tuple("all", it))
         | ld_scores
 }
