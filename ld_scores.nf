@@ -83,10 +83,13 @@ workflow annotateLD {
     take:
         samples
     main:
+        uniq_vars = samples
+            | collect(sort: true)
+            | filterUniqVariants
+
         out = Channel.of(1..22)
             | map(it -> "chr${it}")
-            | combine(samples.collect(sort: true))
-            | filterUniqVariants
+            | combine(uniq_vars)
             | ld_scores
             | collectFile(
                 keepHeader: true,
