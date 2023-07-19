@@ -1,6 +1,7 @@
 import pandas as pd
 import sys
 
+columns = ['chr', 'pair_first_start', 'pair_first', 'pair_second', 'distance', 'start_es', 'end_es', 'sample_id']
 
 # assumes df is sorted
 def get_pairs(df, group_name):
@@ -14,18 +15,17 @@ def get_pairs(df, group_name):
     positions = df.end.to_numpy()
     es = df.es.to_numpy()
     result = [(positions - 1)[starts], positions[starts], positions[ends], positions[ends] - positions[starts], es[starts], es[ends]]
-    columns=['pair_first_start', 'pair_first', 'pair_second', 'distance', 'start_es', 'end_es']
+    
     result = pd.DataFrame({y: x for x, y in zip(result, columns)})
-    result['chr'] = group_name[0]
-    result['sample_id'] = group_name[1]
-    return result[['chr', *columns, 'sample_id']]
+    return result.assign(chr=group_name[0], sample_id=group_name[1])[columns]
 
 
 
 
 def main(sample_df):
+    if sample_df.empty:
+        return pd.DataFrame([], columns=columns)
     groups = sample_df.groupby(['#chr', 'sample_id'])
-
     pairs = []
     for group_name in list(groups.groups):
         p = get_pairs(groups.get_group(group_name).reset_index(drop=True), group_name)
