@@ -113,7 +113,8 @@ process tf_by_components {
     publishDir "${params.outdir}/plot"
 
     input:
-        path(all_coefs), path(motif_meta)
+        path(all_coefs)
+        path(motif_meta)
     
     output:
         path("${prefix}*.png")
