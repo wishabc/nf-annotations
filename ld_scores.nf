@@ -25,6 +25,7 @@ process ld_scores {
 	vcftools --geno-r2 \
 		--gzvcf ${params.genotype_file} \
 		--minDP 10 \
+        --ld-window-bp 50000 \
         --bed variants.bed \
 		--out ${prefix} \
         ${additional_params} \
