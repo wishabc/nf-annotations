@@ -122,7 +122,7 @@ process tf_by_components {
     script:
     prefix = "16components."
     """
-    python $moduleDir/bin/coeff_by_components.py \
+    python $moduleDir/bin/plot_tf_by_components.py \
         ${all_coefs} \
         ${motif_meta}
     """
