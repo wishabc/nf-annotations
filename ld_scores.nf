@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-include { filterUniqVariants } from "./motif_enrichment"
+include { filterTestedVariants } from "./motif_enrichment"
 
 
 params.by_sample_dir = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/"

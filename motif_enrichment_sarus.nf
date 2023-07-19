@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-include { filterUniqVariants; readMotifsList } from "./motif_enrichment"
+include { filterTestedVariants; readMotifsList } from "./motif_enrichment"
 // Put in the Apptainer
 params.conda = "$moduleDir/environment.yml"
 

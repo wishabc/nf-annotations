@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-include { filterUniqVariants } from "./motif_enrichment"
+include { filterTestedVariants } from "./motif_enrichment"
 
 
 // Put in the Apptainer
