@@ -107,11 +107,32 @@ process logistic_regression {
     """
 }
 
+// New process for generating plot for coeffs
+process tf_by_components {
+    conda params.conda
+    publishDir "${params.outdir}/plot"
+
+    input:
+        tuple path(all_coefs), path(motif_meta)
+    
+    output:
+        path("${prefix}*.png")
+    
+    script:
+    prefix = "16components."
+    """
+    Rscript $moduleDir/bin/coeff_by_components.py \
+        ${all_coefs} \
+        ${motif_meta}
+    """
+}
+
 workflow logisticRegression {
     params.r_conda = "/home/afathul/miniconda3/envs/r-kernel"
     params.masterlist_file = "/net/seq/data2/projects/afathul/motif_enhancement/masterlist.filtered.bed"
     params.outdir = "/net/seq/data2/projects/afathul/motif_enhancement"
     params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
+    params.metadf = "/net/seq/data2/projects/afathul/motif_enhancement/motifs_meta.tsv"
     
     coeffs = Channel.fromPath("${params.moods_scans_dir}/*")
         | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_file))
@@ -126,33 +147,11 @@ workflow logisticRegression {
             sort: true,
             keepHeader: true)
 
-    coeffs | map(it -> it[2])
+    all_coeffs = coeffs | map(it -> it[2])
         | collectFile(name: 'all.coeff.tsv',
             storeDir: "${params.outdir}",
             skip: 1,
             sort: true,
             keepHeader: true)
-}
-
-// New process for generating plot for coeffs
-process tf_by_components {
-    conda params.conda
-    tag "${motif_id}"
-    publishDir "${params.outdir}/metrics", pattern: "${prefix}.metrics.tsv"
-    publishDir "${params.outdir}/coeffs", pattern: "${prefix}.coeff.tsv"
-
-    input:
-        tuple val(motif_id), path(indicator_file), path(matrix)
-    
-    output:
-        tuple val(motif_id), path("${prefix}.metrics.tsv"), path("${prefix}.coeff.tsv")
-    
-    script:
-    prefix = "${motif_id}"
-    """
-    Rscript $moduleDir/bin/coeff_by_components.py \
-        ${matrix} \
-        ${indicator_file} \
-        ${prefix}
-    """
+    tf_by_components(all_coeffs, params.metadf)
 }
