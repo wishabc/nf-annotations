@@ -70,7 +70,7 @@ process intersect_with_variants {
     python3 $moduleDir/bin/find_neighbors.py ${variants_file} \
         | sort-bed - \
         | bedtools intersect -a stdin -b ${ld_scores} -wa -wb -sorted \
-        | awk -v OFS='\t' '\$4==\$12 { print; }'
+        | awk -v OFS='\t' '\$4==\$12 { print; }' \
         | cut -f-1,3-8,13- > ${name}
     """
 }
