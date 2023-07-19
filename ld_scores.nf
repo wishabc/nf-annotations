@@ -75,6 +75,7 @@ process intersect_with_variants {
 
 workflow byChromosome {
     samples = Channel.fromPath(params.by_sample_file)
+    samples.take(2).view()
     Channel.of(1..22)
         | map(it -> "chr${it}")
         | combine(Channel.fromPath(params.pval_file))
@@ -87,6 +88,7 @@ workflow byChromosome {
             name: "ld_scores.geno.ld"
         )
         | sort
+        | first()
         | combine(samples)
         | collectFile(
             storeDir: params.outdir,
