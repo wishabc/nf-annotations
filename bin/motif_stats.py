@@ -161,8 +161,11 @@ def get_stats(motifs_df):
 
 def main(variants_df_path, counts_df_path):
     # Load variant imbalance file
-    variants_df = set_index(pd.read_table(variants_df_path, header=None, 
-        names="#chr    start   end     ID      ref     alt     ref_counts      alt_counts      sample_id       AAF     RAF     FMR #chr.1  start.1 end.1   BAD     SNP_count       SNP_ID_count    sum_cover       Q1.00   Q1.50   Q2.00   Q2.50   Q3.00   Q4.00   Q5.00   Q6.00   coverage        w       es      pval_ref        pval_alt        is_tested       footprints      hotspots        group_id".split('\t')))
+    names = "#chr    start   end     ID      ref     alt     ref_counts      alt_counts      sample_id       AAF     RAF     FMR #chr.1  start.1 end.1   BAD     SNP_count       SNP_ID_count    sum_cover       Q1.00   Q1.50   Q2.00   Q2.50   Q3.00   Q4.00   Q5.00   Q6.00   coverage        w       es      pval_ref        pval_alt        is_tested       footprints      hotspots        group_id".split('')
+
+    variants_df = set_index(
+        pd.read_table(variants_df_path, header=None, names=[x for x in names if x != ' '])
+    )
     if variants_df.empty:
         return
     # Load motifs dataframe
