@@ -264,7 +264,7 @@ workflow fromAnnotations {
             | combine(annotations)
             | make_ldsc_annotation
             | calc_ld
-        ld_data.results
+        ld_data.result
             | map(it -> tuple(it[0], [it[1], it[2]].flatten()))
             | groupTuple(size: 22)
             | map(
