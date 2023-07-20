@@ -52,6 +52,7 @@ names(coef_df)[2] <- "std_error"
 names(coef_df)[3] <- "z_value"
 names(coef_df)[4] <- "Pr(>|z|)"
 coef_df['ncomponents'] <- n_components
+coef_df['components'] <- row.names(coef_df)
 
 # Calculate AUC & PR
 pred_probs = predict(log_model, type = "response")
