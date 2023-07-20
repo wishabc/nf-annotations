@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-include { filterTestedVariants } from "./motif_enrichment"
+include { filterTestedVariants } from "./main"
 
 params.conda = "$moduleDir/environment.yml"
 
@@ -285,7 +285,7 @@ workflow fromPvalFiles {
     Channel.fromPath(params.pval_file) 
         | filter_cavs
         | flatten()
-       // | fromAnnotations
+        | fromAnnotations
    
 }
 workflow {
