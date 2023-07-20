@@ -285,7 +285,7 @@ workflow fromPvalFiles {
     Channel.fromPath(params.pval_file) 
         | filter_cavs
         | flatten()
-        | fromAnnotations
+       // | fromAnnotations
    
 }
 workflow {
