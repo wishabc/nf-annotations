@@ -120,7 +120,7 @@ process run_ldsc_cell_types {
         path "data_files/*"
     
     output:
-        path "${name}.cell_type_results.txt", emit: results
+        path "${name}.results.txt", emit: results
         path "${name}.log", emit: logs
         tuple val(phen_id), path("${name}.*"), emit: all_data
 
@@ -145,6 +145,9 @@ process run_ldsc_cell_types {
         --print-coefficients \
         --print-delete-vals \
         --out ${name}
+
+    awk -v OFS='\t' '{print (NR==1? "Phenotype_ID" : ${name}), \$0}' \
+        ${name}.cell_type_results.txt > ${name}.results.txt
     """
 }
 
@@ -224,7 +227,13 @@ workflow LDSCcellTypes {
             sumstats, 
             ld_data.map(it -> it[1]).collect(sort: true))
 
-        out = ldsc_res.results.collect(sort: true)
+        out = ldsc_res.results.collectFile(
+            storeDir: params.oudir,
+            skip: 1,
+            keepHeader: true,
+            sort: true,
+            name: 'ldsc_ct_results.tsv'
+        )
         // out = collect_ldsc_results(l) FIXME
     emit:
         out
@@ -273,7 +282,7 @@ workflow fromAnnotations {
         if (params.by_cell_type) {
             out = LDSCcellTypes(ldsc_data)
         } else {
-            out = LDSC(ldsc_data)    
+            out = LDSC(ldsc_data) 
         }
         
     emit:
@@ -290,7 +299,6 @@ workflow fromPvalFiles {
 }
 workflow {
     custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
-        | map(it -> file(it))
         | filterTestedVariants
         | fromAnnotations
 }
@@ -300,6 +308,5 @@ workflow mergeResults {
     Channel.fromPath(
         "/net/seq/data2/projects/sabramov/ENCODE4/dnase-annotations/LDSC.clusters/output/*/ldsc/*.results"
     )   
-        | collect(sort: true, flat: true) 
-        | collect_ldsc_results
+
 }
