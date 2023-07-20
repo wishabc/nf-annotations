@@ -56,14 +56,14 @@ def merge_aggregate_fdr(all_coeffs, motif_meta_df):
     # combine coeffs with some columns with motifs_metadata
     new_df = pd.merge(all_coeffs, motif_meta_df[['motif_id','tf_name']], on='motif_id', how='left')
     # Cauchy aggregation
-    qval_df = new_df.pivot_table(index='tf_name', columns='Unnamed: 0',
+    qval_df = new_df.pivot_table(index='tf_name', columns='components',
                              values='Pr(>|z|)', aggfunc=cauchy_combination)
     # Do fdr corrected on p-val, fdr_by
     qval_df_fdr = qval_df.applymap(lambda x: multipletests(x, alpha=0.05,
                                                            method='fdr_by', maxiter=1)[1][0])
     # Average estimate based on tf_name
     tf_name_est_df = new_df.pivot_table(index='tf_name',
-                                        columns='Unnamed: 0',values='estimate', aggfunc=np.mean)
+                                        columns='components',values='estimate', aggfunc=np.mean)
     # Indexing based on estimation
     pvaltest_df = pd.DataFrame({'index': np.argmax(tf_name_est_df.to_numpy(), axis=1),
                                 'value': tf_name_est_df.max(axis=1)})
