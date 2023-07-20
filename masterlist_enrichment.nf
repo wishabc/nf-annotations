@@ -87,23 +87,25 @@ workflow {
 // Workflow 
 process logistic_regression {
     conda params.r_conda
-    tag "${motif_id}"
+    tag "${prefix}"
     publishDir "${params.outdir}/metrics", pattern: "${prefix}.metrics.tsv"
     publishDir "${params.outdir}/coeffs", pattern: "${prefix}.coeff.tsv"
 
     input:
-        tuple val(motif_id), path(indicator_file), path(matrix)
+        tuple val(motif_id), path(indicator_file), val(n_components), path(matrix)
     
     output:
         tuple val(motif_id), path("${prefix}.metrics.tsv"), path("${prefix}.coeff.tsv")
     
     script:
-    prefix = "${motif_id}"
+    prefix = "${motif_id}.${n_components}"
     """
     Rscript $moduleDir/bin/motif_enrichment.R \
         ${matrix} \
         ${indicator_file} \
-        ${prefix}
+        ${motif_id} \
+        ${n_components} 
+
     """
 }
 
@@ -114,17 +116,17 @@ process tf_by_components {
 
     input:
         path(all_coefs)
-        path(motif_meta)
     
     output:
-        path("${prefix}.pdf")
+        path("${prefix}*.pdf")
     
     script:
-    prefix = "16components"
+    prefix = "components"
     """
     python $moduleDir/bin/plot_tf_by_components.py \
         ${all_coefs} \
-        ${motif_meta}
+        ${params.metadf} \
+        ${prefix}
     """
 }
 
@@ -132,14 +134,17 @@ workflow logisticRegression {
     params.r_conda = "/home/afathul/miniconda3/envs/r-kernel"
     params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
     params.masterlist_file = "/net/seq/data2/projects/afathul/motif_enhancement/masterlist.filtered.bed"
-    params.outdir = "/net/seq/data2/projects/afathul/motif_enhancement"
     params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
-    params.metadf = "/net/seq/data2/projects/afathul/motif_enhancement/motifs_meta.tsv"
-    
+    params.matrix_file = "/net/seq/data2/projects/afathul/motif_enhancement/matrix_meta.tsv"
+
+    matrices = Channel.of(params.matrix_file)
+        | splitCsv(header:true, sep:'\t')
+        | map(row -> tuple(row.ncomponents, file(row.matrix)))
+
     coeffs = Channel.fromPath("${params.moods_scans_dir}/*")
         | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_file))
         | motif_hits_intersect
-        | combine(Channel.fromPath(params.matrix))
+        | combine(matrices)
 	    | logistic_regression
     
     coeffs | map(it -> it[1])
@@ -149,12 +154,13 @@ workflow logisticRegression {
             sort: true,
             keepHeader: true)
 
-    all_coeffs = coeffs | map(it -> it[2])
+    coeffs 
+        | map(it -> it[2])
         | collectFile(name: 'all.coeff.tsv',
             storeDir: "${params.outdir}",
             skip: 1,
             sort: true,
             keepHeader: true)
-    tf_by_components(all_coeffs, params.metadf)
+        | tf_by_components
 }
 //     tf_by_components(all_coeffs, params.metadf) all_coeffs = 
