@@ -3,7 +3,7 @@ include { filterTestedVariants } from "./motif_enrichment"
 
 
 params.by_sample_dir = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/"
-
+params.ld_window_size_bp = 100000
 
 process ld_scores {
 	conda params.conda
@@ -29,7 +29,7 @@ process ld_scores {
 	vcftools --geno-r2 \
 		--gzvcf ${params.genotype_file} \
 		--minDP 10 \
-        --ld-window-bp 100000 \
+        --ld-window-bp ${params.ld_window_size_bp} \
         --bed variants.bed \
 		--out ${prefix} \
         ${additional_params} \
@@ -107,28 +107,8 @@ workflow annotateLD {
     emit:
         out
 }
+
 workflow {
     Channel.fromPath("${params.by_sample_dir}/*.bed") 
         | annotateLD
-}
-
-
-// Defunc
-workflow tmp {
-    samples = Channel.fromPath("${params.by_sample_dir}/*.bed")
-    Channel.fromPath("${params.outdir}/ld_scores.geno.ld")
-        | sort
-        | combine(samples)
-        | intersect_with_tested_variants
-        | collectFile(
-            storeDir: params.outdir,
-            name: "ld_scores.annotated_samples.geno.ld"
-        )
-}
-
-
-workflow bySample {
-    Channel.fromPath("${params.by_sample_dir}/*.bed")
-        | map(it -> tuple("all", it))
-        | ld_scores
 }
