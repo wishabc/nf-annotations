@@ -128,11 +128,9 @@ process filter_cavs {
 
 workflow calcEnrichment {
     take:
-        counts
-        pvals_files
+        data
     main:
-        motif_ann = pvals_files
-            | combine(counts)
+        motif_ann = data
             | get_motif_stats
             | collectFile(
                     storeDir: "${params.outdir}/stats"
