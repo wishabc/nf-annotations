@@ -110,14 +110,16 @@ process filter_tested_variants {
     """
     ${command} ${pval_files} \
         | awk -v OFS='\t' -v col='is_tested' \
-            'NR==1 {for(i=1;i<=NF;i++){ \
-                if (\$i==col){ \
-                    c=i; \
-                    break \
-                } \
-            } \
-            ((NR>1) && (\$c == "True")) { \
-                print \$1,\$2,\$3,\$4,\$5,\$6 \
+            'NR==1 {
+                for(i=1;i<=NF;i++){
+                    if (\$i==col){
+                        c=i;
+                        break
+                    }
+                }
+            }
+            ((NR>1) && (\$c == "True")) {
+                print \$1,\$2,\$3,\$4,\$5,\$6
             }' \
         | sort-bed - \
         | uniq > ${name}
