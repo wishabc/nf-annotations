@@ -110,6 +110,20 @@ process get_motif_stats {
     """
 }
 
+process filter_cavs {
+
+    input:
+        path pval_file
+
+    output:
+        path "*.bed"
+    
+    script:
+    """
+    cat ${pval_file} | grep -v '#' | awk '\$NF <= ${params.fdr_tr} {print> \$19".bed"}'
+    """
+}
+
 // Development workflows
 
 workflow calcEnrichment {
@@ -129,19 +143,17 @@ workflow calcEnrichment {
 
 workflow motifCounts {
     take:
-        pval_file
+        data
     main:
-        uniq_vars = filterTestedVariants(pvals_files)
-
-        counts =  readMotifsList()
+        out = readMotifsList()
             | map(it -> tuple(it[0], it[1], "${params.moods_scans_dir}/${it[0]}.moods.log.bed.gz"))
-            | combine(uniq_vars)
+            | combine(data)
             | motif_counts
             | map(it -> it[1])
             | collectFile(name: "all.counts.bed") 
             | tabix_index
     emit:
-        counts
+        out
 }
 
 workflow readMotifsList {
@@ -158,13 +170,21 @@ workflow scanWithMoods {
     readMotifsList() | scan_with_moods
 }
 
-workflow {
-    Channel.fromPath(params.pval_file) | motifCounts
+workflow cavsEnrichment {
+    Channel.fromPath("${params.outdir}/all_counts.merged.bed.gz")
+        | combine(
+            filter_cavs(file(params.pval_file)) | flatten()
+        )
+        | calcEnrichment
 }
 
-workflow cavsEnrichment {
-    pvals_files = Channel.fromPath("${params.pval_file_dir}/*.bed")
-        | map(it -> file(it))
-
-    calcEnrichment("${params.outdir}/all_counts.merged.bed.gz", pvals_files)
+workflow {
+    pval_file = Channel.fromPath(params.pval_file) 
+    pval_file
+        | filterTestedVariants
+        | motifCounts
+        | combine(
+            filter_cavs(pval_file) | flatten()
+        )
+        | calcEnrichment
 }

@@ -1,7 +1,6 @@
 #!/usr/bin/env nextflow
 include { filterTestedVariants } from "./main"
 
-
 params.by_sample_dir = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/"
 
 process ld_scores {
