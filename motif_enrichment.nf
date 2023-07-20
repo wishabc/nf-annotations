@@ -92,21 +92,21 @@ process tabix_index {
 }
 
 process get_motif_stats {
-    tag "${pval_file.simpleName}:${prefix}"
+    tag "${pval_file.simpleName}"
     conda params.conda
 
     input:
-        tuple path(pval_file), val(prefix), path(counts_file)
+        tuple path(counts_file), path(counts_file_index), path(pval_file)
 
     output:
-        tuple path(pval_file), path(motif_stats)
+        tuple path(pval_file), path(name)
     
     script:
-    motif_stats = "${pval_file.baseName}.${prefix}.stats.tsv"
+    name = "${pval_file.simpleName}.stats.tsv"
     """
     # Counts file
     python3 ${projectDir}/bin/motif_stats.py  \
-        ${pval_file} ${counts_file} > ${motif_stats}
+        ${pval_file} ${counts_file} > ${name}
     """
 }
 
@@ -180,9 +180,9 @@ workflow {
     pval_file = Channel.fromPath(params.pval_file) 
     pval_file
         | filterTestedVariants
-        | motifCounts
+        | motifCounts // motif_hits, motif_hits_index
         | combine(
             filter_cavs(pval_file) | flatten()
-        )
+        ) // motif_hits, motif_hits_index, pval_file
         | calcEnrichment
 }

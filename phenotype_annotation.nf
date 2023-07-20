@@ -305,11 +305,3 @@ workflow {
         | filterTestedVariants
         | fromAnnotations
 }
-
-// Defunc
-workflow mergeResults {
-    Channel.fromPath(
-        "/net/seq/data2/projects/sabramov/ENCODE4/dnase-annotations/LDSC.clusters/output/*/ldsc/*.results"
-    )   
-
-}
