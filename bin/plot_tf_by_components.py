@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 from statsmodels.stats.multitest import multipletests
 import matplotlib.colors as mcolors
+from matplotlib.backends.backend_pdf import PdfPages
 import argparse # using argparse for args
 
 def get_colors_order(n_components):
@@ -36,16 +37,20 @@ def cauchy_combination(p_val):
     return stats.cauchy.sf(np.sum(np.tan(np.multiply(np.subtract(0.5, p_val), np.pi))) / len(p_val))
 
 # Function to generate plot
-def generate_top(modal, cluster, component, **kwargs):
-    X_components = 'X' + str(component)
-    vis = modal[modal["Components"] == X_components].head(10).sort_values(by="Estimation")
-    # vis.plot(x="tf_name", y="Estimation", kind="bar")
-    colors_order = get_colors_order(component)
-    plt.barh(data=vis, y=cluster, width='Estimation', color = colors_order[component - 1] ,  **kwargs)
-    plt.title(X_components)
-    file_name = '16components.' + X_components + '.png'
-    plt.savefig(file_name, bbox_inches='tight')
-    plt.show()
+def generate_top(modal, cluster, **kwargs):
+    len_components = len(modal['Components'].unique()) - 1
+    colors_order = get_colors_order(len_components)
+    file_name = str(len_components) + 'components.pdf'
+    pdf_pages = PdfPages(file_name)
+    for component in range(1, len_components + 1):
+        X_components = 'X' + str(component)
+        vis = modal[modal["Components"] == X_components].head(10).sort_values(by="Estimation")
+        plt.barh(data=vis, y=cluster, width='Estimation', color = colors_order[component - 1] ,  **kwargs)
+        plt.title(X_components)
+        # Add the current plot to the PDF file
+        pdf_pages.savefig(bbox_inches='tight')
+        plt.close()  # Close the figure after saving
+    pdf_pages.close()
 
 def merge_aggregate_fdr(all_coeffs, motif_meta_df):
     # combine coeffs with some columns with motifs_metadata
@@ -80,5 +85,4 @@ if __name__ == '__main__':
     parser.add_argument('metamotifs', help='Path to motifs_meta file with cluster_name')
     args = parser.parse_args()
     est_components_sort = merge_aggregate_fdr(pd.read_csv(args.coeffs), pd.read_table(args.metamotifs))
-    for i in range(1,17):
-        generate_top(est_components_sort, "tf_name", i)
+    generate_top(est_components_sort, "tf_name")
