@@ -110,7 +110,7 @@ process calc_ld {
 // TODO wrap in apptainer
 process run_ldsc_cell_types {
     conda params.ldsc_conda
-    publishDir "${params.outdir}/ldsc", pattern: "${name}.cell_type_results.txt"
+    publishDir "${params.outdir}/ldsc", pattern: "${name}.results.txt"
     publishDir "${params.outdir}/ldsc_logs", pattern: "${name}.log"
     tag "${phen_id}"
     scratch true
@@ -146,7 +146,7 @@ process run_ldsc_cell_types {
         --print-delete-vals \
         --out ${name}
 
-    awk -v OFS='\t' '{print (NR==1? "Phenotype_ID" : ${name}), \$0}' \
+    awk -v OFS='\t' '{print (NR==1 ? "Phenotype_ID" : "${name}"), \$0}' \
         ${name}.cell_type_results.txt > ${name}.results.txt
     """
 }
