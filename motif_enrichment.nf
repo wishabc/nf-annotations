@@ -94,6 +94,7 @@ process tabix_index {
 process get_motif_stats {
     tag "${pval_file.simpleName}"
     conda params.conda
+    label "high_mem"
 
     input:
         tuple path(counts_file), path(counts_file_index), path(pval_file)
