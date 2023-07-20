@@ -260,10 +260,11 @@ workflow fromAnnotations {
     take:
         annotations
     main:
-        ldsc_data = Channel.of(1..22)
+        ld_data = Channel.of(1..22)
             | combine(annotations)
             | make_ldsc_annotation
-            | calc_ld.results
+            | calc_ld
+        ld_data.results
             | map(it -> tuple(it[0], [it[1], it[2]].flatten()))
             | groupTuple(size: 22)
             | map(
