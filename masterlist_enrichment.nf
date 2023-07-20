@@ -117,10 +117,10 @@ process tf_by_components {
         path(motif_meta)
     
     output:
-        path("${prefix}*.png")
+        path("${prefix}.pdf")
     
     script:
-    prefix = "16components."
+    prefix = "16components"
     """
     python $moduleDir/bin/plot_tf_by_components.py \
         ${all_coefs} \
