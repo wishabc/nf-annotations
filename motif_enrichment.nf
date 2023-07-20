@@ -120,7 +120,7 @@ process filter_cavs {
     
     script:
     """
-    cat ${pval_file} | grep -v '#' | awk '\$NF <= ${params.fdr_tr} {print> \$19".bed"}'
+    cat ${pval_file} | grep -v '#' | awk '{print> \$19".bed"}'
     """
 }
 
