@@ -6,7 +6,6 @@ params.conda = "$moduleDir/environment.yml"
 is_baseline = false
 
 process filter_cavs {
-    tag "${prefix}"
 
     input:
         path pval_file
@@ -15,9 +14,8 @@ process filter_cavs {
         path "*.bed"
     
     script:
-    prefix = pval_file.simpleName
     """
-    cat ${pval_file} | grep -v '#' | awk '((\$NF <= ${params.fdr_tr}) && (NR>1)) {print> \$19".bed"}'
+    cat ${pval_file} | grep -v '#' | awk '\$NF <= ${params.fdr_tr} {print> \$19".bed"}'
     """
 }
 
