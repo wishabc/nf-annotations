@@ -5,7 +5,6 @@ import pandas as pd
 import numpy as np
 import scipy.stats as stats
 import statsmodels.api as sm
-import multiprocessing as mp
 
 
 # Params
@@ -49,6 +48,7 @@ def get_prefered_allele(x):
 def set_index(df):
     if df.empty:
         exit(0)
+    print(df.columns)
     df['variant_id'] = df.apply(lambda x: 
         '@'.join(map(str, 
         [x[field] for field in ['#chr', 'start', 'end', 'ref', 'alt']])), axis=1)
