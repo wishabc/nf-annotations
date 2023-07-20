@@ -3,7 +3,6 @@ include { filterTestedVariants } from "./motif_enrichment"
 
 
 params.by_sample_dir = "/net/seq/data2/projects/sabramov/ENCODE4/dnase0620/dnase.auto/output/by_sample/"
-params.ld_window_size_bp = 100000
 
 process ld_scores {
 	conda params.conda
@@ -109,6 +108,6 @@ workflow annotateLD {
 }
 
 workflow {
-    Channel.fromPath("${params.by_sample_dir}/*.bed") 
+    Channel.fromPath("${params.by_sample_pval_files}/*.bed") 
         | annotateLD
 }

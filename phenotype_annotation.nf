@@ -3,26 +3,7 @@ include { filterTestedVariants } from "./motif_enrichment"
 
 params.conda = "$moduleDir/environment.yml"
 
-params.phenotypes_data = "/home/sabramov/phenotypes_data"
-
 is_baseline = false
-// Annotates with pheWAS, clinvar, finemapping, grasp, ebi-gwas phenotypes
-process annotate_with_phenotypes {
-    conda params.conda
-    publishDir "${params.outdir}/phenotypes"
-
-    input:
-        path pval_file
-
-    output:
-        path name
-
-    script:
-    name = "phenotypes_ann.bed"
-    """
-    python3 $moduleDir/bin/annotate_with_phenotypes.py ${params.phenotypes_data} ${pval_file} ${name}
-    """
-}
 
 process filter_cavs {
     tag "${prefix}"
@@ -314,18 +295,11 @@ workflow fromPvalFiles {
 workflow {
     custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
         | map(it -> file(it))
-        | filterUniqVariants
+        | filterTestedVariants
         | fromAnnotations
 }
 
-workflow annotateWithPheno {
-    out =  Channel.fromPath("${params.pval_file_dir}/*.bed")
-        | map(it -> file(it))
-        | collect(sort: true)
-        | filterUniqVariants
-        | annotate_with_phenotypes
-}
-
+// Defunc
 workflow mergeResults {
     Channel.fromPath(
         "/net/seq/data2/projects/sabramov/ENCODE4/dnase-annotations/LDSC.clusters/output/*/ldsc/*.results"

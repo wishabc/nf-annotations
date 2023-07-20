@@ -1,5 +1,6 @@
 #!/usr/bin/env nextflow
-include { filterTestedVariants; readMotifsList } from "./motif_enrichment"
+include { readMotifsList } from "./motif_enrichment"
+include { filterTestedVariants } from "./main"
 // Put in the Apptainer
 params.conda = "$moduleDir/environment.yml"
 
@@ -127,7 +128,8 @@ workflow runSarus {
         pval_files
         motifs
     main:
-        unique_variants = filterUniqVariants(pval_files) | cut_sequence
+        unique_variants = filterTestedVariants(pval_files)
+            | cut_sequence
         thresholds = motifs
             | map(it -> it[1])
             | collect(sort: true)
@@ -135,13 +137,13 @@ workflow runSarus {
             | flatten()
             | map(it -> tuple(it.baseName, it))
 
-        out = motifs 
+        out = motifs
             | join(thresholds)
             | combine(unique_variants)
             | scan_with_sarus
             | parse_log
         
-        out.map(it -> it[1]) | collect(sort: true) | filter_and_index
+        out | map(it -> it[1]) | collect(sort: true) | filter_and_index
     emit:
         out
 }

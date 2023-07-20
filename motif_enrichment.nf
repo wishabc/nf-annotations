@@ -1,5 +1,6 @@
 #!/usr/bin/env nextflow
 
+include { filterTestedVariants } from "./main"
 // Put in the Apptainer
 params.conda = "$moduleDir/environment.yml"
 
@@ -39,37 +40,6 @@ process scan_with_moods {
         | sort-bed - \
         | bgzip -c \
         > ${name}
-    """
-}
-
-process filter_tested_variants {
-    conda params.conda
-    scratch true
-
-    input:
-        path pval_files
-
-    output:
-        path name
-
-    script:
-    // Expected all files to be in the same format
-    command = pval_files[0].extension == 'gz' ? 'zcat' : 'cat'
-    name = pval_files.size() > 1 ? "unique_variants.bed" : "${pval_files[0].simpleName}.bed"
-    """
-    ${command} ${pval_files} \
-        | awk -v OFS='\t' -v col='is_tested' \
-            'NR==1 {for(i=1;i<=NF;i++){
-                if (\$i==col){
-                    c=i;
-                    break
-                }
-            }
-            ((NR>1) && (\$c == "True")) {
-                print \$1,\$2,\$3,\$4,\$5,\$6
-            }' \
-        | sort-bed - \
-        | uniq > ${name}
     """
 }
 
@@ -141,15 +111,6 @@ process get_motif_stats {
 }
 
 // Development workflows
-workflow filterTestedVariants {
-    take:
-        pvals_file
-    main:
-        out = filter_tested_variants(pvals_file)
-    emit:
-        out
-}
-
 
 workflow calcEnrichment {
     take:
