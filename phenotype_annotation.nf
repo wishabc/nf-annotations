@@ -12,14 +12,12 @@ process filter_cavs {
         path pval_file
 
     output:
-        path name
+        path "*.bed"
     
     script:
     prefix = pval_file.simpleName
-    name = "${prefix}.fdr${params.fdr_tr}.bed"
     """
-    head -1 ${pval_file} > ${name}
-    cat ${pval_file} | awk '((\$NF <= ${params.fdr_tr}) && (NR>1)) {print}' >> ${name}
+    cat ${pval_file} | grep -v '#' | awk '((\$NF <= ${params.fdr_tr}) && (NR>1)) {print> \$19".bed"}'
     """
 }
 
@@ -286,9 +284,9 @@ workflow fromAnnotations {
 
 workflow fromPvalFiles {
     params.fdr_tr = 0.05
-    Channel.fromPath("${params.pval_file_dir}/*.bed") 
-        | map(it -> file(it))
+    Channel.fromPath(params.pval_file) 
         | filter_cavs
+        | flatten()
         | fromAnnotations
    
 }
