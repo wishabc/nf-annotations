@@ -137,7 +137,7 @@ workflow logisticRegression {
     params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
     params.matrix_file = "/net/seq/data2/projects/afathul/motif_enhancement/matrix_meta.tsv"
 
-    matrices = Channel.of(params.matrix_file)
+    matrices = Channel.fromPath(params.matrix_file)
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.ncomponents, file(row.matrix)))
 
