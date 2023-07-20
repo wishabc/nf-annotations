@@ -84,7 +84,7 @@ workflow annotateLD {
     main:
         uniq_vars = samples
             | collect(sort: true)
-            | filterUniqVariants
+            | filterTestedVariants
 
         out = Channel.of(1..22)
             | map(it -> "chr${it}")

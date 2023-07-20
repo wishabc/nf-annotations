@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-include { annotateLD } from "./ld_scores"
+//include { annotateLD } from "./ld_scores"
 // Put in the Apptainer
 params.conda = "$moduleDir/environment.yml"
 
