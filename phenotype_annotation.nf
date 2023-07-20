@@ -227,13 +227,14 @@ workflow LDSCcellTypes {
             sumstats, 
             ld_data.map(it -> it[1]).collect(sort: true))
 
-        out = ldsc_res.results.collectFile(
-            storeDir: params.oudir,
-            skip: 1,
-            keepHeader: true,
-            sort: true,
-            name: 'ldsc_ct_results.tsv'
-        )
+        out = ldsc_res.results
+            | collectFile(
+                storeDir: params.outdir,
+                skip: 1,
+                keepHeader: true,
+                sort: true,
+                name: 'ldsc_ct_results.tsv'
+            )
         // out = collect_ldsc_results(l) FIXME
     emit:
         out
