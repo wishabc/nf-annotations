@@ -37,7 +37,7 @@ motif_indicator <- read.table(args[2])
 motif_count_sum <- sum(motif_indicator)
 motif_indicator <- unlist(motif_indicator)
 
-motif_id <- args[3]
+motif_id_args <- args[3]
 n_components <- args[4]
 
 print("Running logistic regression model")
@@ -46,7 +46,7 @@ log_model = glm(motif_indicator ~., data=DHS_feature_nmf_df, family=binomial(lin
 # Set up dataframe for coefficents and rename column
 
 coef_df <- as.data.frame(summary(log_model)['coefficients'])
-coef_df['motif_id'] <- motif_id
+coef_df['motif_id'] <- motif_id_args
 names(coef_df)[1] <- "estimate"
 names(coef_df)[2] <- "std_error"
 names(coef_df)[3] <- "z_value"
@@ -64,7 +64,7 @@ roc_pr <- list(
         pr_auc_integral = pr_score$auc.integral,
         pr_auc_davis = pr_score$auc.davis.goadrich,
         motif_count = motif_count_sum, 
-        motif_id = prefix_name
+        motif_id = motif_id_args
 )
 
 roc_pr_df <- as.data.frame(roc_pr)
