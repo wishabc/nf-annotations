@@ -273,7 +273,9 @@ workflow fromAnnotations {
         ld_data = Channel.of(1..22)
             | combine(annotations)
             | make_ldsc_annotation
+            | filter { it[1].countLines() >= 8000 }
             | calc_ld
+
         ldsc_data = ld_data.result
             | map(it -> tuple(it[0], [it[1], it[2]].flatten()))
             | groupTuple(size: 22)
