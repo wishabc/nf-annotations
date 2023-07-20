@@ -37,15 +37,15 @@ def cauchy_combination(p_val):
     return stats.cauchy.sf(np.sum(np.tan(np.multiply(np.subtract(0.5, p_val), np.pi))) / len(p_val))
 
 # Function to generate plot
-def generate_top(modal, cluster, **kwargs):
+def generate_top(modal, cluster, prefix):
     len_components = len(modal['Components'].unique()) - 1
     colors_order = get_colors_order(len_components)
-    file_name = str(len_components) + 'components.pdf'
+    file_name = f'{prefix}{len_components}.pdf'
     pdf_pages = PdfPages(file_name)
     for component in range(1, len_components + 1):
         X_components = 'X' + str(component)
         vis = modal[modal["Components"] == X_components].head(10).sort_values(by="Estimation")
-        plt.barh(data=vis, y=cluster, width='Estimation', color = colors_order[component - 1] ,  **kwargs)
+        plt.barh(data=vis, y=cluster, width='Estimation', color = colors_order[component - 1])
         plt.title(X_components)
         # Add the current plot to the PDF file
         pdf_pages.savefig(bbox_inches='tight')
@@ -83,6 +83,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Plotting all_coeffs file to tf by components')
     parser.add_argument('coeffs', help='Path to all_coeffs file')
     parser.add_argument('metamotifs', help='Path to motifs_meta file with cluster_name')
+    parser.add_argument('prefix', help='Output file prefix')
     args = parser.parse_args()
-    est_components_sort = merge_aggregate_fdr(pd.read_csv(args.coeffs), pd.read_table(args.metamotifs))
-    generate_top(est_components_sort, "tf_name")
+    all_coefs = pd.read_table(args.coeffs)
+    motifs_metadata = pd.read_table(args.metamotifs)
+    ncomp_groups = all_coefs.groupby('ncomponents')
+    for n_comp in ncomp_groups.groups:
+        est_components_sort = merge_aggregate_fdr(ncomp_groups.get_group(n_comp), motifs_metadata)
+        generate_top(est_components_sort, "tf_name", args.prefix)
