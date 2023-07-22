@@ -46,7 +46,7 @@ def get_annotations(snvs):
 
     try:
         if len(snvs_in) == 0:
-            raise NoDataException
+            raise NoDataException()
 
         predictor_array = snvs_in[es_fld].to_numpy()
         expected_es = 0
@@ -115,7 +115,7 @@ def get_stats(motifs_df):
     imbalanced_index = motifs_df['min_fdr'] <= 0.05
 
     if imbalanced_index.sum() == 0:
-        raise NoDataException
+        raise NoDataException()
 
     r2, concordance, ref_bias = get_annotations(motifs_df[imbalanced_index])
 
@@ -167,5 +167,5 @@ def main(variants_df_path, counts_df_path):
 if __name__ == '__main__':
     try:
         main(sys.argv[1], sys.argv[2])
-    except NoDataException():
+    except NoDataException:
         pass
