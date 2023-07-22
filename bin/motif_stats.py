@@ -180,6 +180,7 @@ def main(variants_df_path, counts_df_path):
             dtype={'alt_score': 'float64', 'ref_score': 'float64'}
         )
     )
+    print('Adding fields')
     for key in ('ref', 'alt'):
         motifs_df[key] = np.where(motifs_df['strand'] == '-', complement(motifs_df[key]), motifs_df[key])
    
@@ -190,7 +191,7 @@ def main(variants_df_path, counts_df_path):
     df["prefered_allele"] = np.where(df[es_fld] >= 0, df["ref"], df["alt"])
     df['ddg'] = df['ref_score'] - df['alt_score']
     print('Grouping by and applying')
-    return df.groupby('motif').apply(get_stats).compute()
+    return df.groupby('motif').progress_apply(get_stats).compute()
 
 
 if __name__ == '__main__':
