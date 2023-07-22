@@ -56,7 +56,7 @@ def join_columns(df):
 def set_index(df):
     if len(df.index) == 0:
         exit(0)
-    df = df.map_partitions(join_columns)
+    df = join_columns(df)
     return df.set_index('variant_id')
 
 
