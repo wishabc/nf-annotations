@@ -155,7 +155,10 @@ def main(variants_df_path, counts_df_path):
 
     print('Reading variants df')
     variants_df = set_index(
-        dd.read_table(variants_df_path, header=None, names=[x for x in names if x != ' '])
+        dd.read_table(variants_df_path,
+            header=None,
+            dtype={'AAF': 'object', 'RAF': 'object'},
+            names=[x for x in names if x != ' '])
     )
     if variants_df.empty:
         return
