@@ -15,6 +15,20 @@ flank_width = 20
 n_shuffles = 1000
 es_fld = 'es_weighted_mean'
 
+
+columns = [
+    'motifs_name',
+    "log_odds",
+    "pval",
+    "total_inside",
+    "imbalanced_inside",
+    "imbalanced_inside_median",
+    "n_imbalanced_more_7",
+    'r2',
+    'concordance',
+    'ref_bias'
+]
+
 class NoDataException(Exception):
     pass
 
@@ -113,24 +127,26 @@ def calc_enrichment(motifs_df, imbalanced):
 
 def get_stats(motifs_df):
     imbalanced_index = motifs_df['min_fdr'] <= 0.05
+    try:
+        if imbalanced_index.sum() == 0:
+            raise NoDataException()
 
-    if imbalanced_index.sum() == 0:
-        raise NoDataException()
+        r2, concordance, ref_bias = get_annotations(motifs_df[imbalanced_index])
 
-    r2, concordance, ref_bias = get_annotations(motifs_df[imbalanced_index])
+        # log_odds, pval, n_inside, n_imb_inside, n_median_inside, n_inside_more_7
+        enrichment_stats = calc_enrichment(motifs_df, imbalanced_index)
+    except NoDataException:
+        return pd.Series([], columns=columns)
 
-    # log_odds, pval, n_inside, n_imb_inside, n_median_inside, n_inside_more_7
-    enrichment_stats = calc_enrichment(motifs_df, imbalanced_index)
-    
-    fields = [
+    data = pd.Series([
         motifs_df.name,
         *enrichment_stats,
         r2,
         concordance,
         ref_bias
-    ]
+    ], columns=columns)
 
-    print('\t'.join(map(str, fields)))
+    return data
 
 
 def main(variants_df_path, counts_df_path):
@@ -161,11 +177,9 @@ def main(variants_df_path, counts_df_path):
     # Compute preferred allele
     df["prefered_allele"] = np.where(df[es_fld] >= 0, df["ref"], df["alt"])
     df['ddg'] = df['ref_score'] - df['alt_score']
-    df.groupby('motif').progress_apply(get_stats)
+    return df.groupby('motif').progress_apply(get_stats)
 
 
 if __name__ == '__main__':
-    try:
-        main(sys.argv[1], sys.argv[2])
-    except NoDataException:
-        pass
+    res_df = main(sys.argv[1], sys.argv[2])
+    res_df.to_csv(sys.argv[3], index=False, sep='\t')

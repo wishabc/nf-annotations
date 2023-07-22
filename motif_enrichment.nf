@@ -107,7 +107,7 @@ process get_motif_stats {
     """
     # Counts file
     python3 ${projectDir}/bin/motif_stats.py  \
-        ${pval_file} ${counts_file} > ${name}
+        ${pval_file} ${counts_file} ${name}
     """
 }
 
