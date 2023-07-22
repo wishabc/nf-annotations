@@ -6,7 +6,7 @@ import numpy as np
 import scipy.stats as stats
 import statsmodels.api as sm
 from tqdm import tqdm
-
+import dask.dataframe as dd
 tqdm.pandas()
 
 # Params
@@ -155,14 +155,14 @@ def main(variants_df_path, counts_df_path):
 
     print('Reading variants df')
     variants_df = set_index(
-        pd.read_table(variants_df_path, header=None, names=[x for x in names if x != ' '])
+        dd.read_table(variants_df_path, header=None, names=[x for x in names if x != ' '])
     )
     if variants_df.empty:
         return
     # Load motifs dataframe
     print('Reading motifs df')
     motifs_df = set_index(
-        pd.read_table(
+        dd.read_table(
             counts_df_path,
             header=None,
             names=['#chr', 'start', 'end', 'rsid', 'ref', 'alt',
@@ -179,7 +179,7 @@ def main(variants_df_path, counts_df_path):
     # Compute preferred allele
     df["prefered_allele"] = np.where(df[es_fld] >= 0, df["ref"], df["alt"])
     df['ddg'] = df['ref_score'] - df['alt_score']
-    return df.groupby('motif').progress_apply(get_stats)
+    return df.groupby('motif').apply(get_stats).compute()
 
 
 if __name__ == '__main__':
