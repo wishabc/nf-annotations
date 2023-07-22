@@ -48,7 +48,7 @@ def get_concordant(x, y, expected_es=0, x_mar=0):
 
 
 def set_index(df):
-    if df.empty:
+    if len(df.index) == 0:
         exit(0)
     df['variant_id'] = df[['#chr', 'start', 'end', 'ref', 'alt']].astype(str).agg('@'.join, axis=1)
     return df.set_index('variant_id')
