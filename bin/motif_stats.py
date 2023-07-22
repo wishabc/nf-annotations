@@ -177,7 +177,6 @@ def main(variants_df_path, counts_df_path):
             names=['#chr', 'start', 'end', 'rsid', 'ref', 'alt',
             'motif', 'offset', 'within', 'strand',
             'ref_score', 'alt_score', 'seq'],
-            blocksize=None,
             dtype={'alt_score': 'float64', 'ref_score': 'float64'}
         )
     )
