@@ -176,7 +176,8 @@ def main(variants_df_path, counts_df_path):
             header=None,
             names=['#chr', 'start', 'end', 'rsid', 'ref', 'alt',
             'motif', 'offset', 'within', 'strand',
-            'ref_score', 'alt_score', 'seq']
+            'ref_score', 'alt_score', 'seq'],
+            blocksize=None
         )
     )
     for key in ('ref', 'alt'):
@@ -188,6 +189,7 @@ def main(variants_df_path, counts_df_path):
     # Compute preferred allele
     df["prefered_allele"] = np.where(df[es_fld] >= 0, df["ref"], df["alt"])
     df['ddg'] = df['ref_score'] - df['alt_score']
+    print('Grouping by and applying')
     return df.groupby('motif').apply(get_stats).compute()
 
 
