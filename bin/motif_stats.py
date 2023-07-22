@@ -166,8 +166,8 @@ def main(variants_df_path, counts_df_path):
             dtype={'AAF': 'object', 'RAF': 'object'},
             names=[x for x in names if x != ' '])
     )
-    if variants_df.empty:
-        return
+    if len(variants_df.index) == 0:
+        return pd.Series([], columns=columns)
     # Load motifs dataframe
     print('Reading motifs df')
     motifs_df = set_index(
