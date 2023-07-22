@@ -6,7 +6,7 @@ import numpy as np
 import scipy.stats as stats
 import statsmodels.api as sm
 from tqdm import tqdm
-import dask.dataframe as dd
+# import dask.dataframe as dd
 tqdm.pandas()
 
 # Params
@@ -161,7 +161,7 @@ def main(variants_df_path, counts_df_path):
 
     print('Reading variants df')
     variants_df = set_index(
-        dd.read_table(variants_df_path,
+        pd.read_table(variants_df_path,
             header=None,
             dtype={'AAF': 'object', 'RAF': 'object'},
             names=[x for x in names if x != ' '])
@@ -171,7 +171,7 @@ def main(variants_df_path, counts_df_path):
     # Load motifs dataframe
     print('Reading motifs df')
     motifs_df = set_index(
-        dd.read_table(
+        pd.read_table(
             counts_df_path,
             header=None,
             names=['#chr', 'start', 'end', 'rsid', 'ref', 'alt',
