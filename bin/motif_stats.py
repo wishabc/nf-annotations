@@ -47,10 +47,16 @@ def get_concordant(x, y, expected_es=0, x_mar=0):
     return ((y * diff > 0) & unmasked_values).sum() / unmasked_values.sum()
 
 
+def join_columns(df):
+    df['variant_id'] = df[['#chr', 'start', 'end', 'ref', 'alt']].astype(str).agg('@'.join, axis=1)
+    return df
+
+
+
 def set_index(df):
     if len(df.index) == 0:
         exit(0)
-    df['variant_id'] = df[['#chr', 'start', 'end', 'ref', 'alt']].astype(str).agg('@'.join, axis=1)
+    df = df.map_partitions(join_columns)
     return df.set_index('variant_id')
 
 
