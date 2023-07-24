@@ -79,6 +79,8 @@ process motif_counts {
 process tabix_index {
     conda params.conda
     publishDir "${params.outdir}"
+    label "high_mem"
+
 
     input:
         path counts
