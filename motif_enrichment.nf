@@ -62,7 +62,7 @@ process motif_counts {
     zcat ${moods_file} | bedmap \
         --skip-unmapped \
         --sweep-all \
-        --range 20 \
+        --range ${params.flank_width} \
         --delim "|" \
         --multidelim ";" \
         --echo \
@@ -109,7 +109,9 @@ process calc_enrichment {
     """
     # Counts file
     python3 ${projectDir}/bin/motif_stats.py  \
-        ${pval_file} ${counts_file} ${name}
+        ${pval_file} ${counts_file} ${name} \
+        --flank_width ${params.flank_width} \
+        --fdr_tr ${params.fdr_tr}
     """
 }
 
