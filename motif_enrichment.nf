@@ -44,7 +44,7 @@ process scan_with_moods {
 }
 
 process motif_counts {
-    scratch true
+    // scratch true
     tag "${motif_id}"
     conda params.conda
     publishDir "${params.outdir}/counts", pattern: "${counts_file}"
@@ -58,16 +58,17 @@ process motif_counts {
     script:
     counts_file = "${motif_id}.counts.bed"
     """
-    echo -e "#chr\tstart\tend\trsid\tref\talt\tmotif\toffset\twithin\tstrand\tref_score'\talt_score\tseq" > ${counts_file}
-    zcat ${moods_file} | bedmap \
-        --skip-unmapped \
-        --sweep-all \
-        --range ${params.flank_width} \
-        --delim "|" \
-        --multidelim ";" \
-        --echo \
-        --echo-map <(cat ${pval_file}) \
-        -    \
+    echo -e "#chr\tstart\tend\tID\tref\talt\tmotif\toffset\twithin\tstrand\tref_score\talt_score\tseq" > ${counts_file}
+    zcat ${moods_file} 
+        | bedmap \
+            --skip-unmapped \
+            --sweep-all \
+            --range ${params.flank_width} \
+            --delim "|" \
+            --multidelim ";" \
+            --echo \
+            --echo-map <(cat ${pval_file}) \
+            -    \
         | python $projectDir/bin/parse_variants_motifs.py \
             ${params.genome_fasta_file} \
             ${pwm_path} \
