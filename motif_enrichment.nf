@@ -53,7 +53,7 @@ process motif_counts {
         tuple val(motif_id), path(pwm_path), path(moods_file), path(pval_file)
 
     output:
-        tuple val(motif_id), path(counts_file), path(pval_file)
+        tuple val(motif_id), path(counts_file)
 
     script:
     counts_file = "${motif_id}.counts.bed"
@@ -161,8 +161,12 @@ workflow scanWithMoods {
 }
 
 workflow {
-    Channel.fromPath(params.pval_file)
-        | motifCounts // motif_hits, motif_hits_index, pval_file
+    pvals = 
+    
+    Channel.fromPath(params.by_sample_pval_files)
+        | filterTestedVariants
+        | motifCounts // motif_hits, motif_hits_index
+        | combine(Channel.fromPath(params.result_pval_file))
         | calc_enrichment
         | map(it -> it[2])
         | collectFile(

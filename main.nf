@@ -156,7 +156,7 @@ workflow {
         | annotateLD
 
     sample_wise_pvals
-        | filterUniqVariants
+        | filterTestedVariants
         | (extract_context & mutationRates & annotate_with_phenotypes)
 
 
