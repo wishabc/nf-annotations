@@ -162,6 +162,7 @@ workflow scanWithMoods {
 
 workflow {
     Channel.fromPath("${params.by_sample_pval_files}/*.bed")
+        | collect(sort: true)
         | filterTestedVariants
         | motifCounts // motif_hits, motif_hits_index
         | combine(Channel.fromPath(params.result_pval_file))
