@@ -68,8 +68,8 @@ process motif_counts {
             --multidelim ";" \
             --echo \
             --echo-map <(cat ${pval_file} | cut -f1-3) \
-            - > tmp.bed
-    cat tmp.bed | python $projectDir/bin/parse_variants_motifs.py \
+            - \
+        | python3 $projectDir/bin/parse_variants_motifs.py \
             ${params.genome_fasta_file} \
             ${pwm_path} \
         >> ${counts_file}
@@ -161,9 +161,7 @@ workflow scanWithMoods {
 }
 
 workflow {
-    pvals = 
-    
-    Channel.fromPath(params.by_sample_pval_files)
+    Channel.fromPath("${params.by_sample_pval_files}/*.bed")
         | filterTestedVariants
         | motifCounts // motif_hits, motif_hits_index
         | combine(Channel.fromPath(params.result_pval_file))
