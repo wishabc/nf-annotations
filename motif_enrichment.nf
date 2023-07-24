@@ -59,7 +59,7 @@ process motif_counts {
     counts_file = "${motif_id}.counts.bed"
     """
     echo -e "#chr\tstart\tend\tID\tref\talt\tmotif\toffset\twithin\tstrand\tref_score\talt_score\tseq" > ${counts_file}
-    zcat ${moods_file} 
+    zcat ${moods_file} \
         | bedmap \
             --skip-unmapped \
             --sweep-all \
