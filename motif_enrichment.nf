@@ -68,8 +68,8 @@ process motif_counts {
             --multidelim ";" \
             --echo \
             --echo-map <(cat ${pval_file} | cut -f1-3) \
-            -    \
-        | python $projectDir/bin/parse_variants_motifs.py \
+            - > tmp.bed
+    cat tmp.bed | python $projectDir/bin/parse_variants_motifs.py \
             ${params.genome_fasta_file} \
             ${pwm_path} \
         >> ${counts_file}
