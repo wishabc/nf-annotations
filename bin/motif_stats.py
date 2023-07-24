@@ -132,7 +132,7 @@ class MotifEnrichment:
         total_inside = np.nansum(all_inside)
         total_imbalanced_inside = np.nansum(imbalanced_inside)
         if total_imbalanced_inside == 0 or total_inside - total_imbalanced_inside == 0:
-            return np.nan, np.nan, total_inside, 0, 0, 0
+            raise NoDataException()
 
         log_odds = np.log2(total_imbalanced_inside) - np.log2(total_inside - total_imbalanced_inside) - \
             np.log2(np.nansum(n_imbalanced) - total_imbalanced_inside) + \
@@ -161,22 +161,18 @@ class MotifEnrichment:
             if imbalanced_index.sum() == 0:
                 raise NoDataException()
 
-            r2, concordance, ref_bias = self.get_annotations(group_df[imbalanced_index])
+            lin_model_stats = self.get_annotations(group_df[imbalanced_index])
 
             # log_odds, pval, n_inside, n_imb_inside, n_median_inside, n_inside_more_7
             enrichment_stats = self.calc_enrichment(group_df, imbalanced_index)
             data = [
-                group_df.name[0],
-                group_df.name[1],
                 *enrichment_stats,
-                r2,
-                concordance,
-                ref_bias
+                lin_model_stats
             ]
         except NoDataException:
-            data = []
+            data = [np.nan] * (len(self.result_columns) - 2)
 
-        return pd.Series(data, self.result_columns)
+        return pd.Series([group_df.name[0], group_df.name[1], *data], self.result_columns)
 
     def get_motif_stats(self):
         print('Grouping by and applying')
