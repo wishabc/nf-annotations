@@ -140,7 +140,11 @@ workflow motifCounts {
             | motif_counts
         out 
             | map(it -> it[1])
-            | collectFile(name: "all.counts.bed") 
+            | collectFile(
+                name: "all.counts.bed",
+                keepHeader: true,
+                skip: 1
+            ) 
             | tabix_index
     emit:
         out
