@@ -167,7 +167,7 @@ class MotifEnrichment:
             enrichment_stats = self.calc_enrichment(group_df, imbalanced_index)
             data = [
                 *enrichment_stats,
-                lin_model_stats
+                *lin_model_stats
             ]
         except NoDataException:
             data = [np.nan] * (len(self.result_columns) - 2)
