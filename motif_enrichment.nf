@@ -80,6 +80,7 @@ process tabix_index {
     conda params.conda
     publishDir "${params.outdir}"
     label "high_mem"
+    scratch true
 
 
     input:
@@ -90,9 +91,9 @@ process tabix_index {
     script:
     name = "all_counts.merged.bed.gz"
     """
-    head -1 ${counts} > ${name}
-    sort-bed ${counts} >> ${name}
-    bgzip ${name}
+    head -1 ${counts} > tmp.bed
+    sort-bed ${counts} >> tmp.bed
+    bgzip -c tmp.bed > ${name}
     tabix ${name}
     """
 }
