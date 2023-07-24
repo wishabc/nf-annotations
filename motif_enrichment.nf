@@ -58,6 +58,7 @@ process motif_counts {
     script:
     counts_file = "${motif_id}.counts.bed"
     """
+    echo -e "#chr\tstart\tend\trsid\tref\talt\tmotif\toffset\twithin\tstrand\tref_score'\talt_score\tseq" > ${counts_file}
     zcat ${moods_file} | bedmap \
         --skip-unmapped \
         --sweep-all \
@@ -70,7 +71,7 @@ process motif_counts {
         | python $projectDir/bin/parse_variants_motifs.py \
             ${params.genome_fasta_file} \
             ${pwm_path} \
-        > ${counts_file}
+        >> ${counts_file}
     """
 }
 
@@ -86,26 +87,25 @@ process tabix_index {
     script:
     name = "all_counts.merged.bed.gz"
     """
-    echo -e "#chr\tstart\tend\trsid\tref\talt\tmotif\toffset\twithin\tstrand\tref_score'\talt_score\tseq" > ${name}
-    sort-bed ${counts} | bgzip -c >> ${name}
+    head -1 ${counts} > ${name}
+    sort-bed ${counts} >> ${name}
+    bgzip ${name}
     tabix ${name}
     """
 }
 
 process calc_enrichment {
-    tag "${prefix}"
+    tag "${motif_id}"
     conda params.conda
-    label "high_mem"
 
     input:
-        tuple path(counts_file), path(counts_file_index), path(pval_file)
+        tuple val(motif_id), path(counts_file), path(pval_file)
 
     output:
-        tuple path(pval_file), path(name)
+        tuple val(motif_id), path(pval_file), path(name)
     
     script:
-    prefix = pval_file.simpleName
-    name = "${prefix}.stats.tsv"
+    name = "${motif_id}.stats.tsv"
     """
     # Counts file
     python3 ${projectDir}/bin/motif_stats.py  \
@@ -161,6 +161,7 @@ workflow {
     Channel.fromPath(params.pval_file)
         | motifCounts // motif_hits, motif_hits_index, pval_file
         | calc_enrichment
+        | map(it -> it[2])
         | collectFile(
             storeDir: params.outdir,
             name: "motif_enrichmnent.tsv",
