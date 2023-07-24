@@ -47,13 +47,13 @@ process motif_counts {
     scratch true
     tag "${motif_id}"
     conda params.conda
-    publishDir "${params.outdir}/counts"
+    publishDir "${params.outdir}/counts", pattern: counts_file
 
     input:
         tuple val(motif_id), path(pwm_path), path(moods_file), path(pval_file)
 
     output:
-        tuple val(motif_id), path(counts_file)
+        tuple val(motif_id), path(counts_file), path(pval_file)
 
     script:
     counts_file = "${motif_id}.counts.bed"
@@ -86,7 +86,8 @@ process tabix_index {
     script:
     name = "all_counts.merged.bed.gz"
     """
-    sort-bed ${counts} | bgzip -c > ${name}
+    echo -e "#chr\tstart\tend\trsid\tref\talt\tmotif\toffset\twithin\tstrand\tref_score'\talt_score\tseq" > ${name}
+    sort-bed ${counts} | bgzip -c >> ${name}
     tabix ${name}
     """
 }
@@ -111,10 +112,10 @@ process get_motif_stats {
     """
 }
 
-process filter_cavs {
+process split_by_sample {
 
     input:
-        path pval_file
+        path motif_file
 
     output:
         path "*.bed"
@@ -148,6 +149,7 @@ workflow motifCounts {
             | map(it -> tuple(it[0], it[1], "${params.moods_scans_dir}/${it[0]}.moods.log.bed.gz"))
             | combine(data)
             | motif_counts
+        out 
             | map(it -> it[1])
             | collectFile(name: "all.counts.bed") 
             | tabix_index
@@ -169,21 +171,9 @@ workflow scanWithMoods {
     readMotifsList() | scan_with_moods
 }
 
-workflow cavsEnrichment {
-    Channel.fromPath("${params.outdir}/all_counts.merged.bed.gz")
-        | combine(
-            filter_cavs(file(params.pval_file)) | flatten()
-        )
-        | calcEnrichment
-}
-
 workflow {
-    pval_file = Channel.fromPath(params.pval_file) 
+    pval_file = Channel.fromPath(params.pval_file)
     pval_file
-        | filterTestedVariants
-        | motifCounts // motif_hits, motif_hits_index
-        | combine(
-            filter_cavs(pval_file) | flatten()
-        ) // motif_hits, motif_hits_index, pval_file
+        | motifCounts // motif_hits, motif_hits_index, pval_file
         | calcEnrichment
 }

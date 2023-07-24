@@ -18,6 +18,7 @@ es_fld = 'es_weighted_mean'
 
 columns = [
     'motifs_name',
+    'group_id',
     "log_odds",
     "pval",
     "total_inside",
@@ -145,7 +146,8 @@ def get_stats(motifs_df):
         return pd.Series([], columns=columns)
 
     data = pd.Series([
-        motifs_df.name,
+        motifs_df.name[0],
+        motifs_df.name[1],
         *enrichment_stats,
         r2,
         concordance,
@@ -156,30 +158,15 @@ def get_stats(motifs_df):
 
 
 def main(variants_df_path, counts_df_path):
-    # Load variant imbalance file
-    names = "#chr    start   end     ID      ref     alt     ref_counts      alt_counts      sample_id       AAF     RAF     FMR #chr.1  start.1 end.1   BAD     SNP_count       SNP_ID_count    sum_cover       Q1.00   Q1.50   Q2.00   Q2.50   Q3.00   Q4.00   Q5.00   Q6.00   coverage        w       es      pval_ref        pval_alt        is_tested       footprints      hotspots        group_id".split()
-
     print('Reading variants df')
     variants_df = set_index(
-        pd.read_table(variants_df_path,
-            header=None,
-            dtype={'AAF': 'object', 'RAF': 'object'},
-            names=[x for x in names if x != ' '])
+        pd.read_table(variants_df_path)
     )
     if len(variants_df.index) == 0:
         return pd.DataFrame([], columns=columns)
-    # Load motifs dataframe
+
     print('Reading motifs df')
-    motifs_df = set_index(
-        pd.read_table(
-            counts_df_path,
-            header=None,
-            names=['#chr', 'start', 'end', 'rsid', 'ref', 'alt',
-            'motif', 'offset', 'within', 'strand',
-            'ref_score', 'alt_score', 'seq'],
-            dtype={'alt_score': 'float64', 'ref_score': 'float64'}
-        )
-    )
+    motifs_df = set_index(pd.read_table(counts_df_path))
     print('Adding fields')
     for key in ('ref', 'alt'):
         motifs_df[key] = np.where(motifs_df['strand'] == '-', complement(motifs_df[key]), motifs_df[key])
@@ -191,7 +178,7 @@ def main(variants_df_path, counts_df_path):
     df["prefered_allele"] = np.where(df[es_fld] >= 0, df["ref"], df["alt"])
     df['ddg'] = df['ref_score'] - df['alt_score']
     print('Grouping by and applying')
-    return df.groupby('motif').progress_apply(get_stats).compute()
+    return df.groupby(['motif', 'group_id']).progress_apply(get_stats)
 
 
 if __name__ == '__main__':
