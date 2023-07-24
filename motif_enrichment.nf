@@ -67,7 +67,7 @@ process motif_counts {
             --delim "|" \
             --multidelim ";" \
             --echo \
-            --echo-map <(cat ${pval_file} | cut -f1-3) \
+            --echo-map <(cat ${pval_file}) \
             - \
         | python3 $projectDir/bin/parse_variants_motifs.py \
             ${params.genome_fasta_file} \
