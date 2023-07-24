@@ -92,8 +92,8 @@ process tabix_index {
     """
 }
 
-process get_motif_stats {
-    tag "${pval_file.simpleName}"
+process calc_enrichment {
+    tag "${prefix}"
     conda params.conda
     label "high_mem"
 
@@ -104,7 +104,8 @@ process get_motif_stats {
         tuple path(pval_file), path(name)
     
     script:
-    name = "${pval_file.simpleName}.stats.tsv"
+    prefix = pval_file.simpleName
+    name = "${prefix}.stats.tsv"
     """
     # Counts file
     python3 ${projectDir}/bin/motif_stats.py  \
@@ -112,34 +113,19 @@ process get_motif_stats {
     """
 }
 
-process split_by_sample {
+// process split_by_sample {
 
-    input:
-        path motif_file
+//     input:
+//         path motif_file
 
-    output:
-        path "*.bed"
+//     output:
+//         path "*.bed"
     
-    script:
-    """
-    cat ${pval_file} | grep -v '#' | awk '{print> \$19".bed"}'
-    """
-}
-
-// Development workflows
-
-workflow calcEnrichment {
-    take:
-        data
-    main:
-        motif_ann = data
-            | get_motif_stats
-            | collectFile(
-                    storeDir: "${params.outdir}/stats"
-                ) { it -> ["${it[0].simpleName}.motif_stats.txt", it[1].text] }
-    emit:
-        motif_ann
-}
+//     script:
+//     """
+//     cat ${pval_file} | grep -v '#' | awk '{print> \$19".bed"}'
+//     """
+// }
 
 workflow motifCounts {
     take:
@@ -174,5 +160,11 @@ workflow scanWithMoods {
 workflow {
     Channel.fromPath(params.pval_file)
         | motifCounts // motif_hits, motif_hits_index, pval_file
-        | calcEnrichment
+        | calc_enrichment
+        | collectFile(
+            storeDir: params.outdir,
+            name: "motif_enrichmnent.tsv",
+            keepHeader: true,
+            skip: 1
+        )
 }
