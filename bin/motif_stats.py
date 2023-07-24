@@ -176,7 +176,7 @@ class MotifEnrichment:
         except NoDataException:
             data = []
 
-        return pd.Series(data, columns=self.result_columns)
+        return pd.Series(data, self.result_columns)
 
     def get_motif_stats(self):
         print('Grouping by and applying')
