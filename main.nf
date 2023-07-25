@@ -153,7 +153,7 @@ workflow mutationRates {
 workflow {
     sample_wise_pvals = Channel.fromPath("${params.by_sample_pval_files}/*.bed")
     
-    sample_wise_pvals \
+    sample_wise_pvals
         | annotateLD
 
     sample_wise_pvals
