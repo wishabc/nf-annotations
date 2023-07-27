@@ -12,7 +12,7 @@ np <- import("numpy")
 # 1.) DHS_nmf file
 # 2.) Motif indicator file
 # 3.) Output prefix - prefix of output filenames (Use motif_id)
-# 4.) Optional PRROC/PRAUC graph
+# 4.) Number of components
 # 5.) Metadata file
 # Rscript motif_enrichment.R arg1 arg2 arg3 output.csv
 
@@ -27,10 +27,7 @@ print("Reading input matrix")
 DHS_feature_nmf <- np$load(args[1])
 DHS_feature_nmf_df <- data.frame(t(DHS_feature_nmf))
 
-print("Reading Metadata File")
-# metadata <- read_delim(args[2], delim='\t', col_names=T)
-url <- "https://resources.altius.org/~jvierstra/projects/motif-clustering-v2.1beta/metadata.tsv"
-motifs_metadata <- read.delim(url, sep = "\t")
+
 
 print("Reading Motif Indicator")
 motif_indicator <- read.table(args[2])
