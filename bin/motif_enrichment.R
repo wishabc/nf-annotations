@@ -69,6 +69,7 @@ roc_pr <- list(
 )
 
 roc_pr_df <- as.data.frame(roc_pr)
+roc_pr_df['ncomponents'] <- n_components
 
 # Save in .csv format
 print("Writing roc_pr csv file")
