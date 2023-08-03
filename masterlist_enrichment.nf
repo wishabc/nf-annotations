@@ -130,6 +130,27 @@ process tf_by_components {
     """
 }
 
+// params.index_file = '/net/seq/data2/projects/sabramov/SuperIndex/dnase-0209/output/masterlist.filtered.bed'
+// params.genome_fasta = '/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa'
+// params.mappable_file = '/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.K76.mappable_only.bed'
+process extract_gc_content {
+	conda params.conda
+	publishDir "${params.outdir}/gc_content"
+
+	output:
+		path gc_content_path
+
+	script:
+	gc_content_path = 'regions_gc_annotated.bed.gz'
+	"""
+	faidx -i nucleotide -b ${params.index_file} ${params.genome_fasta} \
+		| awk -v OFS="\t" 'NR>1 { total =\$4+\$5+\$6+\$7+\$8; cg=\$6+\$7; print \$1, \$2-1, \$3,total, cg, cg/total;  }' \
+		| bedmap --delim "\t" --echo --bases-uniq - ${params.mappable_file} \
+		| paste - <(cut -f4,9 ${params.index_file}) \
+	| bgzip -c > ${gc_content_path}
+	"""
+}
+
 workflow logisticRegression {
     params.r_conda = "/home/afathul/miniconda3/envs/r-kernel"
     params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
@@ -162,5 +183,6 @@ workflow logisticRegression {
             sort: true,
             keepHeader: true)
         | tf_by_components
+    
+    extract_gc_content
 }
-//     tf_by_components(all_coeffs, params.metadf) all_coeffs = 
