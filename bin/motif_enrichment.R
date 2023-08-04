@@ -27,7 +27,11 @@ print("Reading input matrix")
 DHS_feature_nmf <- np$load(args[1])
 DHS_feature_nmf_df <- data.frame(t(DHS_feature_nmf))
 
-
+# Include gc_count and gc_count^2
+gc_dataset <- read.csv('/net/seq/data2/projects/afathul/motif_enhancement/regions_gc_annotated.bed.gz', sep='\t', header = FALSE)
+colnames(gc_dataset) <- c('chr', 'str', 'end', 'total', 'gc_count', 'gc_content', 'total_unique', 'chunk', 'unknown')
+DHS_feature_nmf_df$gc_count <- gc_dataset$gc_count
+DHS_feature_nmf_df$gc_count2 <- (gc_dataset$gc_count)^2
 
 print("Reading Motif Indicator")
 motif_indicator <- read.table(args[2])

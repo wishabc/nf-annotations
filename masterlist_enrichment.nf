@@ -156,18 +156,19 @@ workflow logisticRegression {
     params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
     params.masterlist_file = "/net/seq/data2/projects/afathul/motif_enhancement/masterlist.filtered.bed"
     params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
-    params.matrix_file = "/net/seq/data2/projects/afathul/motif_enhancement/matrix_meta.tsv"
+    params.matrix_file = "/net/seq/data2/projects/afathul/motif_enhancement/matrix_meta2.tsv"
+    params.gc_content_file = "/net/seq/data2/projects/afathul/motif_enhancement/regions_gc_annotated.bed.gz"
 
     matrices = Channel.fromPath(params.matrix_file)
         | splitCsv(header:true, sep:'\t')
-        | map(row -> tuple(row.ncomponents, file(row.matrix)))
+        | map(row -> tuple(row.ncomponents, file(row.matrix))) // n_comp, matrix
 
     coeffs = Channel.fromPath("${params.moods_scans_dir}/*")
         | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_file))
-        | motif_hits_intersect
-        | combine(matrices)
+        | motif_hits_intersect // motif_id, indicator
+        | combine(matrices) // motif_id, indicator, n_comp, matrix
 	    | logistic_regression
-    
+
     coeffs | map(it -> it[1])
         | collectFile(name: 'all.metrics.tsv',
             storeDir: "${params.outdir}",
@@ -184,5 +185,5 @@ workflow logisticRegression {
             keepHeader: true)
         | tf_by_components
     
-    extract_gc_content
+    // extract_gc_content
 }
