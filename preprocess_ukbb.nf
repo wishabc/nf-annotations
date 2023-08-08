@@ -13,9 +13,9 @@ process check_file {
     script:
     """
     if [ -f "${sumstats}" ]; then
-        echo 'no file'
-    else
         md5sum ${sumstats} | awk '{ print \$1 }'
+    else
+        echo 'no file'
     fi
     """
 }
