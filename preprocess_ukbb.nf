@@ -115,13 +115,13 @@ workflow checkData {
                 row.md5_hex)
             )
     
-    meta.map(it -> tuple(it[0], it[1]))
+    meta.map(it -> *it[0..2])
         | check_file // phen_id, md5
-        // | join(
-        //     meta.map(
-        //         it -> tuple(it[0], ...it[2..5])
-        //     )
-        // ) // phen_id, md5_file, aws_link, fname, md5_meta
+        | join(
+            meta.map(
+                it -> tuple(it[0], *it[2..5])
+            )
+        ) // phen_id, md5_file, aws_link, fname, md5_meta
     //     | filter { it[1] != it[4] }
     //     | map(it -> tuple(...it[0..4]))
     //     | download_file
