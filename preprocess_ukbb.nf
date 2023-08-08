@@ -35,7 +35,7 @@ process download_file {
     """
     wget ${aws_link}
     md5=\$(md5sum ${fname} | awk '{ print \$1 }')
-    if [ "\$(md5sum ${fname} | awk '{ print \$1 }' | tr '\n')" != "${md5}" ]; then
+    if [ \$(md5sum ${fname} | awk '{ print \$1 }' | tr -d \n) != "${md5}" ]; then
         echo "md5 are not matching!!!"
         exit 1
     fi
