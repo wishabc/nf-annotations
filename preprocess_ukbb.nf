@@ -32,7 +32,7 @@ process download_file {
     
     script:
     """
-    wget ${download_path}
+    wget ${aws_link}
     md5=\$(md5sum ${fname} | awk '{ print \$1 }')
     if [ "\$(md5sum ${fname} | awk '{ print \$1 }')" != ];
         echo "md5 are not matching!!!"
@@ -124,7 +124,7 @@ workflow checkData {
             )
         ) // phen_id, md5_file, aws_link, fname, md5_meta
         | filter { it[1] != it[4] }
-        | map(it -> it[0..4])
+        | map(it -> tuple(...it[0..4]))
         | download_file
 }
 
