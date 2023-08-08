@@ -8,7 +8,7 @@ process check_file {
         tuple val(phen_id), path(sumstats)
     
     output:
-        tuple val(phen_id), stdout(str)
+        tuple val(phen_id), stdout
     
     script:
     """
