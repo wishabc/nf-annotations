@@ -119,7 +119,7 @@ workflow checkData {
         | check_file // phen_id, md5
         | join(
             meta.map(
-                it -> tuple(it[0], *it[2..5])
+                it -> tuple(it[0], *it[2..4])
             )
         ) // phen_id, md5_file, aws_link, fname, md5_meta
     //     | filter { it[1] != it[4] }
