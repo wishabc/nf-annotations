@@ -116,7 +116,7 @@ workflow checkData {
             )
     
     meta 
-        | map(it -> it[0..2])
+        | map(it -> tuple(...it[0..2]))
         | check_file // phen_id, md5
         | join(
             meta.map(
