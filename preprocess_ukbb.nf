@@ -26,7 +26,7 @@ process download_file {
     maxForks 4
 
     input:
-        tuple val(phen_id), val(md5_file), val(aws_link), val(fname)
+        tuple val(phen_id), val(md5), val(aws_link), val(fname)
     
     output:
         tuple val(phen_id), path(fname)
@@ -35,7 +35,7 @@ process download_file {
     """
     wget ${aws_link}
     md5=\$(md5sum ${fname} | awk '{ print \$1 }')
-    if [ "\$(md5sum ${fname} | awk '{ print \$1 }')" != ]; then
+    if [ "\$(md5sum ${fname} | awk '{ print \$1 }')" != "${md5}" ]; then
         echo "md5 are not matching!!!"
         exit 1
     fi
