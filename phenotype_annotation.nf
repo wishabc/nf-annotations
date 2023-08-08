@@ -44,30 +44,6 @@ process make_ldsc_annotation {
     """
 }
 
-process munge_sumstats {
-    conda params.ldsc_conda
-    tag "${phen_id}"
-    publishDir "${params.outdir}/munge_sumstats", pattern: "${prefix}.sumstats.gz"
-    publishDir "${params.outdir}/munge_sumstats_logs", pattern: "${prefix}.log"
-    scratch true
-
-    input:
-        tuple val(phen_id), path(sumstats_file)
-
-    output:
-        tuple val(phen_id), path("${prefix}.sumstats.gz"), emit: result
-        path("${prefix}*"), emit: all
-    
-    script:
-    prefix = "UKBB_${sumstats_file.simpleName}"
-    """
-    python ${params.ldsc_scripts_path}/munge_sumstats.py \
-        --sumstats ${sumstats_file} \
-        --merge-alleles ${params.tested_snps} \
-        --out ${prefix}
-    """
-}
-
 // TODO wrap in apptainer
 process calc_ld {
     publishDir "${outdir}/logs", pattern: "${name}.log", enabled: !is_baseline
@@ -259,13 +235,6 @@ workflow LDSC {
         out
 }
 
-workflow calcBaseline {
-    is_baseline = true
-    data = Channel.of(1..22)
-        | map(it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true)))
-        | calc_ld
-}
-
 workflow fromAnnotations {
     take:
         annotations
@@ -290,6 +259,15 @@ workflow fromAnnotations {
         
     emit:
         out
+}
+
+// Entry workflows
+
+workflow calcBaseline {
+    is_baseline = true
+    data = Channel.of(1..22)
+        | map(it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true)))
+        | calc_ld
 }
 
 workflow fromPvalFiles {
