@@ -115,7 +115,7 @@ workflow checkData {
                 row.md5_hex)
             )
     
-    meta.map(it -> *it[0..2])
+    meta.map(it -> tuple(it[0], it[1]))
         | check_file // phen_id, md5
         | join(
             meta.map(
