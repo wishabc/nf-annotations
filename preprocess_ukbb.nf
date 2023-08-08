@@ -123,7 +123,7 @@ workflow checkData {
             )
         ) // phen_id, md5_file, aws_link, fname, md5_meta
         | filter { it[1] != it[4] }
-        | map(it -> tuple(*it[0..4]))
+        | map(it -> tuple(*it[0..3]))
         | download_file
 }
 
