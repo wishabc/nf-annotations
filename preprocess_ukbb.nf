@@ -8,11 +8,11 @@ process check_file {
         tuple val(phen_id), path(sumstats)
     
     output:
-        tuple val(phen_id), stdout
+        tuple val(phen_id), stdout(str)
     
     script:
     """
-    if [ -f ${sumstats} ]; then
+    if [ -f "${sumstats}" ]; then
         echo 'no file'
     else
         md5sum ${sumstats} | awk '{ print \$1 }'
@@ -75,10 +75,10 @@ process convert_to_hg38 {
     """
 }
 
-process collect_significant_hits {
+// process collect_significant_hits {
 
 
-}
+// }
 
 process munge_sumstats {
     conda params.ldsc_conda
