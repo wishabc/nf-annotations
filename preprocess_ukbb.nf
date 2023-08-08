@@ -12,8 +12,8 @@ process check_file {
     
     script:
     """
-    if [ -f "${sumstats}" ]; then
-        md5sum ${sumstats} | awk '{ print \$1 }' | tr -d "\n"
+    if [ -f '${sumstats}' ]; then
+        md5sum '${sumstats}' | awk '{ print \$1 }' | tr -d "\n"
     else
         echo 'no file'
     fi
@@ -33,8 +33,8 @@ process download_file {
     
     script:
     """
-    wget ${aws_link}
-    if [ "\$(md5sum ${fname} | awk '{ print \$1 }' | tr -d '\n')" != "${md5}" ]; then
+    wget '${aws_link}'
+    if [ "\$(md5sum '${fname}' | awk '{ print \$1 }' | tr -d '\n')" != "${md5}" ]; then
         echo "md5 are not matching!!!"
         exit 1
     fi
