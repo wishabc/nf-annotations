@@ -108,7 +108,7 @@ workflow checkData {
     meta = Channel.fromPath(params.ukbb_meta)
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(
-                row.phenocode,
+                row.phenotype_id,
                 file(row.sumstats_file),
                 row.aws_link,
                 row.filename,
@@ -131,7 +131,7 @@ workflow {
     params.chain_file = "/home/ehaugen/refseq/liftOver/hg19ToHg38.over.chain.gz"
     Channel.fromPath(params.ukbb_meta)
         | splitCsv(header:true, sep:'\t')
-        | map(row -> tuple(row.phenocode, file(row.sumstats_file)))
+        | map(row -> tuple(row.phenotype_id, file(row.sumstats_file)))
         
     convert_to_hg38
 }
