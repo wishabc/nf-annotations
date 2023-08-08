@@ -23,6 +23,7 @@ process check_file {
 process download_file {
     tag "${phen_id}"
     publishDir "${params.outdir}/downloads/${phen_id}"
+    maxForks 4
 
     input:
         tuple val(phen_id), val(md5_file), val(aws_link), val(fname)
