@@ -108,11 +108,12 @@ workflow checkData {
     meta = Channel.fromPath(params.ukbb_meta)
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(
-            row.phenocode,
-            file(row.sumstats_file)),
-            row.aws_link,
-            row.filename,
-            row.md5_hex)
+                row.phenocode,
+                file(row.sumstats_file),
+                row.aws_link,
+                row.filename,
+                row.md5_hex)
+            )
     
     meta 
         | map(it -> it[0..2])
