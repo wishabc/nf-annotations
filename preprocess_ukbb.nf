@@ -13,7 +13,7 @@ process check_file {
     script:
     """
     if [ -f "${sumstats}" ]; then
-        md5sum ${sumstats} | awk '{ print \$1 }'
+        md5sum ${sumstats} | awk '{ print \$1 }' | tr -d "\n"
     else
         echo 'no file'
     fi
