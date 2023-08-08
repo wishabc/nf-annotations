@@ -26,7 +26,7 @@ process download_file {
     maxForks 4
 
     input:
-        tuple val(phen_id), val(md5), val(aws_link), val(fname)
+        tuple val(phen_id), val(aws_link), val(fname), val(md5)
     
     output:
         tuple val(phen_id), path(fname)
@@ -34,7 +34,6 @@ process download_file {
     script:
     """
     wget ${aws_link}
-    md5=\$(md5sum ${fname} | awk '{ print \$1 }')
     if [ \$(md5sum ${fname} | awk '{ print \$1 }' | tr -d \n) != "${md5}" ]; then
         echo "md5 are not matching!!!"
         exit 1
@@ -124,7 +123,7 @@ workflow checkData {
             )
         ) // phen_id, md5_file, aws_link, fname, md5_meta
         | filter { it[1] != it[4] }
-        | map(it -> tuple(*it[0..3]))
+        | map(it -> tuple(it[0], *it[2..4]))
         | download_file
 }
 
