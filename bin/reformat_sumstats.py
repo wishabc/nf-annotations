@@ -9,7 +9,7 @@ def main(df, population):
         df['P'] = np.power(10, -df[f'neglog10_pval_{population}'])
     except KeyError:
         return pd.DataFrame([], columns=result_columns)
-    df['#chr'] = "chr" + df['chr'].astype(str)
+    df['#chr'] = "chr" + df['chr']
     df['start'] = df['pos'] - 1
     df.rename(
         columns={
@@ -23,5 +23,5 @@ def main(df, population):
     return df[result_columns].dropna(subset=['Beta', 'neglog10_p'])
 
 if __name__ == '__main__':
-    phen_df = pd.read_table(sys.argv[1], compression='gzip')
+    phen_df = pd.read_table(sys.argv[1], compression='gzip', dtype={'chr': str})
     main(phen_df, sys.argv[3]).to_csv(sys.argv[2], sep='\t', index=False, header=False)
