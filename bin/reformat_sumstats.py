@@ -2,7 +2,7 @@ import pandas as pd
 import sys
 import numpy as np
 
-result_columns = ['#chr', 'start', 'end', 'ref', 'alt', 'Beta', 'Beta_se', 'P', 'neglog10_p']
+result_columns = ['#chr', 'start', 'end', 'ID', 'ref', 'alt', 'Beta', 'Beta_se', 'P', 'neglog10_p', 'INFO']
 
 def main(df, population):
     try:
@@ -16,7 +16,9 @@ def main(df, population):
             'pos': 'end',
             f'beta_{population}': 'Beta',
             f'se_{population}': 'Beta_se',
-            f'neglog10_pval_{population}': 'neglog10_p'
+            f'neglog10_pval_{population}': 'neglog10_p',
+            'info': 'INFO',
+            'rsid': 'ID'
         }, 
         inplace=True
     )
@@ -24,4 +26,4 @@ def main(df, population):
 
 if __name__ == '__main__':
     phen_df = pd.read_table(sys.stdin, dtype={'chr': str})
-    main(phen_df, sys.argv[3]).to_csv(sys.argv[2], sep='\t', index=False, header=False)
+    main(phen_df, sys.argv[2]).to_csv(sys.argv[1], sep='\t', index=False, header=False)

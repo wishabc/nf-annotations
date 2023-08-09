@@ -58,10 +58,11 @@ process convert_to_hg38 {
     hg38_bed = "${phen_id}.hg38.bed.gz"
     reformatted_sumstats = "${phen_id}.hg38.sumstats.gz"
     """
+    zcat ${params.variants_manifest} \
+        | cut -f-5,11 > variants.txt
+    
     # returns file with columns: 
     # chr, start, end, ref, alt, Beta, Beta_se, P, neglog10_p
-    zcat ${params.variants_manifest} \
-        | cut -f-5 > variants.txt
     zcat ${sumstats} \
         | paste - variants.txt 
         | python3 $moduleDir/bin/reformat_sumstats.py \
