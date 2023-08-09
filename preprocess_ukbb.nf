@@ -181,8 +181,10 @@ workflow checkData {
                 file(row.sumstats_file),
                 row.aws_link,
                 row.filename,
-                row.md5_hex)
+                row.md5_hex,
+                row.pops_pass_qc)
             )
+        | filter { it[6] =~ /${params.population}/ }
     
     meta.map(it -> tuple(it[0], it[1]))
         | check_file // phen_id, md5
