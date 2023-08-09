@@ -47,7 +47,7 @@ process convert_to_hg38 {
     module "kentutil:bedops"
 
     input:
-        tuple val(phen_id), path(sumstats)
+        tuple val(phen_id), path(sumstats), val(n_samples)
     
     output:
         tuple val(phen_id), path(hg38_bed), emit: bed
@@ -71,7 +71,12 @@ process convert_to_hg38 {
     echo -e "#chr\tstart\tend\tneglog10pval\tline_n" > ${hg38_bed}
     sort-bed .unsorted >> ${hg38_bed}
 
-    zcat ${sumstats} | head -1 
+    echo 'N' | paste - < `zcat ${sumstats} | head -1` > header.txt
+    zcat ${sumstats} \
+        | awk  -F'\t' -v OFS='\t' \
+        'NR > 1 {print \$0,NR-1}'
+        | join -1 5 -2 1 > tmp.bed
+    
     """
 }
 
@@ -131,7 +136,6 @@ workflow {
     params.chain_file = "/home/ehaugen/refseq/liftOver/hg19ToHg38.over.chain.gz"
     Channel.fromPath(params.ukbb_meta)
         | splitCsv(header:true, sep:'\t')
-        | map(row -> tuple(row.phenotype_id, file(row.sumstats_file)))
-        
-    convert_to_hg38
+        | map(row -> tuple(row.phenotype_id, file(row.sumstats_file), row.n_cases_hq_cohort_both_sexes))
+        | convert_to_hg38
 }
