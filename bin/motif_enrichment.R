@@ -33,7 +33,7 @@ gc_dataset <- read.csv('/net/seq/data2/projects/afathul/motif_enhancement/region
 colnames(gc_dataset) <- c('chr', 'str', 'end', 'total', 'gc_count', 'gc_content', 'total_unique', 'chunk', 'unknown')
 
 print("Reading Motif Indicator")
-motif_indicator <- read.table(args[2], col.names='indicator'))
+motif_indicator <- read.table(args[2], col.names='indicator')
 motif_count_sum <- sum(motif_indicator)
 # motif_indicator <- unlist(motif_indicator)
 
