@@ -93,6 +93,7 @@ process convert_to_hg38 {
 
         cat tmp.bed \
             | cut -f-8 \
+            | sed s/^chr/""/g \
             | bedtools intersect -a ${gtf_snps} -b stdin -wa -wb -sorted \
             | awk -v OFS='\t' \
                 '{print \$4, \$9, \$8, \$10, \$12, "${n_samples}"}' >> tmp.sumstats
