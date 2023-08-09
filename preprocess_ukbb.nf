@@ -50,7 +50,7 @@ process extract_1kg_snps {
     script:
     name = "available_plink.bed"
     """
-    cat ${gtfiles}*.bim \
+    cat ${params.gtfiles}*.bim \
         | awk -v OFS='\t' '{print \$1,\$4-1,\$4,\$2}' \
         | sort-bed - > ${name}
     """
