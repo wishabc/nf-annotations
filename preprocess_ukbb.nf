@@ -89,9 +89,8 @@ process convert_to_hg38 {
         cat tmp.bed \
             | cut -f-8 \
             | sed s/^chr/""/g \
-            | bedtools intersect -a ${gtf_snps} -b stdin -wa -wb -sorted \
             | awk -v OFS='\t' \
-                '{print \$4, \$9, \$8, \$10, \$12, "${n_samples}"}' >> tmp.sumstats
+                '{print \$0, "${n_samples}"}' >> tmp.sumstats
         
     fi
 
@@ -152,6 +151,7 @@ params.ukbb_meta = "/net/seq/data2/projects/GWAS/UKBB_2023/sabramov/UKBB.metadat
 
 workflow {
     params.population = "EUR"
+    params.variants_manifest = "/net/seq/data2/projects/GWAS/UKBB_2023/sabramov/full_variant_qc_metrics.txt.bgz"
     params.chain_file = "/home/ehaugen/refseq/liftOver/hg19ToHg38.over.chain.gz"
     data = Channel.fromPath(params.ukbb_meta)
         | splitCsv(header:true, sep:'\t')
