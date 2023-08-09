@@ -40,21 +40,6 @@ process download_file {
     fi
     """
 }
-process extract_1kg_snps {
-
-    conda params.conda
-
-    output:
-        path name
-
-    script:
-    name = "available_plink.bed"
-    """
-    cat ${params.gtfiles}*.bim \
-        | awk -v OFS='\t' '{print \$1,\$4-1,\$4,\$2}' \
-        | sort-bed - > ${name}
-    """
-}
 
 
 process convert_to_hg38 {
@@ -63,7 +48,7 @@ process convert_to_hg38 {
     conda params.conda
 
     input:
-        tuple val(phen_id), path(sumstats), val(n_samples), path(gtf_snps)
+        tuple val(phen_id), path(sumstats), val(n_samples)
     
     output:
         tuple val(phen_id), path(hg38_bed), emit: bed
@@ -73,14 +58,22 @@ process convert_to_hg38 {
     hg38_bed = "${phen_id}.hg38.bed.gz"
     reformatted_sumstats = "${phen_id}.hg38.sumstats.gz"
     """
-    # returns file with columns: ['#chr', 'start', 'end', 'ref', 'alt', 'Beta', 'Beta_se', 'P', 'neglog10_p']
-    python3 $moduleDir/bin/reformat_sumstats.py ${sumstats} hg19.bed ${params.population}
+    # returns file with columns: 
+    # chr, start, end, ref, alt, Beta, Beta_se, P, neglog10_p
+    zcat ${params.variants_manifest} \
+        | cut -f-5 > variants.txt
+    zcat ${sumstats} \
+        | paste - variants.txt 
+        | python3 $moduleDir/bin/reformat_sumstats.py \
+            hg19.bed \
+            ${params.population}
 
-    echo -e "#chr\tstart\tend\tref\talt\tBeta\tBeta_se\tP\tphen_id" > tmp.bed
+    echo -e "#chr\tstart\tend\tID\tref\talt\tBeta\tBeta_se\tP\tphen_id" > tmp.bed
     echo -e "SNP\tA1\tA2\tBeta\tP\tN" > tmp.sumstats
 
     # don't do all the operations if file is empty
     if [ -s hg19.bed ]; then
+
         liftOver -bedPlus=3 \
             hg19.bed \
             ${params.chain_file} \
@@ -91,6 +84,7 @@ process convert_to_hg38 {
             | awk -v OFS='\t' \
                 '{print \$0,"${phen_id}"}' >> tmp.bed
 
+        # Flip the ref and alt allele (alt = A1, effect allele)
         cat tmp.bed \
             | cut -f-8 \
             | sed s/^chr/""/g \
@@ -166,9 +160,6 @@ workflow {
             row.pops_pass_qc))
         | filter { it[3] =~ /${params.population}/ }
         | map(it -> tuple(*it[0..2]))
-        | combine(
-            extract_1kg_snps()
-        )
         | convert_to_hg38
 
     munge_sumstats(data.sumstats)

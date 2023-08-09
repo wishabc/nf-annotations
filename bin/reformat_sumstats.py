@@ -23,5 +23,5 @@ def main(df, population):
     return df[result_columns].dropna(subset=['Beta', 'neglog10_p'])
 
 if __name__ == '__main__':
-    phen_df = pd.read_table(sys.argv[1], compression='gzip', dtype={'chr': str})
+    phen_df = pd.read_table(sys.stdin, dtype={'chr': str})
     main(phen_df, sys.argv[3]).to_csv(sys.argv[2], sep='\t', index=False, header=False)
