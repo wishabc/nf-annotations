@@ -9,7 +9,7 @@ def main(df, population):
         df['P'] = np.power(10, -df[f'neglog10_pval_{population}'])
     except KeyError:
         return pd.DataFrame([], columns=result_columns)
-    df['#chr'] = "chr" + df['chr'].astype(int)
+    df['#chr'] = "chr" + df['chr'].astype(str)
     df['start'] = df['pos'] - 1
     df.rename(
         columns={
