@@ -155,6 +155,7 @@ process munge_sumstats {
 params.ukbb_meta = "/net/seq/data2/projects/GWAS/UKBB_2023/sabramov/UKBB.metadata+sumstats.080823.tsv"
 
 workflow {
+    params.population = "EUR"
     params.chain_file = "/home/ehaugen/refseq/liftOver/hg19ToHg38.over.chain.gz"
     data = Channel.fromPath(params.ukbb_meta)
         | splitCsv(header:true, sep:'\t')
