@@ -78,7 +78,7 @@ workflow indexEnrichment {
         | calc_index_motif_enrichment // enrichment_file
         | collectFile(storeDir: "$launchDir/${params.outdir}", name: "enrichments.tsv")
 }
-
+// 
 workflow {
     indexEnrichment()
 }
@@ -183,7 +183,7 @@ workflow logisticRegression {
             skip: 1,
             sort: true,
             keepHeader: true)
-        | tf_by_components
+        // tf_by_components
     
     // extract_gc_content
 }
