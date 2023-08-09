@@ -74,28 +74,35 @@ process convert_to_hg38 {
     reformatted_sumstats = "${phen_id}.hg38.sumstats.gz"
     """
     # returns file with columns: ['#chr', 'start', 'end', 'ref', 'alt', 'Beta', 'Beta_se', 'P', 'neglog10_p']
-    python3 $moduleDir/bin/reformat_sumstats.py ${sumstats} hg19.bed
+    python3 $moduleDir/bin/reformat_sumstats.py ${sumstats} hg19.bed ${params.population}
 
-    liftOver -bedPlus=3 \
-        hg19.bed \
-        ${params.chain_file} \
-        .unsorted \
-        .unMapped
-    
     echo -e "#chr\tstart\tend\tref\talt\tBeta\tBeta_se\tP\tphen_id" > tmp.bed
-    sort-bed .unsorted \
-        | awk -v OFS='\t' \
-            '{print \$0,"${phen_id}"}' >> tmp.bed
+    echo -e "SNP\tA1\tA2\tBeta\tP\tN" > tmp.sumstats
+
+    # don't do all the operations if file is empty
+    if [ -s hg19.bed ]; then
+        liftOver -bedPlus=3 \
+            hg19.bed \
+            ${params.chain_file} \
+            .unsorted \
+            .unMapped
+    
+        sort-bed .unsorted \
+            | awk -v OFS='\t' \
+                '{print \$0,"${phen_id}"}' >> tmp.bed
+
+        cat tmp.bed \
+            | cut -f-8 \
+            | bedtools intersect -a ${gtf_snps} -b stdin -wa -wb -sorted \
+            | awk -v OFS='\t' \
+                '{print \$4, \$9, \$8, \$10, \$12, "${n_samples}"}' >> tmp.sumstats
+        
+    fi
+
     cat tmp.bed \
-        | cut -f-7,9-
+        | cut -f-7,9- \
         | bgzip -c > ${hg38_bed}
 
-    echo -e "SNP\tA1\tA2\tBeta\tP\tN" > tmp.sumstats
-    cat tmp.bed \
-        | cut -f-8
-        | bedtools intersect -a ${gtf_snps} -b stdin -wa -wb -sorted \
-        | awk -v OFS='\t' \
-            '{print \$4, \$9, \$8, \$10, \$12, "${n_samples}"}' >> tmp.sumstats
     bgzip -c tmp.sumstats > ${reformatted_sumstats}
     """
 }
@@ -151,7 +158,7 @@ workflow {
     params.chain_file = "/home/ehaugen/refseq/liftOver/hg19ToHg38.over.chain.gz"
     data = Channel.fromPath(params.ukbb_meta)
         | splitCsv(header:true, sep:'\t')
-        | map(row -> tuple(row.phenotype_id, file(row.sumstats_file), row.n_cases_hq_cohort_both_sexes))
+        | map(row -> tuple(row.phenotype_id, file(row.sumstats_file), row["n_cases_${params.population}"]))
         | combine(
             extract_1kg_snps()
         )
