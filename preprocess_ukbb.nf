@@ -22,7 +22,7 @@ process check_file {
 
 process download_file {
     tag "${phen_id}"
-    publishDir "${params.outdir}/downloads/${phen_id}"
+    publishDir "${params.outdir}/${phen_id}"
     maxForks 4
 
     input:
@@ -68,7 +68,7 @@ process convert_to_hg38 {
         .unsorted \
         .unMapped
     
-    echo -e "#chr\tstart\tend\tpval" > ${hg38_bed}
+    echo -e "#chr\tstart\tend\tneglog10pval\tline_n" > ${hg38_bed}
     sort-bed .unsorted >> ${hg38_bed}
 
     zcat ${sumstats} | head -1 
