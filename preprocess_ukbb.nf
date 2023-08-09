@@ -84,8 +84,8 @@ process convert_to_hg38 {
         liftOver -bedPlus=3 \
             hg19.bed \
             ${params.chain_file} \
-            .unsorted \
-            .unMapped
+            unsorted \
+            unMapped
     
         sort-bed .unsorted \
             | awk -v OFS='\t' \
