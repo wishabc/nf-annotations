@@ -20,7 +20,7 @@ def main(df, population):
         }, 
         inplace=True
     )
-    return df[result_columns]
+    return df[result_columns].dropna(subset=['Beta', 'neglog10_p'])
 
 if __name__ == '__main__':
     phen_df = pd.read_table(sys.argv[1], compression='gzip')
