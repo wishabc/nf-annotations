@@ -28,24 +28,31 @@ DHS_feature_nmf <- np$load(args[1])
 DHS_feature_nmf_df <- data.frame(t(DHS_feature_nmf))
 
 # Include gc_count and gc_count^2
+print("Combined dataset")
 gc_dataset <- read.csv('/net/seq/data2/projects/afathul/motif_enhancement/regions_gc_annotated.bed.gz', sep='\t', header = FALSE)
 colnames(gc_dataset) <- c('chr', 'str', 'end', 'total', 'gc_count', 'gc_content', 'total_unique', 'chunk', 'unknown')
-DHS_feature_nmf_df$gc_count <- gc_dataset$gc_count
-DHS_feature_nmf_df$gc_count2 <- (gc_dataset$gc_count)^2
 
 print("Reading Motif Indicator")
-motif_indicator <- read.table(args[2])
+motif_indicator <- read.table(args[2], col.names='indicator'))
 motif_count_sum <- sum(motif_indicator)
-motif_indicator <- unlist(motif_indicator)
+# motif_indicator <- unlist(motif_indicator)
 
 motif_id_args <- args[3]
 n_components <- args[4]
 
-print("Running logistic regression model")
-log_model = glm(motif_indicator ~., data=DHS_feature_nmf_df, family=binomial(link="logit"))
+# Combining as one dataframe: Indicator, Matrix, GC
+combine_df <- cbind(motif_indicator, DHS_feature_nmf_df, gc_dataset['gc_count'], gc_count2 = (gc_dataset$gc_count)^2, gc_dataset['chr'])
+
+# Split dataset to training set and test set
+print("Split dataset to train and test")
+training_set <- subset(combine_df, chr != 'chr7', select = -chr)
+test_set_component <- subset(combine_df, chr == 'chr7', select = -c(chr, indicator))
+test_set_indicator <- subset(combine_df, chr == 'chr7', select = indicator)
+
+print("Running logistic regression model on training set")
+log_model = glm(indicator ~., data=training_set, family=binomial(link="logit"))
 
 # Set up dataframe for coefficents and rename column
-
 coef_df <- as.data.frame(summary(log_model)['coefficients'])
 coef_df['motif_id'] <- motif_id_args
 names(coef_df)[1] <- "estimate"
@@ -56,15 +63,28 @@ coef_df['ncomponents'] <- n_components
 coef_df['components'] <- row.names(coef_df)
 
 # Calculate AUC & PR
-pred_probs = predict(log_model, type = "response")
-roc_score <- roc.curve(scores.class0 = pred_probs, weights.class0 = motif_indicator, curve = TRUE)
-pr_score <- pr.curve(scores.class0 = pred_probs, weights.class0 = motif_indicator, curve = TRUE)
+print("Predict Train and Set model")
+pred_probs_train = predict(log_model, type = "response")
+pred_probs_test = predict(log_model, test_set_component, type = "response")
+
+roc_score_train <- roc.curve(scores.class0 = pred_probs_train,
+                                 weights.class0 = training_set$indicator, curve = TRUE)
+pr_score_train <- pr.curve(scores.class0 = pred_probs_train,
+                                 weights.class0 = training_set$indicator, curve = TRUE)
+
+roc_score_test <- roc.curve(scores.class0 = pred_probs_test,
+                                 weights.class0 = unlist(test_set_indicator), curve = TRUE)
+pr_score_test <- pr.curve(scores.class0 = pred_probs_test,
+                                 weights.class0 = unlist(test_set_indicator), curve = TRUE)
 
 # save the list
 roc_pr <- list(
-        roc_auc = roc_score$auc, 
-        pr_auc_integral = pr_score$auc.integral,
-        pr_auc_davis = pr_score$auc.davis.goadrich,
+        roc_auc_train = roc_score_train$auc, 
+        pr_auc_integral_train = pr_score_train$auc.integral,
+        pr_auc_davis_train = pr_score_train$auc.davis.goadrich,
+        roc_auc_test = roc_score_test$auc, 
+        pr_auc_integral_test = pr_score_test$auc.integral,
+        pr_auc_davis_test = pr_score_test$auc.davis.goadrich,
         motif_count = motif_count_sum, 
         motif_id = motif_id_args
 )
