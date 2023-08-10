@@ -11,16 +11,11 @@ def main(df, population):
         return pd.DataFrame([], columns=result_columns)
     df['#chr'] = "chr" + df['chr']
     df['start'] = df['pos'] - 1
-    assert df[['chrom', 'pos', 'ref', 'alt']].equals(
-        df[['chr', 'pos.1', 'ref.1', 'alt.1']].rename(
-            columns={
-                'chr': 'chrom',
-                'pos.1': 'pos',
-                'ref.1': 'ref',
-                'alt.1': 'alt'
-            }
-        )
-    )
+    subset_original = df[['chr', 'pos', 'ref', 'alt']]
+    subset_to_compare = df[['chrom', 'pos.1', 'ref.1', 'alt.1']]
+    subset_to_compare.columns = subset_original.columns
+    assert subset_original.equals(subset_to_compare)
+
     df.rename(
         columns={
             'pos': 'end',
