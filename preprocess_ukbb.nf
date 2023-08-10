@@ -174,7 +174,7 @@ workflow {
     params.chain_file = "/home/ehaugen/refseq/liftOver/hg19ToHg38.over.chain.gz"
     data = Channel.fromPath(params.ukbb_meta)
         | splitCsv(header:true, sep:'\t')
-        | map(row -> tuple(row.phenotype_id,
+        | map(row -> tuple(row.phen_id,
             file(row.sumstats_file),
             row["n_cases_${params.population}"],
             row.pops))
@@ -199,7 +199,7 @@ workflow checkData {
     meta = Channel.fromPath(params.ukbb_meta)
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(
-                row.phenotype_id,
+                row.phen_id,
                 file(row.sumstats_file),
                 row.aws_link,
                 row.filename,
