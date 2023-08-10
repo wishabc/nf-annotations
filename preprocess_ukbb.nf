@@ -109,17 +109,12 @@ process filter_significant_hits {
         tuple val(phen_id), path(name)
     
     script:
-    name = "${phen_id}.significant_hits.bed.gz"
+    name = "${phen_id}.significant_hits.bed"
     """
-    (zcat ${bed_file} 2>/dev/null || true) \
-        | head -n 1 > result.bed
-
     zcat ${bed_file} \
         | awk -v OFS='\t' \
-            '((NR > 1) && (\$9 >= 7.301)) {print }' \
-        | sort-bed - >> result.bed
-    
-    bgzip -c result.bed > ${name}
+            '((NR == 1) || (\$9 >= 7.301)) {print }' \
+        > ${name}
     """
 }
 
@@ -164,7 +159,16 @@ workflow {
         | convert_to_hg38
 
     munge_sumstats(data.sumstats)
-    filter_significant_hits(data.bed)
+    data.bed
+        | filter_significant_hits
+        | map(it -> it[1])
+        | collectFile(
+            sort: true,
+            keepHeader: true,
+            skip: 1,
+            name: 'significant_hits.bed',
+            storeDir: params.outdir
+        )
 }
 
 workflow checkData {
