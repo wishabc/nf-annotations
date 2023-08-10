@@ -96,9 +96,11 @@ process convert_to_hg38 {
     """
 }
 
-process collect_significant_hits {
+process filter_significant_hits {
     publishDir "${params.outdir}/${phen_id}"
     conda params.conda
+    tag "${phen_id}"
+    scratch true
 
     input:
         tuple val(phen_id), path(bed_file)
@@ -114,7 +116,7 @@ process collect_significant_hits {
 
     zcat ${bed_file} \
         | awk -v OFS='\t' \
-            '((NR > 1) || (\$9 >= 7.301)) {print }' \
+            '((NR > 1) && (\$9 >= 7.301)) {print }' \
         | sort-bed - >> result.bed
     
     bgzip -c result.bed > ${name}
@@ -162,7 +164,7 @@ workflow {
         | convert_to_hg38
 
     munge_sumstats(data.sumstats)
-    collect_significant_hits(data.bed)
+    filter_significant_hits(data.bed)
 }
 
 workflow checkData {
