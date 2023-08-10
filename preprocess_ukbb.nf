@@ -109,8 +109,7 @@ process collect_significant_hits {
     script:
     name = "significant_hits.bed.gz"
     """
-    (zcat ${bed_files[0]} \
-        | head -n 1) || true > result.bed
+    (zcat ${bed_files[0]} 2>/dev/null || true) | head -n 1 > result.bed
 
     zcat ${bed_files} \
         | grep -v '#' \
