@@ -70,7 +70,7 @@ process convert_to_hg38 {
             hg19.bed \
             ${params.population}
 
-    echo -e "#chr\tstart\tend\tSNP\tref\talt\tBeta\tBeta_se\tP\tneglog10_p\tINFO\tphen_id" > tmp.bed
+    echo -e "#chr\tstart\tend\tSNP\tref\talt\tBeta\tBeta_se\tP\tneglog10_p\tINFO\tphen_id\tN" > tmp.bed
 
     # don't do all the operations if file is empty
     if [ -s hg19.bed ]; then
@@ -82,7 +82,7 @@ process convert_to_hg38 {
     
         sort-bed unsorted \
             | awk -v OFS='\t' \
-                '{print \$0, "${phen_id}"}' >> tmp.bed
+                '{print \$0, "${phen_id}", "${n_samples}"}' >> tmp.bed
     fi
 
     cat tmp.bed \
@@ -91,8 +91,6 @@ process convert_to_hg38 {
 
     cat tmp.bed \
         | cut -f4-9,11 \
-        | awk -v OFS='\t' \
-            '{print \$0, "${n_samples}"}' \
         | bgzip -c > ${reformatted_sumstats}
     """
 }
