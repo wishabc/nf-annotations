@@ -46,6 +46,7 @@ process convert_to_hg38 {
     tag "${phen_id}"
     publishDir "${params.outdir}/${phen_id}", pattern: "${hg38_bed}"
     conda params.conda
+    scratch true
 
     input:
         tuple val(phen_id), path(sumstats), val(n_samples)
