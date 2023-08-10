@@ -156,7 +156,7 @@ workflow logisticRegression {
     params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
     params.masterlist_file = "/net/seq/data2/projects/afathul/motif_enhancement/masterlist.filtered.bed"
     params.matrix = "/net/seq/data2/projects/afathul/motif_enhancement/bin_new_unweight_full.16.H.npy"
-    params.matrix_file = "/net/seq/data2/projects/afathul/motif_enhancement/matrix_meta2.tsv"
+    params.matrix_file = "/net/seq/data2/projects/afathul/motif_enhancement/modified_meta.tsv"
     params.gc_content_file = "/net/seq/data2/projects/afathul/motif_enhancement/regions_gc_annotated.bed.gz"
 
     matrices = Channel.fromPath(params.matrix_file)

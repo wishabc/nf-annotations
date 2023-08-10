@@ -41,7 +41,7 @@ motif_id_args <- args[3]
 n_components <- args[4]
 
 # Combining as one dataframe: Indicator, Matrix, GC
-combine_df <- cbind(motif_indicator, DHS_feature_nmf_df, gc_dataset['chr'])
+combine_df <- cbind(motif_indicator, DHS_feature_nmf_df,gc_dataset['gc_count'], gc_count2 = (gc_dataset$gc_count)^2, gc_dataset['chr'])
 # gc_dataset['gc_count'], gc_count2 = (gc_dataset$gc_count)^2,
 
 # Split dataset to training set and test set
