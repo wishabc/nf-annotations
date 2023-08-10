@@ -27,5 +27,6 @@ def main(df, population):
 
 if __name__ == '__main__':
     phen_df = pd.read_table(sys.stdin, dtype={'chr': str, 'chrom': str})
+    phen_df.to_csv('test.txt', sep='\t', index=False)
     print(phen_df.columns)
     main(phen_df, sys.argv[2]).to_csv(sys.argv[1], sep='\t', index=False, header=False)
