@@ -69,8 +69,8 @@ process convert_to_hg38 {
             hg19.bed \
             ${params.population}
 
-    echo -e "#chr\tstart\tend\tID\tref\talt\tBeta\tBeta_se\tP\tphen_id" > tmp.bed
-    echo -e "SNP\tA1\tA2\tBeta\tP\tN" > tmp.sumstats
+    echo -e "#chr\tstart\tend\tID\tref\talt\tBeta\tBeta_se\tP\tneglog10_p\tINFO\tphen_id" > tmp.bed
+    echo -e "SNP\tA1\tA2\tBeta\tP\tINFO\tN" > tmp.sumstats
 
     # don't do all the operations if file is empty
     if [ -s hg19.bed ]; then
@@ -80,21 +80,20 @@ process convert_to_hg38 {
             unsorted \
             unMapped
     
-        sort-bed .unsorted \
+        sort-bed unsorted \
             | awk -v OFS='\t' \
                 '{print \$0, "${phen_id}"}' >> tmp.bed
 
         # Flip the ref and alt allele (alt = A1, effect allele)
         cat tmp.bed \
-            | cut -f-8 \
-            | sed s/^chr/""/g \
+            | cut -f4-9,11 \
             | awk -v OFS='\t' \
                 '{print \$0, "${n_samples}"}' >> tmp.sumstats
         
     fi
 
     cat tmp.bed \
-        | cut -f-7,9- \
+        | cut -f-8,10,12 \
         | bgzip -c > ${hg38_bed}
 
     bgzip -c tmp.sumstats > ${reformatted_sumstats}
