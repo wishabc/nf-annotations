@@ -11,7 +11,16 @@ def main(df, population):
         return pd.DataFrame([], columns=result_columns)
     df['#chr'] = "chr" + df['chr']
     df['start'] = df['pos'] - 1
-    assert df[['chrom', 'pos', 'ref', 'alt']].equals(df[['chr', 'pos.1', 'ref.1', 'alt.1']])
+    assert df[['chrom', 'pos', 'ref', 'alt']].equals(
+        df[['chr', 'pos.1', 'ref.1', 'alt.1']].rename(
+            columns={
+                'chr': 'chrom',
+                'pos.1': 'pos',
+                'ref.1': 'ref',
+                'alt.1': 'alt'
+            }
+        )
+    )
     df.rename(
         columns={
             'pos': 'end',
@@ -27,6 +36,4 @@ def main(df, population):
 
 if __name__ == '__main__':
     phen_df = pd.read_table(sys.stdin, dtype={'chr': str, 'chrom': str})
-    phen_df.to_csv('test.txt', sep='\t', index=False)
-    print(phen_df.columns)
     main(phen_df, sys.argv[2]).to_csv(sys.argv[1], sep='\t', index=False, header=False)
