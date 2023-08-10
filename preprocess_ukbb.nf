@@ -64,7 +64,7 @@ process convert_to_hg38 {
     # returns file with columns: 
     # chr, start, end, ref, alt, Beta, Beta_se, P, neglog10_p
     zcat ${sumstats} \
-        | paste - variants.txt 
+        | paste - variants.txt \
         | python3 $moduleDir/bin/reformat_sumstats.py \
             hg19.bed \
             ${params.population}
