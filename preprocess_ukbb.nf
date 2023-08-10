@@ -98,6 +98,7 @@ process convert_to_hg38 {
 
 process collect_significant_hits {
     publishDir params.outdir
+    label "high_mem"
 
     input:
         path bed_files
