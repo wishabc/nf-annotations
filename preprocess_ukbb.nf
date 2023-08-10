@@ -158,7 +158,7 @@ workflow {
         | map(row -> tuple(row.phenotype_id,
             file(row.sumstats_file),
             row["n_cases_${params.population}"],
-            row.pops_pass_qc))
+            row.pops))
         | filter { it[3] =~ /${params.population}/ }
         | map(it -> tuple(*it[0..2]))
         | convert_to_hg38
