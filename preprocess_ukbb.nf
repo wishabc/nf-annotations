@@ -158,7 +158,7 @@ process sort_and_index {
     name = "significant_hits.bed.gz"
     """
     head -1 ${siginficant_gwas_hit} > result.bed
-    tail -n +2 ${siginficant_gwas_hit}
+    tail -n +2 ${siginficant_gwas_hit} \
         | sort-bed - >> result.bed
     
     bgzip -c result.bed > ${name}
