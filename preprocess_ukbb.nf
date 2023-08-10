@@ -165,14 +165,12 @@ process sort_and_index {
     """
 }
 
-params.ukbb_meta = "/net/seq/data2/projects/GWAS/UKBB_2023/sabramov/UKBB.metadata+sumstats.080823.tsv"
-
 workflow {
     // Code needs some adjustment for meta study!
     params.population = "EUR"
     params.variants_manifest = "/net/seq/data2/projects/GWAS/UKBB_2023/sabramov/full_variant_qc_metrics.txt.bgz"
     params.chain_file = "/home/ehaugen/refseq/liftOver/hg19ToHg38.over.chain.gz"
-    data = Channel.fromPath(params.ukbb_meta)
+    data = Channel.fromPath(params.phenotypes_meta)
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.phen_id,
             file(row.sumstats_file),
@@ -196,7 +194,7 @@ workflow {
 }
 
 workflow checkData {
-    meta = Channel.fromPath(params.ukbb_meta)
+    meta = Channel.fromPath(params.phenotypes_meta)
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(
                 row.phen_id,
