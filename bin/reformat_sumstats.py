@@ -11,6 +11,8 @@ def main(df, population):
         return pd.DataFrame([], columns=result_columns)
     df['#chr'] = "chr" + df['chr']
     df['start'] = df['pos'] - 1
+    assert df['chrom'].equals(df['chr'])
+    assert df['pos'].equals(df['pos.1'])
     df.rename(
         columns={
             'pos': 'end',
