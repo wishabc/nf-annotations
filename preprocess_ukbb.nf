@@ -69,8 +69,7 @@ process convert_to_hg38 {
             hg19.bed \
             ${params.population}
 
-    echo -e "#chr\tstart\tend\tID\tref\talt\tBeta\tBeta_se\tP\tneglog10_p\tINFO\tphen_id" > tmp.bed
-    echo -e "SNP\tA1\tA2\tBeta\tP\tINFO\tN" > tmp.sumstats
+    echo -e "#chr\tstart\tend\tSNP\tref\talt\tBeta\tBeta_se\tP\tneglog10_p\tINFO\tphen_id" > tmp.bed
 
     # don't do all the operations if file is empty
     if [ -s hg19.bed ]; then
@@ -83,20 +82,17 @@ process convert_to_hg38 {
         sort-bed unsorted \
             | awk -v OFS='\t' \
                 '{print \$0, "${phen_id}"}' >> tmp.bed
-
-        # Flip the ref and alt allele (alt = A1, effect allele)
-        cat tmp.bed \
-            | cut -f4-9,11 \
-            | awk -v OFS='\t' \
-                '{print \$0, "${n_samples}"}' >> tmp.sumstats
-        
     fi
 
     cat tmp.bed \
         | cut -f-8,10,12 \
         | bgzip -c > ${hg38_bed}
 
-    bgzip -c tmp.sumstats > ${reformatted_sumstats}
+    cat tmp.bed \
+        | cut -f4-9,11 \
+        | awk -v OFS='\t' \
+            '{print \$0, "${n_samples}"}' \
+        | bgzip -c > ${reformatted_sumstats}
     """
 }
 
@@ -141,6 +137,8 @@ process munge_sumstats {
     python ${params.ldsc_scripts_path}/munge_sumstats.py \
         --sumstats ${sumstats_file} \
         --merge-alleles ${params.tested_snps} \
+        --a1 alt \
+        --a2 ref \
         --out ${prefix}
     """
 }
