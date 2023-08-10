@@ -142,6 +142,29 @@ process munge_sumstats {
     """
 }
 
+process sort_and_index {
+    conda params.conda
+    scratch true
+
+    publishDir params.outdir
+
+    input:
+        path siginficant_gwas_hit
+    
+    output:
+        path name
+    
+    script:
+    name = "significant_hits.bed.gz"
+    """
+    head -1 ${siginficant_gwas_hit} > result.bed
+    tail -n +2 ${siginficant_gwas_hit}
+        | sort-bed - >> result.bed
+    
+    bgzip -c result.bed > ${name}
+    """
+}
+
 params.ukbb_meta = "/net/seq/data2/projects/GWAS/UKBB_2023/sabramov/UKBB.metadata+sumstats.080823.tsv"
 
 workflow {
@@ -167,8 +190,8 @@ workflow {
             keepHeader: true,
             skip: 1,
             name: 'significant_hits.bed',
-            storeDir: params.outdir
         )
+        | sort_and_index
 }
 
 workflow checkData {
