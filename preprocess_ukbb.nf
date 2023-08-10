@@ -91,7 +91,7 @@ process convert_to_hg38 {
         | bgzip -c > ${hg38_bed}
 
     cat tmp.bed \
-        | cut -f4-9,11,13 \
+        | cut -f-9,11,13 \
         | bgzip -c > ${reformatted_sumstats}
     """
 }
