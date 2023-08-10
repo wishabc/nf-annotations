@@ -130,7 +130,7 @@ process munge_sumstats {
         tuple val(phen_id), path(sumstats_file)
 
     output:
-        tuple val(phen_id), path("${prefix}.sumstats.gz"), path("${prefix}.sumstats.log")
+        tuple val(phen_id), path("${prefix}.sumstats.gz"), path("${prefix}.log")
     
     script:
     prefix = "${phen_id}.munge"
