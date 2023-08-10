@@ -53,12 +53,10 @@ process convert_to_hg38 {
         tuple val(phen_id), path(sumstats), val(n_samples)
     
     output:
-        tuple val(phen_id), path(hg38_bed), emit: bed
-        tuple val(phen_id), path(reformatted_sumstats), emit: sumstats
+        tuple val(phen_id), path(hg38_bed)
     
     script:
     hg38_bed = "${phen_id}.hg38.bed.gz"
-    reformatted_sumstats = "${phen_id}.hg38.sumstats.gz"
     """
     zcat ${params.variants_manifest} \
         | cut -f-5,11 > variants.txt
@@ -86,13 +84,7 @@ process convert_to_hg38 {
                 '{print \$0, "${phen_id}", "${n_samples}"}' >> tmp.bed
     fi
 
-    cat tmp.bed \
-        | cut -f-8,10,12 \
-        | bgzip -c > ${hg38_bed}
-
-    cat tmp.bed \
-        | cut -f-9,11,13 \
-        | bgzip -c > ${reformatted_sumstats}
+    bgzip -c tmp.bed> ${hg38_bed}
     """
 }
 
@@ -113,7 +105,7 @@ process filter_significant_hits {
     """
     zcat ${bed_file} \
         | awk -v OFS='\t' \
-            '((NR == 1) || (\$9 >= 7.301)) {print }' \
+            '((NR == 1) || (\$10 >= 7.301)) {print }' \
         > ${name}
     """
 }
@@ -180,8 +172,7 @@ workflow {
         | map(it -> tuple(*it[0..2]))
         | convert_to_hg38
 
-    munge_sumstats(data.sumstats)
-    data.bed
+    data
         | filter_significant_hits
         | map(it -> it[1])
         | collectFile(
@@ -191,6 +182,9 @@ workflow {
             name: 'significant_hits.bed',
         )
         | sort_and_index
+    
+
+    munge_sumstats(data)
 }
 
 workflow checkData {
