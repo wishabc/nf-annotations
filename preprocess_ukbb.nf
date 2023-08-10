@@ -114,7 +114,7 @@ process collect_significant_hits {
     zcat ${bed_files} \
         | grep -v '#' \
         | awk -v OFS='\t' \
-            '\$6 >= 7.301 {print }' \
+            '\$9 >= 7.301 {print }' \
         | sort-bed - >> result.bed
     
     bgzip -c result.bed > ${name}
