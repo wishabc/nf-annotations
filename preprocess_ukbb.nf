@@ -62,12 +62,10 @@ process convert_to_hg38 {
         | cut -f-5,11 > variants.txt
     
     # returns file with columns: 
-    zcat ${sumstats} \
-        | paste - variants.txt > f.txt
-    
     # chr, start, end, ref, alt, Beta, Beta_se, P, neglog10_p
-    python3 $moduleDir/bin/reformat_sumstats.py \
-            f.txt \
+    zcat ${sumstats} \
+        | paste - variants.txt \
+        | python3 $moduleDir/bin/reformat_sumstats.py \
             hg19.bed \
             ${params.population}
 
@@ -76,7 +74,6 @@ process convert_to_hg38 {
 
     # don't do all the operations if file is empty
     if [ -s hg19.bed ]; then
-
         liftOver -bedPlus=3 \
             hg19.bed \
             ${params.chain_file} \
@@ -85,7 +82,7 @@ process convert_to_hg38 {
     
         sort-bed .unsorted \
             | awk -v OFS='\t' \
-                '{print \$0,"${phen_id}"}' >> tmp.bed
+                '{print \$0, "${phen_id}"}' >> tmp.bed
 
         # Flip the ref and alt allele (alt = A1, effect allele)
         cat tmp.bed \
