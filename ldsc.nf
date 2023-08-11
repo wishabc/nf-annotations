@@ -35,9 +35,9 @@ process calc_ld {
     export GOTO_NUM_THREADS=${task.cpus}
     export OMP_NUM_THREADS=${task.cpus}
     
-    # TODO: Check if --print-snps parameter is needed
+    awk 'NR>1 {print \$1}' ${params.tested_snps} > tested_snps.txt
     ${params.ldsc_scripts_path}/ldsc.py \
-        --print-snps ${params.tested_snps} \
+        --print-snps tested_snps.txt \
         --ld-wind-cm 1.0 \
         --out ${name} \
         --bfile ${params.gtfiles}${chrom} \
