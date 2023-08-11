@@ -144,6 +144,7 @@ process collect_ldsc_results {
     echo "h^2" > h2.stats
     while read line; do
         fname=\$(basename "\$line" .results)
+        echo \$fname
         grep "Total Observed scale h2" \${fname}.log \
             | sed 's/[:(]/\t/g' \
             | sed 's/)//g' \
