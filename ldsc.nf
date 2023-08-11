@@ -140,13 +140,12 @@ process collect_ldsc_results {
         | xargs -I % echo "group_name\tphenotype_id\t%" > result.txt
     
     # Aggregate the data
-    echo '${ldsc_files}' | tr ' ' '\n' > filelist.txt
+    echo ${ldsc_files} | tr ' ' '\n' > filelist.txt
     echo "h^2" > h2.stats
     while read line; do
         fname=\$(basename "\$line" .results)
         grep "Total Observed scale h2" \${fname}.log \
             | sed 's/[:(]/\t/g' \
-            | sed 's/\.log//g' \
             | sed 's/)//g' \
             | cut -f 3 >> h2.stats
 
