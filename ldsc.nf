@@ -30,6 +30,7 @@ process calc_ld {
         outdir = "${params.outdir}/ldsc/l2"
     }
     name = "${prefix}.${chrom}"
+    annot_type = is_baseline ? "" : "--thin-annot"
     """
     export OPENBLAS_NUM_THREADS=${task.cpus}
     export GOTO_NUM_THREADS=${task.cpus}
@@ -42,7 +43,7 @@ process calc_ld {
         --out ${name} \
         --bfile ${params.gtfiles}${chrom} \
         --annot ${annotation_file} \
-        --thin-annot \
+        ${annot_type} \
         --l2
     """
 }
