@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-include { filterTestedVariants } from "./main"
+// include { filterTestedVariants } from "./main"
 
 params.conda = "$moduleDir/environment.yml"
 
@@ -285,8 +285,8 @@ workflow fromPvalFiles {
    
 }
 
-workflow {
-    custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
-        | filterTestedVariants
-        | fromAnnotations
-}
+// workflow {
+//     custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
+//         | filterTestedVariants
+//         | fromAnnotations
+// }
