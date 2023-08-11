@@ -50,7 +50,7 @@ process run_ldsc_cell_types {
     scratch true
 
     input:
-        tuple val(phen_id), path(sumstats_file), path("data_files/*"), path("data_files/*")
+        tuple val(phen_id), path(sumstats_file), path("data_files/*")
     
     output:
         tuple val(phen_id), path(name), path("${phen_id}.log")
@@ -94,7 +94,7 @@ process run_ldsc_single_sample {
     //scratch true
 
     input:
-        tuple val(phen_id), path(sumstats_file), val(prefix), path("data_files/*"), path("data_files/*")
+        tuple val(phen_id), path(sumstats_file), val(prefix), path(ld_files)
     
     output:
         tuple val(prefix), val(phen_id), path("${name}.results"), path("${name}.log")
@@ -107,7 +107,7 @@ process run_ldsc_single_sample {
     export OMP_NUM_THREADS=${task.cpus}
     ${params.ldsc_scripts_path}/ldsc.py \
         --h2 ${sumstats_file} \
-        --ref-ld-chr ${params.baseline_ld},data_files/${prefix}. \
+        --ref-ld-chr ${params.baseline_ld},${prefix}. \
         --frqfile-chr ${params.frqfiles} \
         --w-ld-chr ${params.weights} \
         --overlap-annot \
@@ -251,8 +251,11 @@ workflow fromAnnotations {
             ) //  group_id, chrom, annotation, is_baseline
             | calc_ld //  group_id, chrom, ld, ld_log
             | join(ldsc_annotations, by: [0, 1]) // group_id, chrom, ld, ld_log, annotation
-            | map(it -> tuple(it[0], it[2], it[4]))
+            | map(it -> tuple(it[0], [it[2], it[4]].flatten()))
             | groupTuple(size: 22)
+            | map(
+                it -> tuple(it[0], it[1].flatten())
+            )
         if (params.by_cell_type) {
             out = LDSCcellTypes(ld_data, sumstats_files)
         } else {
