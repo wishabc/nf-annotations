@@ -9,17 +9,18 @@ process calc_ld {
     publishDir "${params.outdir}/ldsc/l2", pattern: "${prefix}.l2.*"
     publishDir "${params.outdir}/ldsc/l2", pattern: "${annotation_file}"
     
-    tag "${prefix}"
+    tag "chr${chrom}:${group_id}"
     scratch true
     conda params.ldsc_conda
 
     input:
-        tuple val(prefix), val(chrom), path(annotation_file), val(is_baseline)
+        tuple val(group_id), val(chrom), path(annotation_file), val(is_baseline)
     
     output:
-        tuple val(prefix), path("${prefix}.l2.*"), path("${prefix}.log")
+        tuple val(group_id), val(chrom), path("${prefix}.l2.*"), path("${prefix}.log")
     
     script:
+    prefix = "${group_id}.${chrom}"
     annot_type = is_baseline ? "" : "--thin-annot"
     """
     export OPENBLAS_NUM_THREADS=${task.cpus}
@@ -172,19 +173,19 @@ process filter_cavs {
 
 process make_ldsc_annotation {
     conda params.ldsc_conda
-    tag "${prefix}"
+    tag "chr${chrom}:${group_id}"
     scratch true
 
     input:
         tuple val(chrom), path(custom_annotation)
 
     output:
-        tuple val(prefix), val(chrom), path(name)
+        tuple val(group_id), val(chrom), path(name)
     
     script:
-    prefix = "${custom_annotation.simpleName}.${chrom}"
+    group_id = "${custom_annotation.simpleName}"
     baseannotation = "${params.base_ann_path}${chrom}.annot.gz"
-    name = "${prefix}.annot.gz"
+    name = "${group_id}.${chrom}.annot.gz"
     """
     python ${params.ldsc_scripts_path}/make_annot.py \
         --bimfile ${params.gtfiles}${chrom}.bim \
@@ -242,16 +243,15 @@ workflow fromAnnotations {
 
         ldsc_annotations = Channel.of(1..22)
             | combine(annotations)
-            | make_ldsc_annotation // prefix, chrom, annotation
+            | make_ldsc_annotation // group_id, chrom, annotation
 
         ld_data = ldsc_annotations
             | combine(
                 Channel.of(false)
-            ) // prefix, chrom, annotation, is_baseline
-            | calc_ld // prefix, ld, ld_log
-            | join(ldsc_annotations) // prefix, ld, ld_log, chrom, annotation
-            | map(it -> tuple(it[3], [it[1], it[4]].flatten()))
-            | view()
+            ) //  group_id, chrom, annotation, is_baseline
+            | calc_ld //  group_id, chrom, ld, ld_log
+            | join(ldsc_annotations, by: [0, 1]) // group_id, chrom, ld, ld_log, annotation
+            | map(it -> tuple(it[0], [it[2], it[4]].flatten()))
             | groupTuple(size: 22)
             | map(
                 it -> tuple(it[0], it[1].flatten())
