@@ -14,7 +14,7 @@ process calc_ld {
     conda params.ldsc_conda
 
     input:
-        tuple val(prefix), path(annotation_file), val(is_baseline)
+        tuple val(prefix), val(chrom), path(annotation_file), val(is_baseline)
     
     output:
         tuple val(prefix), path("${prefix}.l2.*"), path("${prefix}.log")
@@ -179,7 +179,7 @@ process make_ldsc_annotation {
         tuple val(chrom), path(custom_annotation)
 
     output:
-        tuple val(prefix), path(name)
+        tuple val(prefix), val(chrom), path(name)
     
     script:
     prefix = "${custom_annotation.simpleName}.${chrom}"
