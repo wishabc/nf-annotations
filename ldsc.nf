@@ -178,7 +178,7 @@ process filter_cavs {
 
 process make_ldsc_annotation {
     conda params.ldsc_conda
-    tag "chr${chrom}:${annotation.simpleName}"
+    tag "chr${chrom}:${prefix}"
     scratch true
 
     input:
@@ -188,9 +188,10 @@ process make_ldsc_annotation {
         tuple val(chrom), path(name)
     
     script:
+    prefix = "${custom_annotation.simpleName}"
     suffix = "${chrom}.annot.gz"
     baseannotation = "${params.base_ann_path}${suffix}"
-    name = "${custom_annotation.simpleName}.${suffix}"
+    name = "${prefix}.${suffix}"
     """
     cat ${custom_annotation} \
         | sed -e "s/^chr//" \
