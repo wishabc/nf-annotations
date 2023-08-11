@@ -3,8 +3,6 @@
 
 params.conda = "$moduleDir/environment.yml"
 
-is_baseline = false
-
 // TODO wrap in apptainer
 process calc_ld {
     publishDir "${outdir}_logs", pattern: "${name}.log", enabled: !is_baseline
@@ -24,15 +22,15 @@ process calc_ld {
     
     script:
     prefix = annotation_file.simpleName
-    if (is_baseline) {
+    if (params.is_baseline) {
         outdir = file(params.base_ann_path).parent
     } else {
         outdir = "${params.outdir}/ldsc/l2"
     }
     name = "${prefix}.${chrom}"
-    annot_type = is_baseline ? "" : "--thin-annot"
+    annot_type = params.is_baseline ? "" : "--thin-annot"
     """
-    echo "${is_baseline}"
+    echo "${params.is_baseline}"
     export OPENBLAS_NUM_THREADS=${task.cpus}
     export GOTO_NUM_THREADS=${task.cpus}
     export OMP_NUM_THREADS=${task.cpus}
@@ -272,9 +270,9 @@ workflow fromAnnotations {
 }
 
 // Entry workflows
-
+params.is_baseline = false
 workflow calcBaseline {
-    is_baseline = true
+    params.is_baseline = true
     data = Channel.of(1..22)
         | map(it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true)))
         | calc_ld
