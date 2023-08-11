@@ -277,8 +277,7 @@ workflow calcBaseline {
 }
 
 workflow fromPvalFiles {
-    params.fdr_tr = 0.05
-    Channel.fromPath(params.pval_file) 
+    Channel.fromPath(params.result_pval_file) 
         | filter_cavs
         | flatten()
         | fromAnnotations
