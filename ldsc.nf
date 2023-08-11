@@ -198,7 +198,7 @@ process make_ldsc_annotation {
 
     python ${params.ldsc_scripts_path}/make_annot.py \
         --bimfile ${params.gtfiles}${chrom}.bim \
-        --bedfile annot_numchr.bed \
+        --bed-file annot_numchr.bed \
         --annot-file ${name}
     """
 }
