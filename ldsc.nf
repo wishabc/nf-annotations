@@ -10,7 +10,7 @@ process calc_ld {
     publishDir "${params.outdir}/ldsc/l2", pattern: "${annotation_file}"
     
     tag "chr${chrom}:${annotation_file.simpleName}"
-    //scratch true
+    scratch true
     conda params.ldsc_conda
 
     input:
