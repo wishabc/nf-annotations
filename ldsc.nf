@@ -91,7 +91,7 @@ process run_ldsc_single_sample {
     publishDir "${params.outdir}/ldsc/ldsc_coefs${prefix}", pattern: "${name}.results"
     publishDir "${params.outdir}/ldsc/ldsc_logs/${prefix}", pattern: "${name}.log"
     tag "${prefix}:${phen_id}"
-    //scratch true
+    scratch true
 
     input:
         tuple val(phen_id), path(sumstats_file), val(prefix), path(ld_files)
