@@ -5,23 +5,21 @@ params.conda = "$moduleDir/environment.yml"
 
 // TODO wrap in apptainer
 process calc_ld {
-    publishDir "${params.outdir}/ldsc/l2_logs", pattern: "${name}.log"
-    publishDir "${params.outdir}/ldsc/l2", pattern: "${name}.l2.*"
+    publishDir "${params.outdir}/ldsc/l2_logs", pattern: "${prefix}.log"
+    publishDir "${params.outdir}/ldsc/l2", pattern: "${prefix}.l2.*"
     publishDir "${params.outdir}/ldsc/l2", pattern: "${annotation_file}"
     
-    tag "chr${chrom}:${annotation_file.simpleName}"
+    tag "chr${prefix}"
     scratch true
     conda params.ldsc_conda
 
     input:
-        tuple val(chrom), path(annotation_file), val(is_baseline)
+        tuple val(prefix), path(annotation_file), val(is_baseline)
     
     output:
-        tuple val(chrom), val(prefix), path("${name}.l2.*"), path("${name}.log")
+        tuple val(prefix), path("${prefix}.l2.*"), path("${prefix}.log")
     
     script:
-    prefix = annotation_file.simpleName
-    name = "${prefix}.${chrom}"
     annot_type = is_baseline ? "" : "--thin-annot"
     """
     export OPENBLAS_NUM_THREADS=${task.cpus}
@@ -34,7 +32,7 @@ process calc_ld {
     ${params.ldsc_scripts_path}/ldsc.py \
         --print-snps tested_snps.txt \
         --ld-wind-cm 1.0 \
-        --out ${name} \
+        --out ${prefix} \
         --bfile ${params.gtfiles}${chrom} \
         --annot ${annotation_file} \
         ${annot_type} \
@@ -174,20 +172,19 @@ process filter_cavs {
 
 process make_ldsc_annotation {
     conda params.ldsc_conda
-    tag "chr${chrom}:${prefix}"
+    tag "chr${prefix}"
     scratch true
 
     input:
         tuple val(chrom), path(custom_annotation)
 
     output:
-        tuple val(chrom), path(name)
+        tuple val(prefix), path(name)
     
     script:
-    prefix = "${custom_annotation.simpleName}"
-    suffix = "${chrom}.annot.gz"
-    baseannotation = "${params.base_ann_path}${suffix}"
-    name = "${prefix}.${suffix}"
+    prefix = "${custom_annotation.simpleName}.${chrom}"
+    baseannotation = "${params.base_ann_path}${chrom}.annot.gz"
+    name = "${prefix}.annot.gz"
     """
     python ${params.ldsc_scripts_path}/make_annot.py \
         --bimfile ${params.gtfiles}${chrom}.bim \
@@ -250,10 +247,10 @@ workflow fromAnnotations {
         ld_data = ldsc_annotations
             | combine(
                 Channel.of(false)
-            ) // chrom, annotation, is_baseline
-            | calc_ld // chrom, prefix, ld, ld_log
-            | join(ldsc_annotations) // chrom, prefix, ld, ld_log, annotation
-            | map(it -> tuple(it[1], [it[2], it[4]].flatten()))
+            ) // prefix, annotation, is_baseline
+            | calc_ld // prefix, ld, ld_log
+            | join(ldsc_annotations) // prefix, ld, ld_log, annotation
+            | map(it -> tuple(it[0], [it[1], it[3]].flatten()))
             | groupTuple(size: 22)
             | map(
                 it -> tuple(it[0], it[1].flatten())
