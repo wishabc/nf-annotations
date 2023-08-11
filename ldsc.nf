@@ -5,8 +5,8 @@ params.conda = "$moduleDir/environment.yml"
 
 // TODO wrap in apptainer
 process calc_ld {
-    publishDir "${outdir}_logs", pattern: "${name}.log", enabled: !is_baseline
-    publishDir "${outdir}", pattern: "${annotation_file}", enabled: !is_baseline
+    publishDir "${outdir}_logs", pattern: "${name}.log", enabled: !params.is_baseline
+    publishDir "${outdir}", pattern: "${annotation_file}", enabled: !params.is_baseline
 
     publishDir "${outdir}", pattern: "${name}.l2.*"
     
@@ -30,7 +30,6 @@ process calc_ld {
     name = "${prefix}.${chrom}"
     annot_type = params.is_baseline ? "" : "--thin-annot"
     """
-    echo "${params.is_baseline}"
     export OPENBLAS_NUM_THREADS=${task.cpus}
     export GOTO_NUM_THREADS=${task.cpus}
     export OMP_NUM_THREADS=${task.cpus}
@@ -270,7 +269,6 @@ workflow fromAnnotations {
 }
 
 // Entry workflows
-params.is_baseline = false
 workflow calcBaseline {
     params.is_baseline = true
     data = Channel.of(1..22)
@@ -279,6 +277,7 @@ workflow calcBaseline {
 }
 
 workflow fromPvalFiles {
+    params.is_baseline = false
     Channel.fromPath(params.result_pval_file) 
         | filter_cavs
         | flatten()
