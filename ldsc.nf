@@ -5,36 +5,33 @@ params.conda = "$moduleDir/environment.yml"
 
 // TODO wrap in apptainer
 process calc_ld {
-    publishDir "${outdir}_logs", pattern: "${name}.log", enabled: !params.is_baseline
-    publishDir "${outdir}", pattern: "${annotation_file}", enabled: !params.is_baseline
+    publishDir "${params.outdir}/ldsc/l2_logs", pattern: "${name}.log", enabled: !is_baseline
+    publishDir "${params.outdir}/ldsc/l2", pattern: "${annotation_file}", enabled: !is_baseline
 
-    publishDir "${outdir}", pattern: "${name}.l2.*"
+    publishDir "${params.outdir}/ldsc/l2", pattern: "${name}.l2.*"
     
     tag "chr${chrom}:${annotation_file.simpleName}"
-    // scratch true
+    scratch true
     conda params.ldsc_conda
 
     input:
-        tuple val(chrom), path(annotation_file)
+        tuple val(chrom), path(annotation_file), val(is_baseline)
     
     output:
         tuple val(prefix), path("${name}.l2.*"), path(annotation_file), path("${name}.log")
     
     script:
     prefix = annotation_file.simpleName
-    if (params.is_baseline) {
-        outdir = file(params.base_ann_path).parent
-    } else {
-        outdir = "${params.outdir}/ldsc/l2"
-    }
     name = "${prefix}.${chrom}"
-    annot_type = params.is_baseline ? "" : "--thin-annot"
+    annot_type = is_baseline ? "" : "--thin-annot"
     """
     export OPENBLAS_NUM_THREADS=${task.cpus}
     export GOTO_NUM_THREADS=${task.cpus}
     export OMP_NUM_THREADS=${task.cpus}
     
-    awk 'NR>1 {print \$1}' ${params.tested_snps} > tested_snps.txt
+    awk 'NR>1 {print \$1}' \
+        ${params.tested_snps} > tested_snps.txt
+
     ${params.ldsc_scripts_path}/ldsc.py \
         --print-snps tested_snps.txt \
         --ld-wind-cm 1.0 \
@@ -76,7 +73,7 @@ process run_ldsc_cell_types {
     
     ${params.ldsc_scripts_path}/ldsc.py \
         --h2-cts ${sumstats_file} \
-        --ref-ld-chr ${params.base_ann_path} \
+        --ref-ld-chr ${params.baseline_ld} \
         --ref-ld-chr-cts per_sample.ldcts \
         --frqfile-chr ${params.frqfiles} \
         --w-ld-chr ${params.weights} \
@@ -112,7 +109,7 @@ process run_ldsc_single_sample {
     export OMP_NUM_THREADS=${task.cpus}
     ${params.ldsc_scripts_path}/ldsc.py \
         --h2 ${sumstats_file} \
-        --ref-ld-chr ${params.base_ann_path},${prefix}. \
+        --ref-ld-chr ${params.baseline_ld},${prefix}. \
         --frqfile-chr ${params.frqfiles} \
         --w-ld-chr ${params.weights} \
         --overlap-annot \
@@ -253,6 +250,9 @@ workflow fromAnnotations {
         ld_data = Channel.of(1..22)
             | combine(annotations)
             | make_ldsc_annotation
+            | combine(
+                Channel.of(false)
+            ) // chrom, annotation, is_baseline
             | calc_ld
             | map(it -> tuple(it[0], [it[1], it[2]].flatten()))
             | groupTuple(size: 22)
@@ -270,14 +270,12 @@ workflow fromAnnotations {
 
 // Entry workflows
 workflow calcBaseline {
-    params.is_baseline = true
-    data = Channel.of(1..22)
-        | map(it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true)))
+    Channel.of(1..22)
+        | map(it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true), true))
         | calc_ld
 }
 
 workflow fromPvalFiles {
-    params.is_baseline = false
     Channel.fromPath(params.result_pval_file) 
         | filter_cavs
         | flatten()
