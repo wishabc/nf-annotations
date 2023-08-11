@@ -42,6 +42,7 @@ process calc_ld {
         --out ${name} \
         --bfile ${params.gtfiles}${chrom} \
         --annot ${annotation_file} \
+        --thin-annot \
         --l2
     """
 }
