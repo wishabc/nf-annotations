@@ -231,7 +231,7 @@ workflow LDSC {
         ld_data
         sumstats_files
     main:
-        ldsc_res = sumstats_files
+        out = sumstats_files
             | combine(ld_data)
             | run_ldsc_single_sample
             | map(it -> tuple(it[2], it[3]))
