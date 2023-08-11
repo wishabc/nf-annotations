@@ -251,6 +251,7 @@ workflow fromAnnotations {
             | calc_ld // prefix, ld, ld_log
             | join(ldsc_annotations) // prefix, ld, ld_log, chrom, annotation
             | map(it -> tuple(it[3], [it[1], it[4]].flatten()))
+            | view()
             | groupTuple(size: 22)
             | map(
                 it -> tuple(it[0], it[1].flatten())
