@@ -7,8 +7,8 @@ is_baseline = false
 
 // TODO wrap in apptainer
 process calc_ld {
-    publishDir "${params.outdir}/l2_logs", pattern: "${name}.log", enabled: !is_baseline
-    publishDir "${params.outdir}/l2", pattern: "${annotation_file}", enabled: !is_baseline
+    publishDir "${outdir}_logs", pattern: "${name}.log", enabled: !is_baseline
+    publishDir "${outdir}", pattern: "${annotation_file}", enabled: !is_baseline
 
     publishDir "${outdir}", pattern: "${name}.l2.*"
     
@@ -27,7 +27,7 @@ process calc_ld {
     if (is_baseline) {
         outdir = file(params.base_ann_path).parent
     } else {
-        outdir = "${params.outdir}/l2"
+        outdir = "${params.outdir}/ldsc/l2"
     }
     name = "${prefix}.${chrom}"
     """
@@ -49,8 +49,8 @@ process calc_ld {
 // this version doesn't return h^2 estimates!
 process run_ldsc_cell_types {
     conda params.ldsc_conda
-    publishDir "${params.outdir}/ldsc", pattern: "${name}"
-    publishDir "${params.outdir}/ldsc_logs", pattern: "${phen_id}.log"
+    publishDir "${params.outdir}/ldsc/ldsc_coefs", pattern: "${name}"
+    publishDir "${params.outdir}/ldsc/ldsc_logs", pattern: "${phen_id}.log"
     tag "${phen_id}"
     scratch true
 
@@ -93,8 +93,8 @@ process run_ldsc_cell_types {
 
 process run_ldsc_single_sample {
     conda params.ldsc_conda
-    publishDir "${params.outdir}/ldsc/${prefix}", pattern: "${name}.results"
-    publishDir "${params.outdir}/ldsc_logs/${prefix}", pattern: "${name}.log"
+    publishDir "${params.outdir}/ldsc/ldsc_coefs${prefix}", pattern: "${name}.results"
+    publishDir "${params.outdir}/ldsc/ldsc_logs/${prefix}", pattern: "${name}.log"
     tag "${prefix}:${phen_id}"
     scratch true
 

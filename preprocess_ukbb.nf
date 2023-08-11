@@ -1,6 +1,5 @@
 #!/usr/bin/env nextflow
 
-// Intended to work only on Altius server
 process check_file {
     tag "${phen_id}"
 
