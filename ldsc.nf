@@ -194,8 +194,7 @@ process make_ldsc_annotation {
     name = "${prefix}.${suffix}"
     """
     cat ${custom_annotation} \
-        | sed -e "s/^chr//" \
-        | sort-bed -  > annot_numchr.bed
+        | sed -e "s/^chr//" > annot_numchr.bed
 
     python ${params.ldsc_scripts_path}/make_annot.py \
         --bimfile ${params.gtfiles}${chrom}.bim \
