@@ -260,9 +260,9 @@ workflow fromAnnotations {
                 it -> tuple(it[0], it[1].flatten())
             )
         if (params.by_cell_type) {
-            out = LDSCcellTypes(ldsc_data, sumstats_files)
+            out = LDSCcellTypes(ld_data, sumstats_files)
         } else {
-            out = LDSC(ldsc_data, sumstats_files) 
+            out = LDSC(ld_data, sumstats_files) 
         }   
     emit:
         out
