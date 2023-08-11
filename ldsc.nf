@@ -6,7 +6,7 @@ params.conda = "$moduleDir/environment.yml"
 // TODO wrap in apptainer
 process calc_ld {
     publishDir "${params.outdir}/ldsc/l2_logs", pattern: "${name}.log"
-    publishDir "${params.outdir}/ldsc/l2", pattern: "${annotation_file}", enabled: b
+    publishDir "${params.outdir}/ldsc/l2", pattern: "${annotation_file}", enabled: is_baseline
 
     publishDir "${params.outdir}/ldsc/l2", pattern: "${name}.l2.*"
     
@@ -21,7 +21,6 @@ process calc_ld {
         tuple val(prefix), path("${name}.l2.*"), path(annotation_file), path("${name}.log")
     
     script:
-    b = is_baseline
     prefix = annotation_file.simpleName
     name = "${prefix}.${chrom}"
     annot_type = is_baseline ? "" : "--thin-annot"
