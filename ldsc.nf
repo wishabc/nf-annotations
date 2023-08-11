@@ -9,7 +9,7 @@ process calc_ld {
     publishDir "${params.outdir}/ldsc/l2", pattern: "${prefix}.l2.*"
     publishDir "${params.outdir}/ldsc/l2", pattern: "${annotation_file}"
     
-    tag "chr${prefix}"
+    tag "${prefix}"
     scratch true
     conda params.ldsc_conda
 
@@ -172,7 +172,7 @@ process filter_cavs {
 
 process make_ldsc_annotation {
     conda params.ldsc_conda
-    tag "chr${prefix}"
+    tag "${prefix}"
     scratch true
 
     input:
