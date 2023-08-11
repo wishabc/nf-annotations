@@ -6,8 +6,6 @@ params.conda = "$moduleDir/environment.yml"
 // TODO wrap in apptainer
 process calc_ld {
     publishDir "${params.outdir}/ldsc/l2_logs", pattern: "${name}.log"
-    publishDir "${params.outdir}/ldsc/l2", pattern: "${annotation_file}", enabled: is_baseline
-
     publishDir "${params.outdir}/ldsc/l2", pattern: "${name}.l2.*"
     
     tag "chr${chrom}:${annotation_file.simpleName}"
