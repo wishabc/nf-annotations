@@ -32,6 +32,7 @@ process calc_ld {
     name = "${prefix}.${chrom}"
     annot_type = is_baseline ? "" : "--thin-annot"
     """
+    echo "${is_baseline}"
     export OPENBLAS_NUM_THREADS=${task.cpus}
     export GOTO_NUM_THREADS=${task.cpus}
     export OMP_NUM_THREADS=${task.cpus}
