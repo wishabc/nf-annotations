@@ -275,7 +275,7 @@ workflow fromPvalFiles {
     Channel.fromPath(params.result_pval_file) 
         | filter_cavs
         | flatten()
-        | filter { it.countLines() >= 8000 }
+        | filter { it.countLines() >= 12000 }
         | fromAnnotations
    
 }
