@@ -246,15 +246,16 @@ workflow fromAnnotations {
             | map(row -> tuple(row.phen_id, file(row.munge_sumstats_file)))
             | filter { it[1].exists() }
 
-        annotations = Channel.of(1..22)
+        ldsc_annotations = Channel.of(1..22)
             | combine(annotations)
             | make_ldsc_annotation
-        annotations
+
+        ld_data = ldsc_annotations
             | combine(
                 Channel.of(false)
             ) // chrom, annotation, is_baseline
             | calc_ld // chrom, prefix, ld, ld_log
-            | join(annotations) // chrom, prefix, ld, ld_log, annotation
+            | join(ldsc_annotations) // chrom, prefix, ld, ld_log, annotation
             | map(it -> tuple(it[1], [it[2], it[4]].flatten()))
             | groupTuple(size: 22)
             | map(
