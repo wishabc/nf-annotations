@@ -141,7 +141,7 @@ process sort_and_index {
     publishDir params.outdir
 
     input:
-        path siginficant_gwas_hit
+        path siginficant_gwas_hits
     
     output:
         path name
