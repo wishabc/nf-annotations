@@ -10,7 +10,7 @@ process calc_ld {
     publishDir "${params.outdir}/ldsc/l2", pattern: "${annotation_file}"
     
     tag "chr${chrom}:${annotation_file.simpleName}"
-    scratch true
+    //scratch true
     conda params.ldsc_conda
 
     input:
@@ -92,7 +92,7 @@ process run_ldsc_single_sample {
     publishDir "${params.outdir}/ldsc/ldsc_coefs${prefix}", pattern: "${name}.results"
     publishDir "${params.outdir}/ldsc/ldsc_logs/${prefix}", pattern: "${name}.log"
     tag "${prefix}:${phen_id}"
-    scratch true
+    //scratch true
 
     input:
         tuple val(phen_id), path(sumstats_file), val(prefix), path(ld_files)
