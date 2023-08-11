@@ -242,15 +242,15 @@ workflow fromAnnotations {
 
         ldsc_annotations = Channel.of(1..22)
             | combine(annotations)
-            | make_ldsc_annotation
+            | make_ldsc_annotation // prefix, chrom, annotation
 
         ld_data = ldsc_annotations
             | combine(
                 Channel.of(false)
-            ) // prefix, annotation, is_baseline
+            ) // prefix, chrom, annotation, is_baseline
             | calc_ld // prefix, ld, ld_log
-            | join(ldsc_annotations) // prefix, ld, ld_log, annotation
-            | map(it -> tuple(it[0], [it[1], it[3]].flatten()))
+            | join(ldsc_annotations) // prefix, ld, ld_log, chrom, annotation
+            | map(it -> tuple(it[0], [it[1], it[4]].flatten()))
             | groupTuple(size: 22)
             | map(
                 it -> tuple(it[0], it[1].flatten())
