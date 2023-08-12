@@ -122,7 +122,7 @@ process collect_ldsc_results {
     publishDir "${params.outdir}"
 
     input:
-        path ldsc_files
+        val ldsc_files
     
     output:
         path name
@@ -130,8 +130,7 @@ process collect_ldsc_results {
     script:
     name = "ldsc_enrichments_results.tsv"
     """
-    echo '${ldsc_files}' \
-        | tr ' ' '\n'
+    echo '${ldsc_files.join('\n')}' \
         | grep '.results' \
          > filelist.txt
 
