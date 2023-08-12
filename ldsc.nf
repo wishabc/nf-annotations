@@ -131,8 +131,9 @@ process collect_ldsc_results {
     name = "ldsc_enrichments_results.tsv"
     """
     echo '${ldsc_files}' \
+        | tr ' ' '\n'
         | grep '.results' \
-        | tr ' ' '\n' > filelist.txt
+         > filelist.txt
 
     # copy header from the first file
     head -1 filelist.txt \
