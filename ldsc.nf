@@ -122,7 +122,7 @@ process collect_ldsc_results {
     publishDir "${params.outdir}"
 
     input:
-        tuple path(ldsc_files), path(ldsc_logs)
+        path ldsc_files
     
     output:
         path name
@@ -130,12 +130,16 @@ process collect_ldsc_results {
     script:
     name = "ldsc_enrichments_results.tsv"
     """
+    echo '${ldsc_files}' \
+        | grep '.results' \
+        | tr ' ' '\n' > filelist.txt
+
     # copy header from the first file
-    head -1 ${ldsc_files[0]} \
+    head -1 filelist.txt \
+        | xargs head -1 \
         | xargs -I % echo "group_name\tphenotype_id\t%" > result.txt
     
     # Aggregate the data
-    echo ${ldsc_files} | tr ' ' '\n' > filelist.txt
     echo "h^2" > h2.stats
     while read line; do
         fname=\$(basename "\$line" .results)
@@ -226,7 +230,7 @@ workflow LDSC {
             | combine(ld_data)
             | run_ldsc_single_sample
             | map(it -> tuple(it[2], it[3]))
-            | collect(sort: true, flat: false)
+            | collect(sort: true, flat: true)
             | collect_ldsc_results
     emit:
         out
