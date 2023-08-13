@@ -142,15 +142,14 @@ process collect_ldsc_results {
     # Aggregate the data
     echo "h^2" > h2.stats
     while read line; do
-        fname="${filepath%.*}"
-        echo \$fname
+        fname="\${line%.*}"
         grep "Total Observed scale h2" \${fname}.log \
             | sed 's/[:(]/\t/g' \
             | sed 's/)//g' \
             | cut -f 3 >> h2.stats
 
         basename \$fname \
-            | tr "." "\t" \
+            | sed s/\\./\\t/ \
             | xargs -I % echo "%\t`tail -1 "\$line"`" >> result.txt
     done < filelist.txt
     paste result.txt h2.stats > ${name}
