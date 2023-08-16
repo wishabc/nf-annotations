@@ -130,7 +130,7 @@ process collect_ldsc_results {
     script:
     name = "ldsc_enrichments_results.tsv"
     """
-    echo '${ldsc_files.join('\n')}' \
+    echo "${ldsc_files.join('\n')}" \
         | grep '.results' \
          > filelist.txt
 
