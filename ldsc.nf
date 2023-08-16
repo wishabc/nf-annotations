@@ -149,7 +149,7 @@ process collect_ldsc_results {
             | cut -f 3 >> h2.stats
 
         basename \$fname \
-            | sed s/\\\./\\\t/ \
+            | sed "s/\\./\t/" \
             | xargs -I % echo "%\t`tail -1 "\$line"`" >> result.txt
     done < filelist.txt
     paste result.txt h2.stats > ${name}
