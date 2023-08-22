@@ -64,6 +64,7 @@ coef_df['ncomponents'] <- n_components
 coef_df['components'] <- row.names(coef_df)
 
 # Using AUPRG score from PRG packages in python
+print("Running prg package using reticulate")
 prg <- import("prg")
 
 py_run_string("
