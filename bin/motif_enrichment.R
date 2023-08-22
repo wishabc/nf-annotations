@@ -4,7 +4,7 @@ library(tidyverse)
 library(stats)
 library(PRROC)
 library(reticulate)
-use_python("/home/afathul/miniconda3/envs/r-kernel/bin/python3")
+use_python("/home/afathul/miniconda3/lib/python3.10")
 
 
 np <- import("numpy")
