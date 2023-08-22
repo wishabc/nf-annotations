@@ -4,7 +4,6 @@ library(tidyverse)
 library(stats)
 library(PRROC)
 library(reticulate)
-use_python("/home/afathul/miniconda3/lib/python3.10")
 
 
 np <- import("numpy")
@@ -65,20 +64,17 @@ coef_df['ncomponents'] <- n_components
 coef_df['components'] <- row.names(coef_df)
 
 # Using AUPRG score from PRG packages in python
-print("Running prg package using reticulate")
-prg <- import("prg")
-
-py_run_string("
-import numpy as np
-np.alen = lambda x: (x.shape[0] if len(x.shape) > 0 else 0) if hasattr(x, 'shape') else len(x) if hasattr(x, '__len__') else 1
-")
+print("Running prg package")
+library(prg)
 
 print("Run actual and predicted_prob")
 actual <- test_set_indicator$indicator
 predicted_prob <- predict(log_model, test_set_component, type = "response")
 
-prg_curve <- prg$create_prg_curve(actual, predicted_prob)
-auprg_val <- prg$calc_auprg(prg_curve)
+print("prg_curve with create_prg_curve")
+prg_curve <- create_prg_curve(actual, predicted_prob)
+print("calculate prg score")
+auprg_val <- calc_auprg(prg_curve)
 
 
 # Calculate AUC & PR
