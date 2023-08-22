@@ -101,7 +101,7 @@ roc_pr <- list(
         pr_auc_integral_test = pr_score_test$auc.integral,
         pr_auc_davis_test = pr_score_test$auc.davis.goadrich,
         motif_count = motif_count_sum, 
-        motif_id = motif_id_args
+        motif_id = motif_id_args,
         auprg_score = auprg_val
 )
 
