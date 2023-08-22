@@ -63,6 +63,20 @@ names(coef_df)[4] <- "Pr(>|z|)"
 coef_df['ncomponents'] <- n_components
 coef_df['components'] <- row.names(coef_df)
 
+# Using AUPRG score from PRG packages in python
+prg <- import("prg")
+
+py_run_string("
+np.alen = lambda x: (x.shape[0] if len(x.shape) > 0 else 0) if hasattr(x, 'shape') else len(x) if hasattr(x, '__len__') else 1
+")
+
+actual <- test_set_indicator$indicator
+predicted_prob <- predict(log_model, test_set_component, type = "response")
+
+prg_curve <- prg$create_prg_curve(actual, predicted_prob)
+auprg_val <- prg$calc_auprg(prg_curve)
+
+
 # Calculate AUC & PR
 print("Predict Train and Set model")
 pred_probs_train = predict(log_model, type = "response")
@@ -88,6 +102,7 @@ roc_pr <- list(
         pr_auc_davis_test = pr_score_test$auc.davis.goadrich,
         motif_count = motif_count_sum, 
         motif_id = motif_id_args
+        auprg_score = auprg_val
 )
 
 roc_pr_df <- as.data.frame(roc_pr)
