@@ -1,9 +1,10 @@
 #!/usr/bin/env Rscript
 library(readr)
 library(tidyverse)
-library(reticulate)
 library(stats)
 library(PRROC)
+library(reticulate)
+use_python("/home/afathul/miniconda3/envs/r-kernel/bin/python3")
 
 
 np <- import("numpy")
