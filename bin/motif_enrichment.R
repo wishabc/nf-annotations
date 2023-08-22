@@ -68,7 +68,10 @@ coef_df['components'] <- row.names(coef_df)
 print("Running prg package using reticulate")
 prg <- import("prg")
 
-py_run_string("np.alen = lambda x: (x.shape[0] if len(x.shape) > 0 else 0) if hasattr(x, 'shape') else len(x) if hasattr(x, '__len__') else 1")
+py_run_string("
+import numpy as np
+np.alen = lambda x: (x.shape[0] if len(x.shape) > 0 else 0) if hasattr(x, 'shape') else len(x) if hasattr(x, '__len__') else 1
+")
 
 print("Run actual and predicted_prob")
 actual <- test_set_indicator$indicator
