@@ -284,8 +284,7 @@ workflow fromPvalFiles {
    
 }
 
-// workflow {
-//     custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
-//         | filterTestedVariants
-//         | fromAnnotations
-// }
+workflow gwasLDSC{
+    custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
+        | fromAnnotations
+}
