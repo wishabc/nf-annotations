@@ -239,7 +239,7 @@ workflow fromAnnotations {
     take:
         annotations
     main:
-        sumstats_files = Channel.fromPath(params.phenotypes_meta)
+        sumstats_files = Channel.fromPath(params.test_phenotypes_meta)
             | splitCsv(header:true, sep:'\t')
             | map(row -> tuple(row.phen_id, file(row.munge_sumstats_file)))
             | filter { it[1].exists() }
@@ -285,6 +285,6 @@ workflow fromPvalFiles {
 }
 
 workflow gwasLDSC{
-    custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
+    custom_annotations = Channel.fromPath("${params.component_dir}/*.bed") 
         | fromAnnotations
 }
