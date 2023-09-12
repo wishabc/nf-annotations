@@ -91,6 +91,7 @@ process run_ldsc_single_sample {
     publishDir "${params.outdir}/ldsc/ldsc_coefs${prefix}", pattern: "${name}.results"
     publishDir "${params.outdir}/ldsc/ldsc_logs/${prefix}", pattern: "${name}.log"
     tag "${prefix}:${phen_id}"
+    errorStrategy 'ignore'
     scratch true
 
     input:
