@@ -187,3 +187,10 @@ workflow logisticRegression {
     
     // extract_gc_content
 }
+
+workflow gwasLogisticRegression {
+    matrices = Channel.fromPath(params.matrix_file)
+        | splitCsv(header:true, sep:'\t')
+        | map(row -> tuple(row.ncomponents, file(row.matrix)))
+    
+}
