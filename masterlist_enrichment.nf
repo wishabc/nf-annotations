@@ -151,6 +151,25 @@ process extract_gc_content {
 	"""
 }
 
+process pheno_hits_intersect {
+    tag "${motif_id}"
+    conda params.conda
+
+    input:
+        tuple val(motif_id), path(moods_file), path(masterlist_file)
+
+    output:
+        tuple val(motif_id), path(indicator_file)
+
+    script:
+    indicator_file = "${motif_id}.hits.bed"
+    """
+    bedtools intersect -a ${phenotype_file} -b ${masterlist_file} -wa -wb \
+        | cut -f1-3,10,17 \
+        | awk -v OFS="\t" '{($4 > 7.3) ? indicator = 1 : indicator = 0; print $0, indicator}' > ${indicator_file}
+    """
+}
+
 workflow logisticRegression {
     params.r_conda = "/home/afathul/miniconda3/envs/r-kernel"
     params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
