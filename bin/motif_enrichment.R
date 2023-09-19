@@ -29,6 +29,7 @@ DHS_feature_nmf_df <- data.frame(t(DHS_feature_nmf))
 
 # Include gc_count and gc_count^2
 print("Combined dataset")
+# should have its own args for gc content!
 gc_dataset <- read.csv('/net/seq/data2/projects/afathul/motif_enhancement/regions_gc_annotated.bed.gz', sep='\t', header = FALSE)
 colnames(gc_dataset) <- c('chr', 'str', 'end', 'total', 'gc_count', 'gc_content', 'total_unique', 'chunk', 'unknown')
 
