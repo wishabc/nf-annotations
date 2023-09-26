@@ -166,7 +166,7 @@ process pheno_hits_intersect {
     """
     bedtools intersect -a ${phenotype_file} -b ${masterlist_file} -wa -wb \
         | cut -f1-3,10,17 \
-        | awk -v OFS="\t" '{($4 > 7.3) ? indicator = 1 : indicator = 0; print $0, indicator}' > ${indicator_file}
+        | awk -v OFS="\t" '{(4 > 7.3) ? indicator = 1 : indicator = 0; print $0, indicator}' > ${indicator_file}
     """
 }
 
