@@ -151,25 +151,6 @@ process extract_gc_content {
 	"""
 }
 
-process pheno_hits_intersect {
-    tag "${phen_id}"
-    conda params.conda
-
-    input:
-        tuple val(phen_id), path(phenotype_file), path(masterlist_file)
-
-    output:
-        tuple val(phen_id), path(indicator_file)
-
-    script:
-    indicator_file = "${phen_id}.hits.bed"
-    """
-    bedtools intersect -a ${phenotype_file} -b ${masterlist_file} -wa -wb \
-        | cut -f1-3,10,17 \
-        | awk -v OFS="\t" '{(4 > 7.3) ? indicator = 1 : indicator = 0; print $0, indicator}' > ${indicator_file}
-    """
-}
-
 process gwas_logistic_regression {
     conda params.r_conda
     tag "${prefix}"
