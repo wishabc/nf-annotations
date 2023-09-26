@@ -152,22 +152,69 @@ process extract_gc_content {
 }
 
 process pheno_hits_intersect {
-    tag "${motif_id}"
+    tag "${phen_id}"
     conda params.conda
 
     input:
-        tuple val(motif_id), path(moods_file), path(masterlist_file)
+        tuple val(phen_id), path(phenotype_file), path(masterlist_file)
 
     output:
-        tuple val(motif_id), path(indicator_file)
+        tuple val(phen_id), path(indicator_file)
 
     script:
-    indicator_file = "${motif_id}.hits.bed"
+    indicator_file = "${phen_id}.hits.bed"
     """
     bedtools intersect -a ${phenotype_file} -b ${masterlist_file} -wa -wb \
         | cut -f1-3,10,17 \
         | awk -v OFS="\t" '{($4 > 7.3) ? indicator = 1 : indicator = 0; print $0, indicator}' > ${indicator_file}
     """
+}
+
+process gwas_logistic_regression {
+    conda params.r_conda
+    tag "${prefix}"
+    publishDir "${params.outdir}/metrics", pattern: "${prefix}.metrics.tsv"
+    publishDir "${params.outdir}/coeffs", pattern: "${prefix}.coeff.tsv"
+
+    input:
+        tuple val(phen_id), path(indicator_file), path(matrix)
+    
+    output:
+        tuple val(motif_id), path("${prefix}.metrics.tsv"), path("${prefix}.coeff.tsv")
+    
+    script:
+    prefix = "${motif_id}.${n_components}"
+    """
+    Rscript $moduleDir/bin/pheno_enrichment.R \
+        ${matrix} \
+        ${indicator_file} \
+        ${motif_id} \
+        ${n_components} 
+
+    """
+}
+
+process geom_odd_ratio {
+    conda params.conda
+    tag "${motif_id}"
+    publishDir "${params.outdir}/coeffs", pattern: "${motif_id}.coeff.tsv"
+    publishDir "${params.outdir}/pval", pattern: "${motif_id}.pval.tsv"
+
+    input:
+        tuple val(motif_id), path(indicator_file)
+    
+    output:
+        tuple val(motif_id), path("${prefix}.coeff.tsv"), path("${prefix}.pval.tsv")
+    
+    script:
+    prefix = "${motif_id}"
+    """
+    Rscript $moduleDir/bin/hypergeometry_test.py \
+        ${motif_id} \
+        ${indicator_file}
+
+    """
+
 }
 
 workflow logisticRegression {
@@ -183,7 +230,7 @@ workflow logisticRegression {
         | map(row -> tuple(row.ncomponents, file(row.matrix))) // n_comp, matrix
 
     coeffs = Channel.fromPath("${params.moods_scans_dir}/*")
-        | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_file))
+        | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_file2))
         | motif_hits_intersect // motif_id, indicator
         | combine(matrices) // motif_id, indicator, n_comp, matrix
 	    | logistic_regression
@@ -208,8 +255,31 @@ workflow logisticRegression {
 }
 
 workflow gwasLogisticRegression {
-    matrices = Channel.fromPath(params.matrix_file)
+    matrices = Channel.fromPath(params.matrix_file_pheno)
         | splitCsv(header:true, sep:'\t')
-        | map(row -> tuple(row.ncomponents, file(row.matrix)))
+        | map(row -> tuple(row.phen_id, file(row.phen_bed), params.masterlist_file2))
+        | pheno_hits_intersect
     
+}
+
+workflow hyperGeom {
+    coeffs = Channel.fromPath("${params.moods_scans_dir}/*")
+        | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_file2))
+        | motif_hits_intersect // motif_id, indicator
+	    | geom_odd_ratio
+
+    coeffs | map(it -> it[1])
+        | collectFile(name: 'all.coeff.tsv',
+            storeDir: "${params.outdir}",
+            skip: 1,
+            sort: true,
+            keepHeader: true)
+
+    coeffs 
+        | map(it -> it[2])
+        | collectFile(name: 'all.pval.tsv',
+            storeDir: "${params.outdir}",
+            skip: 1,
+            sort: true,
+            keepHeader: true)
 }
