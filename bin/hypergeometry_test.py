@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     # Write to a tab-separated file 
     name1 = motif_id_name + ".coeff.tsv"
-    name2 = motif_id_name + "pval.tsv"
+    name2 = motif_id_name + ".pval.tsv"
     logodd_result.to_csv(name1, sep='\t', index=False)
     pval_result.to_csv(name2, sep='\t', index=False)
 
