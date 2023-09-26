@@ -176,7 +176,7 @@ process gwas_logistic_regression {
 }
 
 process geom_odd_ratio {
-    conda params.conda
+    conda params.pyconda
     tag "${motif_id}"
     publishDir "${params.outdir}/coeffs", pattern: "${motif_id}.coeff.tsv"
     publishDir "${params.outdir}/pval", pattern: "${motif_id}.pval.tsv"
