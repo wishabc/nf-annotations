@@ -29,7 +29,7 @@ print("Reading masterlist file")
 masterlist_df <- read.csv(args[2], sep='\t', header = TRUE, check.names = FALSE)
 
 # Combined chunk_id with nmf, preserved the order
-matrix_chunk_id <- cbind(chunk_id = masterlist_df$chunk_id, DHS_feature_nmf_df)
+matrix_chunk_id <- cbind(chunk_id = masterlist_df$chunk_id, chr = masterlist_df['#chr'], DHS_feature_nmf_df)
 
 print("reading phenotype indicator file")
 indicator_bed_file <- read.table(args[3])
@@ -46,10 +46,10 @@ if (!same_order) {
 }
 
 # Split dataset to training set and test set
-#print("Split dataset to train and test")
-#training_set <- subset(combine_df, chr != 'chr7', select = -chr)
-#test_set_component <- subset(combine_df, chr == 'chr7', select = -c(chr, indicator))
-#test_set_indicator <- subset(combine_df, chr == 'chr7', select = indicator)
+print("Split dataset to train and test")
+training_set <- subset(merged_df, chr != 'chr7', select = -chr)
+test_set_component <- subset(combine_df, chr == 'chr7', select = -c(chr, indicator))
+test_set_indicator <- subset(combine_df, chr == 'chr7', select = indicator)
 
 print("Running logistic regression model on training set")
 log_model = glm(indicator ~., data=subset(merged_df, select = -chunk_id), family=binomial(link="logit"))
