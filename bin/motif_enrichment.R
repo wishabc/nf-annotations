@@ -45,11 +45,16 @@ n_components <- args[4]
 combine_df <- cbind(motif_indicator, DHS_feature_nmf_df,gc_dataset['gc_count'], gc_count2 = (gc_dataset$gc_count)^2, gc_dataset['chr'])
 # gc_dataset['gc_count'], gc_count2 = (gc_dataset$gc_count)^2,
 
+# Delete rows with all empty values through all nmf matrix column
+combine_df_filtered <- subset(combine_df, X17 != 1)
+# delete indicator rows for empyt row value
+combine_df_filtered_final <- subset(combine_df_filtered, select = -X17)
+
 # Split dataset to training set and test set
 print("Split dataset to train and test")
-training_set <- subset(combine_df, chr != 'chr7', select = -chr)
-test_set_component <- subset(combine_df, chr == 'chr7', select = -c(chr, indicator))
-test_set_indicator <- subset(combine_df, chr == 'chr7', select = indicator)
+training_set <- subset(combine_df_filtered_final, chr != 'chr7', select = -chr)
+test_set_component <- subset(combine_df_filtered_final, chr == 'chr7', select = -c(chr, indicator))
+test_set_indicator <- subset(combine_df_filtered_final, chr == 'chr7', select = indicator)
 
 print("Running logistic regression model on training set")
 log_model = glm(indicator ~., data=training_set, family=binomial(link="logit"))
