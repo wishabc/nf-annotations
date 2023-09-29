@@ -41,8 +41,11 @@ motif_count_sum <- sum(motif_indicator)
 motif_id_args <- args[3]
 n_components <- args[4]
 
+masterlist_df <- read.csv('/net/seq/data2/projects/sabramov/SuperIndex/dnase-0520/output/masterlist.filtered.bed',
+                       sep="\t", header=TRUE)
+
 # Combining as one dataframe: Indicator, Matrix, GC
-combine_df <- cbind(motif_indicator, DHS_feature_nmf_df,gc_dataset['gc_count'], gc_count2 = (gc_dataset$gc_count)^2, gc_dataset['chr'])
+combine_df <- cbind(motif_indicator, DHS_feature_nmf_df,gc_dataset['gc_count'], gc_count2 = (gc_dataset$gc_count)^2, gc_dataset['chr'], masterlist_df['n_samples'])
 # gc_dataset['gc_count'], gc_count2 = (gc_dataset$gc_count)^2,
 
 # Delete rows with all empty values through all nmf matrix column
@@ -50,11 +53,16 @@ combine_df_filtered <- subset(combine_df, X17 != 1)
 # delete indicator rows for empyt row value
 combine_df_filtered_final <- subset(combine_df_filtered, select = -X17)
 
+
+combine_df_filtered_final['n_samples_prop'] <- combine_df_filtered_final['n_samples'] / sum(combine_df_filtered_final['n_samples'])
+
+combine_df_filtered_finale <- subset(combine_df_filtered_final, select = -n_samples)
+
 # Split dataset to training set and test set
 print("Split dataset to train and test")
-training_set <- subset(combine_df_filtered_final, chr != 'chr7', select = -chr)
-test_set_component <- subset(combine_df_filtered_final, chr == 'chr7', select = -c(chr, indicator))
-test_set_indicator <- subset(combine_df_filtered_final, chr == 'chr7', select = indicator)
+training_set <- subset(combine_df_filtered_finale, chr != 'chr7', select = -chr)
+test_set_component <- subset(combine_df_filtered_finale, chr == 'chr7', select = -c(chr, indicator))
+test_set_indicator <- subset(combine_df_filtered_finale, chr == 'chr7', select = indicator)
 
 print("Running logistic regression model on training set")
 log_model = glm(indicator ~., data=training_set, family=binomial(link="logit"))
