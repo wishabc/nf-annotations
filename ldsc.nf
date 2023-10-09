@@ -158,19 +158,21 @@ process collect_ldsc_results {
 
 // Make annotation workflows
 process filter_cavs {
+    conda params.conda
 
     input:
-        path pval_file
+        path aggregated_pval_file
 
     output:
-        path "*.bed"
+        path "*${suffix}"
     
     script:
+    suffix = ".bed"
     """
-    cat ${pval_file} \
-        | grep -v '#' \
-        | awk '\$NF <= ${params.fdr_tr} \
-            {print> \$19".bed"}'
+    python3 $moduleDir/bin/split_cell_specific_aggregation.py \
+        ${aggregated_pval_file} \
+        ${params.fdr_tr} \
+        ${suffix}
     """
 }
 
