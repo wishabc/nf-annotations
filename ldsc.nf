@@ -171,8 +171,8 @@ process filter_cavs {
     """
     python3 $moduleDir/bin/split_cell_specific_aggregation.py \
         ${aggregated_pval_file} \
-        ${params.fdr_tr} \
-        ${suffix}
+        --fdr_tr ${params.fdr_tr} \
+        --suffix ${suffix}
     """
 }
 
