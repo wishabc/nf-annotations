@@ -146,7 +146,7 @@ process collect_ldsc_results {
         grep "Total Observed scale h2" \${fname}.log \
             | sed 's/[:(]/\t/g' \
             | sed 's/)//g' \
-            | awk -v OFS='\t' '{print \$2,\$3}' >> h2.stats
+            | awk -F'\t' -v OFS='\t' '{print \$2,\$3}' >> h2.stats
 
         basename \$fname \
             | sed "s/\\./\t/" \
