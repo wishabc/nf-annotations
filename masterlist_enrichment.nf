@@ -179,18 +179,17 @@ process geom_odd_ratio {
     conda params.pyconda
     tag "${motif_id}"
     publishDir "${params.outdir}/coeffs", pattern: "${motif_id}.coeff.tsv"
-    publishDir "${params.outdir}/pval", pattern: "${motif_id}.pval.tsv"
 
     input:
         tuple val(motif_id), path(indicator_file)
     
     output:
-        tuple val(motif_id), path("${prefix}.coeff.tsv"), path("${prefix}.pval.tsv")
+        tuple val(motif_id), path("${prefix}.coeff.tsv")
     
     script:
     prefix = "${motif_id}"
     """
-    python $moduleDir/bin/hypergeometry_test.py \
+    python $moduleDir/bin/log_oddratio.py \
         ${motif_id} \
         ${indicator_file}
 
@@ -258,11 +257,4 @@ workflow hyperGeom {
             sort: true,
             keepHeader: true)
 
-    coeffs 
-        | map(it -> it[2])
-        | collectFile(name: 'all.pval.tsv',
-            storeDir: "${params.outdir}",
-            skip: 1,
-            sort: true,
-            keepHeader: true)
 }
