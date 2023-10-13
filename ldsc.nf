@@ -192,9 +192,10 @@ process make_ldsc_annotation {
     baseannotation = "${params.base_ann_path}${chrom}.annot.gz"
     name = "${group_id}.${chrom}.annot.gz"
     """
+    cut -f1-3 ${custom_annotation} > custom_annotation.bed
     python ${params.ldsc_scripts_path}/make_annot.py \
         --bimfile ${params.gtfiles}${chrom}.bim \
-        --bed-file ${custom_annotation} \
+        --bed-file custom_annotation.bed \
         --annot-file ${name}
     """
 }
