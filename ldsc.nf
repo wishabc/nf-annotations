@@ -159,6 +159,7 @@ process collect_ldsc_results {
 // Make annotation workflows
 process filter_cavs {
     conda params.conda
+    publishDir "${params.outdir}/ldsc/annotations", pattern: "*${suffix}"
 
     input:
         path aggregated_pval_file
@@ -167,7 +168,7 @@ process filter_cavs {
         path "*${suffix}"
     
     script:
-    suffix = ".bed"
+    suffix = ".annotation.bed"
     """
     python3 $moduleDir/bin/split_cell_specific_aggregation.py \
         ${aggregated_pval_file} \
