@@ -38,7 +38,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     matrix_original_df = pd.DataFrame(np.load('/net/seq/data2/projects/afathul/motif_enrichment/odd_ratio/nmf_32.H.npy').T)
-    matrix_original_df.columns = = ['comp_' + str(i) for i in list(range(1, len(matrix_original_df.columns) + 1))]
+    matrix_original_df.columns = ['comp_' + str(i) for i in list(range(1, len(matrix_original_df.columns) + 1))]
     # Find maximum value in each row and mark as 1, others as 0
     binary_nmf_matrix = matrix_original_df.eq(matrix_original_df.max(axis=1), axis=0).astype(int)
 
