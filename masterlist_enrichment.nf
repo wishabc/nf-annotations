@@ -242,7 +242,7 @@ workflow gwasLogisticRegression {
     
 }
 
-workflow hyperGeom {
+workflow {
     params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
 
     coeffs = Channel.fromPath("${params.moods_scans_dir}/*")
