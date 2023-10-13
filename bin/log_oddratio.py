@@ -48,4 +48,5 @@ if __name__ == '__main__':
     motif_id_name = args.motif_id
     result_df['motif_id'] = motif_id_name
 
+    # will output one file only
     result_df.to_csv(motif_id_name + ".coeff.tsv", sep='\t', index=False)
