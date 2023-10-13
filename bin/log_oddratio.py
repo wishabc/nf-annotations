@@ -27,7 +27,6 @@ def log_odd_ratio(ori_df, indicator_df):
         pval_fischer.append(p_value)
         
 
-    #return pd.DataFrame(log_odds_ratios, index=ori_df.columns, columns=['log_odds_ratio'])
     return pd.DataFrame({'log_odd_ratio' : log_odds_ratios,
                         'fischer_pval' : pval_fischer},
                         index=ori_df.columns)
@@ -38,12 +37,17 @@ if __name__ == '__main__':
     parser.add_argument('indicator', help='Path to indicator file')
     args = parser.parse_args()
 
-    matrix_original_df = pd.DataFrame(np.load('/net/seq/data2/projects/afathul/motif_enrichment/odd_ratio/original_binary_matrix.npy').T)
-    sample_metadata = pd.read_table('/net/seq/data2/projects/afathul/motif_enrichment/odd_ratio/sample_metadata_new.tsv')
-    matrix_original_df.columns = sample_metadata['ag_id'].values
+    matrix_original_df = pd.DataFrame(np.load('/net/seq/data2/projects/afathul/motif_enrichment/odd_ratio/nmf_32.H.npy').T)
+    matrix_original_df.columns = = ['comp_' + str(i) for i in list(range(1, len(matrix_original_df.columns) + 1))]
+    # Find maximum value in each row and mark as 1, others as 0
+    binary_nmf_matrix = matrix_original_df.eq(matrix_original_df.max(axis=1), axis=0).astype(int)
+
+    # matrix_original_df = pd.DataFrame(np.load('/net/seq/data2/projects/afathul/motif_enrichment/odd_ratio/original_binary_matrix.npy').T)
+    # sample_metadata = pd.read_table('/net/seq/data2/projects/afathul/motif_enrichment/odd_ratio/sample_metadata_new.tsv')
+    # matrix_original_df.columns = sample_metadata['ag_id'].values
     indicator_df = pd.read_csv(args.indicator, header=None, names=['indicator'])
 
-    result_df = log_odd_ratio(matrix_original_df, indicator_df)
+    result_df = log_odd_ratio(binary_nmf_matrix, indicator_df)
 
     motif_id_name = args.motif_id
     result_df['motif_id'] = motif_id_name
