@@ -14,14 +14,14 @@ process calc_ld {
     conda params.ldsc_conda
 
     input:
-        tuple val(group_id), val(chrom), path(annotation_file), val(is_baseline)
+        tuple val(group_id), val(chrom), path(annotation_file)
     
     output:
         tuple val(group_id), val(chrom), path("${prefix}.l2.*"), path("${prefix}.log")
     
     script:
     prefix = "${group_id}.${chrom}"
-    annot_type = is_baseline ? "" : "--thin-annot"
+    annot_type = group_id == "baseline" ? "" : "--thin-annot"
     """
     export OPENBLAS_NUM_THREADS=${task.cpus}
     export GOTO_NUM_THREADS=${task.cpus}
@@ -50,7 +50,7 @@ process run_ldsc_cell_types {
     scratch true
 
     input:
-        tuple val(phen_id), path(sumstats_file), path("data_files/*")
+        tuple val(phen_id), path(sumstats_file), val(baseline_ld), path("data_files/*")
     
     output:
         tuple val(phen_id), path(name), path("${phen_id}.log")
@@ -71,7 +71,7 @@ process run_ldsc_cell_types {
     
     ${params.ldsc_scripts_path}/ldsc.py \
         --h2-cts ${sumstats_file} \
-        --ref-ld-chr ${params.baseline_ld} \
+        --ref-ld-chr ${baseline_ld} \
         --ref-ld-chr-cts per_sample.ldcts \
         --frqfile-chr ${params.frqfiles} \
         --w-ld-chr ${params.weights} \
@@ -94,20 +94,21 @@ process run_ldsc_single_sample {
     scratch true
 
     input:
-        tuple val(phen_id), path(sumstats_file), val(prefix), path(ld_files)
+        tuple val(phen_id), path(sumstats_file), val(baseline_ld), val(prefix), path(ld_files)
     
     output:
         tuple val(prefix), val(phen_id), path("${name}.results"), path("${name}.log")
 
     script:
     name = "${prefix}.${phen_id}"
+    additional_ld_chr = prefix != "baseline" ? ",${prefix}." : ""
     """
     export OPENBLAS_NUM_THREADS=${task.cpus}
     export GOTO_NUM_THREADS=${task.cpus}
     export OMP_NUM_THREADS=${task.cpus}
     ${params.ldsc_scripts_path}/ldsc.py \
         --h2 ${sumstats_file} \
-        --ref-ld-chr ${params.baseline_ld},${prefix}. \
+        --ref-ld-chr ${baseline_ld}${additional_ld_chr} \
         --frqfile-chr ${params.frqfiles} \
         --w-ld-chr ${params.weights} \
         --overlap-annot \
@@ -245,7 +246,7 @@ workflow fromAnnotations {
     main:
         sumstats_files = Channel.fromPath(params.phenotypes_meta)
             | splitCsv(header:true, sep:'\t')
-            | map(row -> tuple(row.phen_id, file(row.munge_sumstats_file)))
+            | map(row -> tuple(row.phen_id, file(row.munge_sumstats_file), params.baseline_ld))
             | filter { it[1].exists() }
 
         ldsc_annotations = Channel.of(1..22)
@@ -253,16 +254,12 @@ workflow fromAnnotations {
             | make_ldsc_annotation // group_id, chrom, annotation
 
         ld_data = ldsc_annotations
-            | combine(
-                Channel.of(false)
-            ) //  group_id, chrom, annotation, is_baseline
             | calc_ld //  group_id, chrom, ld, ld_log
             | join(ldsc_annotations, by: [0, 1]) // group_id, chrom, ld, ld_log, annotation
             | map(it -> tuple(it[0], [it[2], it[4]].flatten()))
             | groupTuple(size: 22)
-            | map(
-                it -> tuple(it[0], it[1].flatten())
-            )
+            | map(it -> tuple(it[0], it[1].flatten()))
+
         if (params.by_cell_type) {
             out = LDSCcellTypes(ld_data, sumstats_files)
         } else {
@@ -274,9 +271,21 @@ workflow fromAnnotations {
 
 // Entry workflows
 workflow calcBaseline {
-    Channel.of(1..22)
-        | map(it -> tuple(it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true), true))
-        | calc_ld
+    sumstats_files = Channel.fromPath(params.phenotypes_meta)
+        | splitCsv(header:true, sep:'\t')
+        | map(row -> tuple(row.phen_id, file(row.munge_sumstats_file), "baseline."))
+        | filter { it[1].exists() } // phen_id, sumstats, baseline
+
+    ld_data = Channel.of(1..22)
+        | map(it -> tuple('baseline', it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true)))
+        | calc_ld //  group_id, chrom, ld, ld_log
+        | map(it -> it[2])
+        | collect(sort: true)
+        | map(it -> tuple('baseline', it))
+    
+    // phen_id, sumstats_file, baseline_ld, val(prefix), path(ld_files)
+    LDSC(ld_data, sumstats_files)
+        
 }
 
 workflow fromPvalFiles {
