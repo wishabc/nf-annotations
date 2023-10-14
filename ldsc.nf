@@ -17,11 +17,12 @@ process calc_ld {
         tuple val(group_id), val(chrom), path(annotation_file)
     
     output:
-        tuple val(group_id), val(chrom), path("${prefix}.l2.*"), path("${prefix}.log")
+        tuple val(group_id), val(chrom), path("${prefix}.l2.*"), path("${prefix}.log"), path(annotation_file)
     
     script:
     prefix = "${group_id}.${chrom}"
     annot_type = group_id == "baseline" ? "" : "--thin-annot"
+    annotation_file = "${prefix}.annotation.gz"
     """
     export OPENBLAS_NUM_THREADS=${task.cpus}
     export GOTO_NUM_THREADS=${task.cpus}
@@ -191,7 +192,6 @@ process make_ldsc_annotation {
     
     script:
     group_id = "${custom_annotation.simpleName}"
-    baseannotation = "${params.base_ann_path}${chrom}.annot.gz"
     name = "${group_id}.${chrom}.annot.gz"
     """
     cut -f1-3 ${custom_annotation} > custom_annotation.bed
@@ -254,8 +254,7 @@ workflow fromAnnotations {
             | make_ldsc_annotation // group_id, chrom, annotation
 
         ld_data = ldsc_annotations
-            | calc_ld //  group_id, chrom, ld, ld_log
-            | join(ldsc_annotations, by: [0, 1]) // group_id, chrom, ld, ld_log, annotation
+            | calc_ld //  group_id, chrom, ld, ld_log, annotation
             | map(it -> tuple(it[0], [it[2], it[4]].flatten()))
             | groupTuple(size: 22)
             | map(it -> tuple(it[0], it[1].flatten()))
@@ -278,8 +277,8 @@ workflow calcBaseline {
 
     ld_data = Channel.of(1..22)
         | map(it -> tuple('baseline', it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true)))
-        | calc_ld //  group_id, chrom, ld, ld_log
-        | map(it -> it[2])
+        | calc_ld //  group_id, chrom, ld, ld_log, annotation
+        | flatMap(it -> [it[2], it[4]])
         | collect(sort: true)
         | map(it -> tuple('baseline', it))
     
