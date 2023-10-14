@@ -14,7 +14,7 @@ process calc_ld {
     conda params.ldsc_conda
 
     input:
-        tuple val(group_id), val(chrom), path(annotation_file)
+        tuple val(group_id), val(chrom), path(ann_file, stageAs: "${annotation_file}")
     
     output:
         tuple val(group_id), val(chrom), path("${prefix}.l2.*"), path("${prefix}.log"), path(annotation_file)
