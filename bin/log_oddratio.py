@@ -28,7 +28,7 @@ def log_odd_ratio(ori_df, indicator_df):
         except ValueError:
             print(a, b, c, d)
             raise
-        
+
         pval_fischer.append(p_value)
         
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     # matrix_original_df.columns = sample_metadata['ag_id'].values
     indicator_df = pd.read_csv(args.indicator, header=None, names=['indicator'])
 
-    result_df = log_odd_ratio(binary_nmf_matrix, indicator_df)
+    result_df = log_odd_ratio(binary_nmf_matrix, indicator_df).reset_index()
 
     motif_id_name = args.motif_id
     result_df['motif_id'] = motif_id_name
