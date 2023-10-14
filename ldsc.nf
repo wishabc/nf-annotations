@@ -14,15 +14,14 @@ process calc_ld {
     conda params.ldsc_conda
 
     input:
-        tuple val(group_id), val(chrom), path(ann_file, stageAs: "${annotation_file}")
+        tuple val(group_id), val(chrom), path("${prefix}.annot.gz")
     
     output:
-        tuple val(group_id), val(chrom), path("${prefix}.l2.*"), path("${prefix}.log"), path(annotation_file)
+        tuple val(group_id), val(chrom), path("${prefix}.l2.*"), path("${prefix}.log"), path("${prefix}.annot.gz")
     
     script:
     prefix = "${group_id}.${chrom}"
     annot_type = group_id == "baseline" ? "" : "--thin-annot"
-    annotation_file = "${prefix}.annot.gz"
     """
     export OPENBLAS_NUM_THREADS=${task.cpus}
     export GOTO_NUM_THREADS=${task.cpus}
