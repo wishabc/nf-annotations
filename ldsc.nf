@@ -14,18 +14,21 @@ process calc_ld {
     conda params.ldsc_conda
 
     input:
-        tuple val(group_id), val(chrom), path("${prefix}.annot.gz")
+        tuple val(group_id), val(chrom), path(annotation)
     
     output:
-        tuple val(group_id), val(chrom), path("${prefix}.l2.*"), path("${prefix}.log"), path("${prefix}.annot.gz")
+        tuple val(group_id), val(chrom), path("${prefix}.l2.*"), path("${prefix}.log"), path(new_annot)
     
     script:
     prefix = "${group_id}.${chrom}"
     annot_type = group_id == "baseline" ? "" : "--thin-annot"
+    new_annot = "${prefix}.annot.gz"
     """
     export OPENBLAS_NUM_THREADS=${task.cpus}
     export GOTO_NUM_THREADS=${task.cpus}
     export OMP_NUM_THREADS=${task.cpus}
+
+    cp ${annotation} ${new_annot}
     
     awk 'NR>1 {print \$1}' \
         ${params.tested_snps} > tested_snps.txt
@@ -35,7 +38,7 @@ process calc_ld {
         --ld-wind-cm 1.0 \
         --out ${prefix} \
         --bfile ${params.gtfiles}${chrom} \
-        --annot ${prefix}.annot.gz \
+        --annot ${new_annot} \
         ${annot_type} \
         --l2
     """
