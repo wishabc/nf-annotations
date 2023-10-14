@@ -35,7 +35,7 @@ process calc_ld {
         --ld-wind-cm 1.0 \
         --out ${prefix} \
         --bfile ${params.gtfiles}${chrom} \
-        --annot ${annotation_file} \
+        --annot ${prefix}.annot.gz \
         ${annot_type} \
         --l2
     """
