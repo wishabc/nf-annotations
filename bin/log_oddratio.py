@@ -23,7 +23,12 @@ def log_odd_ratio(ori_df, indicator_df):
         log_odds_ratios.append(np.log((a * d) / (b * c)))
         
         # Compute p-value
-        _, p_value = fisher_exact(np.array([[a, b], [c, d]]))
+        try:
+            _, p_value = fisher_exact(np.array([[a, b], [c, d]]))
+        except ValueError:
+            print(a, b, c, d)
+            raise
+        
         pval_fischer.append(p_value)
         
 
