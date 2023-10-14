@@ -22,7 +22,7 @@ process calc_ld {
     script:
     prefix = "${group_id}.${chrom}"
     annot_type = group_id == "baseline" ? "" : "--thin-annot"
-    annotation_file = "${prefix}.annotation.gz"
+    annotation_file = "${prefix}.annot.gz"
     """
     export OPENBLAS_NUM_THREADS=${task.cpus}
     export GOTO_NUM_THREADS=${task.cpus}
