@@ -25,12 +25,13 @@ process cut_matrix {
 process motif_hits_intersect {
     tag "${motif_id}"
     conda params.conda
+    publishDir "${params.outdir}/indicator_file"
 
     input:
         tuple val(motif_id), path(moods_file), path(masterlist_file)
 
     output:
-        tuple val(motif_id), path(indicator_file)
+        path(indicator_file)
 
     script:
     indicator_file = "${motif_id}.hits.bed"
@@ -256,5 +257,14 @@ workflow hyperGeom {
             skip: 1,
             sort: true,
             keepHeader: true)
+
+}
+
+workflow createIndicator {
+    params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
+
+    Channel.fromPath("${params.moods_scans_dir}/*")
+        | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_ori))
+        | motif_hits_intersect // indicator
 
 }
