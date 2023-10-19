@@ -25,13 +25,12 @@ process cut_matrix {
 process motif_hits_intersect {
     tag "${motif_id}"
     conda params.conda
-    publishDir "${params.outdir}/indicator_file"
 
     input:
         tuple val(motif_id), path(moods_file), path(masterlist_file)
 
     output:
-        path(indicator_file)
+        tuple val(motif_id), path(indicator_file)
 
     script:
     indicator_file = "${motif_id}.hits.bed"
@@ -179,13 +178,14 @@ process gwas_logistic_regression {
 process geom_odd_ratio {
     conda params.pyconda
     tag "${motif_id}"
-    publishDir "${params.outdir}/coeffs", pattern: "${motif_id}.coeff.tsv"
+    publishDir "${params.outdir}/logodd", pattern: "${motif_id}.logodd.npy"
+    publishDir "${params.outdir}/pval", pattern: "${motif_id}.pval.npy"
 
     input:
         tuple val(motif_id), path(indicator_file)
     
     output:
-        tuple val(motif_id), path("${prefix}.coeff.tsv")
+        tuple val(motif_id), path("${prefix}.logodd.npy"), path("${prefix}.pval.npy")
     
     script:
     prefix = "${motif_id}"
@@ -252,19 +252,18 @@ workflow hyperGeom {
 	    | geom_odd_ratio
 
     coeffs | map(it -> it[1])
-        | collectFile(name: 'all.coeff.tsv',
+        | collectFile(name: 'all.logodd.npy',
             storeDir: "${params.outdir}",
             skip: 1,
             sort: true,
             keepHeader: true)
-
-}
-
-workflow createIndicator {
-    params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
-
-    Channel.fromPath("${params.moods_scans_dir}/*")
-        | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.masterlist_ori))
-        | motif_hits_intersect // indicator
+    
+    coeffs 
+        | map(it -> it[2])
+        | collectFile(name: 'all.pval.npy',
+            storeDir: "${params.outdir}",
+            skip: 1,
+            sort: true,
+            keepHeader: true)
 
 }
