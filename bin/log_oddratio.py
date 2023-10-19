@@ -4,7 +4,7 @@ import numpy as np
 from scipy.stats import fisher_exact
 from scipy.stats import hypergeom
 import argparse # using argparse for args
-
+print('past the import stuff')
 def log_odd_ratio(ori_df, indicator_df):
     
     log_odds_ratios = []
@@ -38,6 +38,7 @@ def log_odd_ratio(ori_df, indicator_df):
                         index=ori_df.columns)
 
 def log_odd_ratio_np(ori_matrix_np, indicator_df):
+    print('inside function')
     a = (ori_matrix_np * indicator_df).sum(axis=0) # (3883,)
     b = indicator_df.sum() - a # (3883,)
     c = ori_matrix_np.sum(axis=0) - a # (3883,)
@@ -74,9 +75,10 @@ if __name__ == '__main__':
     # matrix_original_df.columns = sample_metadata['ag_id'].values
     indicator_matrix = pd.read_csv(args.indicator, header=None).values
 
+    print('load data done')
     # result_df = log_odd_ratio(binary_nmf_matrix, indicator_df).reset_index()
     logodd, pval = log_odd_ratio_np(matrix_original, indicator_matrix)
-
+    print('log_odd_np done')
     motif_id_name = args.motif_id
     # result_df['motif_id'] = motif_id_name
 
