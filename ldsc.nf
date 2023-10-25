@@ -27,8 +27,10 @@ process calc_ld {
     export OPENBLAS_NUM_THREADS=${task.cpus}
     export GOTO_NUM_THREADS=${task.cpus}
     export OMP_NUM_THREADS=${task.cpus}
-
-    cp ${annotation} ${new_annot}
+    
+    if [ "${annotation}" != "${new_annot}" ]; then
+        cp ${annotation} ${new_annot}
+    fi
     
     awk 'NR>1 {print \$1}' \
         ${params.tested_snps} > tested_snps.txt
