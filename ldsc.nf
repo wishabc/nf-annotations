@@ -199,7 +199,7 @@ process make_ldsc_annotation {
     name = "${group_id}.${chrom}.annot.gz"
     """
     cut -f1-3 ${custom_annotation} \
-        | sort-bed - \
+        | sort \
         | uniq > custom_annotation.bed
 
     python ${params.ldsc_scripts_path}/make_annot.py \
