@@ -201,7 +201,7 @@ process make_ldsc_annotation {
     """
     echo ANNOT | gzip > ${name}
     cut -f1-3 ${custom_annotation} \
-        | sort-bed \
+        | sort-bed - \
         | uniq > custom_annotation.bed
 
     cat ${params.gtfiles}${chrom}.bim \
