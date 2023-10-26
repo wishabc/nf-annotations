@@ -93,7 +93,7 @@ process run_ldsc_cell_types {
 
 process run_ldsc_single_sample {
     conda params.ldsc_conda
-    publishDir "${params.outdir}/ldsc/ldsc_coefs${prefix}", pattern: "${name}.results"
+    publishDir "${params.outdir}/ldsc/ldsc_coefs_${prefix}", pattern: "${name}.results"
     publishDir "${params.outdir}/ldsc/ldsc_logs/${prefix}", pattern: "${name}.log"
     tag "${prefix}:${phen_id}"
     scratch true
@@ -198,7 +198,10 @@ process make_ldsc_annotation {
     group_id = "${custom_annotation.simpleName}"
     name = "${group_id}.${chrom}.annot.gz"
     """
-    cut -f1-3 ${custom_annotation} > custom_annotation.bed
+    cut -f1-3 ${custom_annotation} \
+        | sort-bed - \
+        | uniq > custom_annotation.bed
+
     python ${params.ldsc_scripts_path}/make_annot.py \
         --bimfile ${params.gtfiles}${chrom}.bim \
         --bed-file custom_annotation.bed \
