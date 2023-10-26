@@ -210,7 +210,7 @@ process make_ldsc_annotation {
         | bedmap --indicator sorted_bim.bed - \
         | paste sorted_bim.bed - \
         | sort -k4,4n \
-        | cut -f 5
+        | cut -f 5 \
         | gzip >> ${name}
     """
 }
