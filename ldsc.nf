@@ -207,7 +207,7 @@ process make_ldsc_annotation {
 
     cut -f1-3 ${custom_annotation} \
         | sort-bed - \
-        | bedmap --indicator sorted_bim.bed - \
+        | bedmap --indicator --sweep-all sorted_bim.bed - \
         | paste sorted_bim.bed - \
         | sort -k4,4n \
         | cut -f 5 \
