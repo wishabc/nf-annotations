@@ -184,7 +184,7 @@ process filter_cavs {
 }
 
 process make_ldsc_annotation {
-    conda params.ldsc_conda
+    conda params.conda
     tag "chr${chrom}:${group_id}"
     publishDir "${params.outdir}/pipeline_annotations"
     scratch true
@@ -199,14 +199,16 @@ process make_ldsc_annotation {
     group_id = "${custom_annotation.simpleName}"
     name = "${group_id}.${chrom}.annot.gz"
     """
+    echo ANNOT | gzip > ${name}
     cut -f1-3 ${custom_annotation} \
-        | sort -k1,1 -k2,2n \
-        | uniq> custom_annotation.bed
+        | sort-bed \
+        | uniq > custom_annotation.bed
 
-    python ${params.ldsc_scripts_path}/make_annot.py \
-        --bimfile ${params.gtfiles}${chrom}.bim \
-        --bed-file custom_annotation.bed \
-        --annot-file ${name}
+    cat ${params.gtfiles}${chrom}.bim \
+        | cut-f1,4 \
+        | sed 's/^/chr/' \
+        | bedmap --indicator - custom_annotation.bed \
+        | gzip >> ${name}
     """
 }
 
