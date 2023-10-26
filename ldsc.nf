@@ -186,6 +186,7 @@ process filter_cavs {
 process make_ldsc_annotation {
     conda params.ldsc_conda
     tag "chr${chrom}:${group_id}"
+    publishDir "${params.outdir}/pipeline_annotations"
     scratch true
 
     input:
