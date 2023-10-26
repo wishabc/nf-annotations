@@ -207,14 +207,11 @@ process make_ldsc_annotation {
 
     cut -f1-3 ${custom_annotation} \
         | sort-bed - \
-        | uniq \
-        | bedmap --indicator sorted_bim.bed custom_annotation.bed \
+        | bedmap --indicator sorted_bim.bed - \
         | paste sorted_bim.bed - \
         | sort -k4,4n \
         | cut -f 5
         | gzip >> ${name}
-    
-
     """
 }
 
