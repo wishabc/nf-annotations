@@ -205,7 +205,7 @@ process make_ldsc_annotation {
         | uniq > custom_annotation.bed
 
     cat ${params.gtfiles}${chrom}.bim \
-        | cut-f1,4 \
+        | cut -f1,4 \
         | sed 's/^/chr/' \
         | bedmap --indicator - custom_annotation.bed \
         | gzip >> ${name}
