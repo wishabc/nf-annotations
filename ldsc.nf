@@ -200,15 +200,21 @@ process make_ldsc_annotation {
     name = "${group_id}.${chrom}.annot.gz"
     """
     echo ANNOT | gzip > ${name}
-    cut -f1-3 ${custom_annotation} \
-        | sort-bed - \
-        | uniq > custom_annotation.bed
 
     cat ${params.gtfiles}${chrom}.bim \
-        | cut -f1,4 \
-        | sed 's/^/chr/' \
-        | bedmap --indicator - custom_annotation.bed \
+        | awk -v OFS='\t' '{ print "chr"\$1,\$4-1,\$4,NR }' \
+        | sort-bed - > sorted_bim.bed
+
+    cut -f1-3 ${custom_annotation} \
+        | sort-bed - \
+        | uniq \
+        | bedmap --indicator sorted_bim.bed custom_annotation.bed \
+        | paste sorted_bim.bed - \
+        | sort -k4,4n \
+        | cut -f 5
         | gzip >> ${name}
+    
+
     """
 }
 
