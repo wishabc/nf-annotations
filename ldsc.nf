@@ -231,7 +231,7 @@ workflow LDSCcellTypes {
                 skip: 1,
                 keepHeader: true,
                 sort: true,
-                name: 'ldsc_ct_results.tsv'
+                name: "ldsc_${params.aggregation_key}_results.tsv"
             )
     emit:
         out
@@ -301,6 +301,7 @@ workflow calcBaseline {
 }
 
 workflow fromPvalFiles {
+    params.result_pval_file = "${params.outdir}/non_aggregated.${params.aggregation_key}.bed.gz"
     Channel.fromPath(params.result_pval_file) 
         | filter_cavs
         | flatten()
