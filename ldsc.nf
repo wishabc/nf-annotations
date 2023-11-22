@@ -163,7 +163,7 @@ process collect_ldsc_results {
 }
 
 // Make annotation workflows
-process filter_cavs {
+process split_cell_specific_aggregation {
     conda params.conda
     publishDir "${params.outdir}/ldsc/annotations", pattern: "*${suffix}"
 
@@ -303,7 +303,7 @@ workflow calcBaseline {
 workflow fromPvalFiles {
     params.result_pval_file = "${params.outdir}/aggregated.${params.aggregation_key}.bed"
     Channel.fromPath(params.result_pval_file) 
-        | filter_cavs
+        | split_cell_specific_aggregation
         | flatten()
         | filter { it.countLines() >= params.min_snps }
         | fromAnnotations
