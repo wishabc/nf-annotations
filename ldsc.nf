@@ -301,7 +301,7 @@ workflow calcBaseline {
 }
 
 workflow fromPvalFiles {
-    params.result_pval_file = "${params.outdir}/non_aggregated.${params.aggregation_key}.bed.gz"
+    params.result_pval_file = "${params.outdir}/aggregated.${params.aggregation_key}.bed"
     Channel.fromPath(params.result_pval_file) 
         | filter_cavs
         | flatten()
