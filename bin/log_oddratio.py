@@ -65,7 +65,9 @@ if __name__ == '__main__':
     parser.add_argument('indicator', help='Path to indicator file')
     args = parser.parse_args()
 
-    matrix_original = np.load('/net/seq/data2/projects/afathul/motif_enrichment/odd_ratio/original_binary_matrix.npy').T
+    #matrix_original = np.load('/net/seq/data2/projects/afathul/motif_enrichment/odd_ratio/original_binary_matrix.npy').T
+    matrix_original = np.load('/net/seq/data2/projects/aabisheva/Encode/nextflow_results/nmf_results/november_3517_samples_727k_interesting_peaks.24.H.npy').T
+    
     indicator_matrix = pd.read_csv(args.indicator, header=None).values
 
     print('load data done')
