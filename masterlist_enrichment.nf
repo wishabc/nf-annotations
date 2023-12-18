@@ -178,14 +178,14 @@ process gwas_logistic_regression {
 process geom_odd_ratio {
     conda params.pyconda
     tag "${motif_id}"
-    publishDir "${params.outdir}/logodd", pattern: "${motif_id}.logodd.npy"
-    publishDir "${params.outdir}/pval", pattern: "${motif_id}.pval.npy"
+    publishDir "${params.outdir}/logodd", pattern: "${motif_id}.logodd.tsv"
+    publishDir "${params.outdir}/pval", pattern: "${motif_id}.pval.tsv"
 
     input:
         tuple val(motif_id), path(indicator_file)
     
     output:
-        tuple val(motif_id), path("${prefix}.logodd.npy"), path("${prefix}.pval.npy")
+        tuple val(motif_id), path("${prefix}.logodd.tsv"), path("${prefix}.pval.tsv")
     
     script:
     prefix = "${motif_id}"
@@ -252,7 +252,7 @@ workflow hyperGeom {
 	    | geom_odd_ratio
 
     coeffs | map(it -> it[1])
-        | collectFile(name: 'all.logodd.npy',
+        | collectFile(name: 'all.logodd.tsv',
             storeDir: "${params.outdir}",
             skip: 1,
             sort: true,
@@ -260,7 +260,7 @@ workflow hyperGeom {
     
     coeffs 
         | map(it -> it[2])
-        | collectFile(name: 'all.pval.npy',
+        | collectFile(name: 'all.pval.tsv',
             storeDir: "${params.outdir}",
             skip: 1,
             sort: true,
