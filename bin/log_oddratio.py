@@ -76,8 +76,8 @@ if __name__ == '__main__':
     print('log_odd_np done')
     motif_id_name = args.motif_id
 
-    result_logodd_df = pd.DataFrame(np.append(motif_id_name, logodd))
-    result_pval_df = pd.DataFrame(np.append(motif_id_name, pval))
+    result_logodd_df = pd.DataFrame(np.append(motif_id_name, logodd).reshape(-1, len(np.append(motif_id_name, logodd))))
+    result_pval_df = pd.DataFrame(np.append(motif_id_name, pval).reshape(-1, len(np.append(motif_id_name, pval))))
 
     result_logodd_df.to_csv(motif_id_name + ".logodd.tsv", sep='\t', index=False)
     result_pval_df.to_csv(motif_id_name + ".pval.tsv", sep='\t', index=False)
