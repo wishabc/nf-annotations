@@ -247,7 +247,7 @@ workflow hyperGeom {
     params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
 
     coeffs = Channel.fromPath("${params.moods_scans_dir}/*")
-        | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.reference_sample_meta))
+        | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.all_samples_meta))
         | motif_hits_intersect // motif_id, indicator
 	    | geom_odd_ratio
 
