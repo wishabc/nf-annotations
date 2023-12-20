@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import pandas as pd
+import argparse
 import numpy as np
 
 def convert_to_bed(comb_df):
