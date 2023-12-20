@@ -178,21 +178,24 @@ process gwas_logistic_regression {
 process geom_odd_ratio {
     conda params.pyconda
     tag "${motif_id}"
-    publishDir "${params.outdir}/logodd", pattern: "${motif_id}.logodd.tsv"
-    publishDir "${params.outdir}/pval", pattern: "${motif_id}.pval.tsv"
+    publishDir "${params.outdir}/logodd"
+
 
     input:
         tuple val(motif_id), path(indicator_file)
     
     output:
-        tuple val(motif_id), path("${prefix}.logodd.tsv"), path("${prefix}.pval.tsv")
+        tuple val(motif_id), path(name)
     
     script:
     prefix = "${motif_id}"
+    name = "${motif_id}.stats.tsv"
     """
     python $moduleDir/bin/log_oddratio.py \
         ${motif_id} \
-        ${indicator_file}
+        ${indicator_file} \
+        ${params.nmf_matrix} \
+        ${name}
 
     """
 
@@ -245,6 +248,10 @@ workflow gwasLogisticRegression {
 
 workflow hyperGeom {
     params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
+    params.reference_sample_meta = "/home/afathul/data2seq/motif_enrichment/odd_ratio/oddratio_dnase_3501/reference_samples/metadata_reference_sample.bed"
+    params.all_samples_meta = "/home/afathul/data2seq/motif_enrichment/odd_ratio/oddratio_dnase_3501/all_samples/metadata_all_sample.bed"
+    params.ref_nmf = np.load('/net/seq/data2/projects/aabisheva/Encode/nextflow_results/nmf_results/november_3517_samples_727k_interesting_peaks.24.H.npy').T
+    params.all_nmf = np.load('/net/seq/data2/projects/aabisheva/Encode/nextflow_results/nmf_results/november/november_3517_samples_727k_interesting_peaks.24.H_new.npy').T
 
     coeffs = Channel.fromPath("${params.moods_scans_dir}/*")
         | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.all_samples_meta))
@@ -252,15 +259,7 @@ workflow hyperGeom {
 	    | geom_odd_ratio
 
     coeffs | map(it -> it[1])
-        | collectFile(name: 'all.logodd.tsv',
-            storeDir: "${params.outdir}",
-            skip: 1,
-            sort: true,
-            keepHeader: true)
-    
-    coeffs 
-        | map(it -> it[2])
-        | collectFile(name: 'all.pval.tsv',
+        | collectFile(name: 'all.logodd.stats.tsv',
             storeDir: "${params.outdir}",
             skip: 1,
             sort: true,
