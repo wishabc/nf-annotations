@@ -81,7 +81,8 @@ if __name__ == '__main__':
     motif_id_name = args.motif_id
     id_name = pd.read_table(args.meta_data, usecols=['ag_id'])
 
-    result = pd.DataFrame({'logodds': logodd, 'pvalue': pval, 'ag_id': id_name.values}) # ag_id for sample and comp for number of component
+    result = pd.DataFrame({'logodds': logodd, 'pvalue': pval}) # ag_id for sample and comp for number of component
+    result['ag_id'] = id_name
     result['motif_id'] = motif_id_name
 
     result.to_csv(args.output, sep='\t', index=False)
