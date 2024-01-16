@@ -61,15 +61,16 @@ def log_odd_ratio_np(ori_matrix_np, indicator_df):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='All_coeffs file to components')
-    parser.add_argument('motif_id', help='value of motif id')
-    parser.add_argument('indicator', help='Path to indicator file')
-    parser.add_argument('output', help='Path to output file')
-    parser.add_argument('nmf_matrix', help='Path to nmf matrix file')
+    parser.add_argument('motif_id', help='value of motif id') # motif_id
+    parser.add_argument('indicator', help='Path to indicator file') # indicator_file
+    parser.add_argument('output', help='Path to output file') # name
+    parser.add_argument('matrix_file', help='Path to matrix file') # params.nmf_matrix
+    parser.add_argument('meta_data', help='Path to metadata to named the sample or components') # 
     args = parser.parse_args()
 
     #matrix_original = np.load('/net/seq/data2/projects/aabisheva/Encode/nextflow_results/nmf_results/november_3517_samples_727k_interesting_peaks.24.H.npy').T
     #matrix_original = np.load('/net/seq/data2/projects/aabisheva/Encode/nextflow_results/nmf_results/november/november_3517_samples_727k_interesting_peaks.24.H_new.npy').T
-    matrix_original = np.load(args.nmf_matrix).T
+    matrix_original = np.load(args.matrix_file) # .T
     
     indicator_matrix = pd.read_csv(args.indicator, header=None).values
 
@@ -78,8 +79,9 @@ if __name__ == '__main__':
     logodd, pval = log_odd_ratio_np(matrix_original, indicator_matrix)
     print('log_odd_np done')
     motif_id_name = args.motif_id
+    id_name = pd.read_table(args.meta_data, usecols=['ag_id'])
 
-    result = pd.DataFrame({'logodds': logodd, 'pvalue': pval})
+    result = pd.DataFrame({'logodds': logodd, 'pvalue': pval, 'ag_id': id_name.values}) # ag_id for sample and comp for number of component
     result['motif_id'] = motif_id_name
 
     result.to_csv(args.output, sep='\t', index=False)

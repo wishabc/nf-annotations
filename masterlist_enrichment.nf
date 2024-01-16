@@ -180,7 +180,6 @@ process geom_odd_ratio {
     tag "${motif_id}"
     publishDir "${params.outdir}/logodd"
 
-
     input:
         tuple val(motif_id), path(indicator_file)
     
@@ -194,8 +193,9 @@ process geom_odd_ratio {
     python $moduleDir/bin/log_oddratio.py \
         ${motif_id} \
         ${indicator_file} \
+        ${name} \
         ${params.nmf_matrix} \
-        ${name}
+        ${params.metadata_file}
 
     """
 
@@ -248,10 +248,10 @@ workflow gwasLogisticRegression {
 
 workflow hyperGeom {
     params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
-    params.reference_sample_meta = "/home/afathul/data2seq/motif_enrichment/odd_ratio/oddratio_dnase_3501/reference_samples/metadata_reference_sample.bed"
-    params.all_samples_meta = "/home/afathul/data2seq/motif_enrichment/odd_ratio/oddratio_dnase_3501/all_samples/metadata_all_sample.bed"
-    params.ref_nmf = np.load('/net/seq/data2/projects/aabisheva/Encode/nextflow_results/nmf_results/november_3517_samples_727k_interesting_peaks.24.H.npy').T
-    params.all_nmf = np.load('/net/seq/data2/projects/aabisheva/Encode/nextflow_results/nmf_results/november/november_3517_samples_727k_interesting_peaks.24.H_new.npy').T
+
+    params.reference_sample_meta = "/home/afathul/data2seq/motif_enrichment/odd_ratio/oddratio_dnase_3501/reference_samples/nmf/metadata_reference_sample.bed"
+    params.all_samples_meta = "/home/afathul/data2seq/motif_enrichment/odd_ratio/oddratio_dnase_3501/all_samples/nmf/metadata_all_sample.bed"
+
 
     coeffs = Channel.fromPath("${params.moods_scans_dir}/*")
         | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.all_samples_meta))
