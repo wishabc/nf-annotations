@@ -83,7 +83,7 @@ if __name__ == '__main__':
     resample_array = bin_resample(combined_masterlist)
 
 
-    result_array, motif_agid = sparse_dot_product(resample_array, binary_matrix, indicator_file)
+    result_array, motif_agid = sparse_dot_product(resample_array.droplevel(0).sort_index().values, binary_matrix, indicator_file)
     
     # call function for zscore
     mu_np, sd_np, z_score_np = calculate_zscore(result_array.toarray(), motif_agid)
