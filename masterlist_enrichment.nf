@@ -219,6 +219,7 @@ process match_gc_background {
         ${motif_id} \
         ${indicator_file} \
         ${name} \
+        ${params.dhs_index_masterlist} \
         ${params.binary_dhs_agid} \
         ${params.all_samples_meta} \
         ${params.metadata_file}
