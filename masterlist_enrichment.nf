@@ -198,7 +198,32 @@ process geom_odd_ratio {
         ${params.metadata_file}
 
     """
+}
 
+process match_gc_background {
+    conda params.pyconda
+    tag "${motif_id}"
+    publishDir "${params.outdir}/z_score"
+
+    input:
+        tuple val(motif_id), path(indicator_file)
+    
+    output:
+        tuple val(motif_id), path(name)
+    
+    script:
+    prefix = "${motif_id}"
+    name = "${motif_id}.z_score.tsv"
+    """
+    python $moduleDir/bin/subsample_proportion.py \
+        ${motif_id} \
+        ${indicator_file} \
+        ${name} \
+        ${params.binary_dhs_agid} \
+        ${params.all_samples_meta} \
+        ${params.metadata_file}
+
+    """
 }
 
 workflow logisticRegression {
@@ -260,6 +285,27 @@ workflow hyperGeom {
 
     coeffs | map(it -> it[1])
         | collectFile(name: 'all.logodd.stats.tsv',
+            storeDir: "${params.outdir}",
+            skip: 1,
+            sort: true,
+            keepHeader: true)
+
+}
+
+workflow matchingBackground {
+    params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
+
+    params.reference_sample_meta = "/home/afathul/data2seq/motif_enrichment/odd_ratio/oddratio_dnase_3501/reference_samples/nmf/metadata_reference_sample.bed"
+    params.all_samples_meta = "/home/afathul/data2seq/motif_enrichment/odd_ratio/oddratio_dnase_3501/all_samples/nmf/metadata_all_sample.bed"
+
+
+    coeffs = Channel.fromPath("${params.moods_scans_dir}/*")
+        | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.all_samples_meta))
+        | motif_hits_intersect // motif_id, indicator
+	    | match_gc_background
+
+    coeffs | map(it -> it[1])
+        | collectFile(name: 'all.z_score.stats.tsv',
             storeDir: "${params.outdir}",
             skip: 1,
             sort: true,
