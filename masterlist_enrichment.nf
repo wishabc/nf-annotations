@@ -25,6 +25,7 @@ process cut_matrix {
 process motif_hits_intersect {
     tag "${motif_id}"
     conda params.conda
+    publishDir "${params.outdir}/output_file", pattern: "${motif_id}.hits.bed"
 
     input:
         tuple val(motif_id), path(moods_file), path(masterlist_file)
@@ -323,5 +324,4 @@ workflow motifIndicator {
         | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.all_samples_meta))
         | motif_hits_intersect 
 
-    coeffs | map(it -> it[1])
 }
