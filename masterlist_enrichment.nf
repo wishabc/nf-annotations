@@ -313,3 +313,13 @@ workflow matchingBackground {
             keepHeader: true)
 
 }
+
+workflow motifIndicator {
+    params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
+    params.all_samples_meta = "/home/afathul/data2seq/motif_enrichment/odd_ratio/oddratio_dnase_3501/all_samples/nmf/metadata_all_sample.bed"
+
+
+    coeffs = Channel.fromPath("${params.moods_scans_dir}/*")
+        | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.all_samples_meta))
+        | motif_hits_intersect 
+}
