@@ -82,11 +82,16 @@ if __name__ == '__main__':
     # run bins and resample by bins function
     resample_array = bin_resample(combined_masterlist)
 
+    print("Done Resample")
 
     result_array, motif_agid = sparse_dot_product(resample_array.droplevel(0).sort_index().values, binary_matrix, indicator_file)
+
+    print("Done Dot Product")
     
     # call function for zscore
     mu_np, sd_np, z_score_np = calculate_zscore(result_array.toarray(), motif_agid)
+
+    print("Done Z-score")
 
     d = {'ag_id': sample_meta['ag_id'].values, 'mu': mu_np, 'sd': sd_np,
          'z_score': z_score_np, 'motif_agid': motif_agid}
