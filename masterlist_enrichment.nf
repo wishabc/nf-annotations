@@ -223,7 +223,8 @@ process match_gc_background {
         ${params.dhs_index_masterlist} \
         ${params.binary_dhs_agid} \
         ${params.all_samples_meta} \
-        ${params.metadata_file}
+        ${params.metadata_file} \
+        ${params.acc_proportion}
 
     """
 }
@@ -296,10 +297,6 @@ workflow hyperGeom {
 
 workflow matchingBackground {
     params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
-
-    params.reference_sample_meta = "/home/afathul/data2seq/motif_enrichment/odd_ratio/oddratio_dnase_3501/reference_samples/nmf/metadata_reference_sample.bed"
-    params.all_samples_meta = "/home/afathul/data2seq/motif_enrichment/odd_ratio/oddratio_dnase_3501/all_samples/nmf/metadata_all_sample.bed"
-
 
     coeffs = Channel.fromPath("${params.moods_scans_dir}/*")
         | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.all_samples_meta))
