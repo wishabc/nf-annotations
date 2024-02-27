@@ -55,7 +55,8 @@ process run_ldsc_cell_types {
     scratch true
 
     input:
-        tuple val(phen_id), path(sumstats_file), val(baseline_ld), path("data_files/*")
+        tuple val(phen_id), path(sumstats_file), val(baseline_ld)
+        path("data_files/*")
     
     output:
         tuple val(phen_id), path(name), path("${phen_id}.log")
@@ -220,11 +221,7 @@ workflow LDSCcellTypes {
         ld_data
         sumstats_files
     main:
-        out = sumstats_files
-            | combine(
-                ld_data.map(it -> it[1]).collect(sort: true)
-            )
-            | run_ldsc_cell_types
+        out = run_ldsc_cell_types(sumstats_files, ld_data.map(it -> it[1]).collect(sort: true))
             | map(it -> it[1])
             | collectFile(
                 storeDir: params.outdir,
