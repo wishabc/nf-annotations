@@ -136,7 +136,7 @@ if __name__ == '__main__':
     index_masterlist = pd.read_table(args.index_meta)
     motifs_meta = pd.read_table(args.meta_data, header=None, names=['#chr', 'start', 'end', 'dhs_id'])
     indicator_file = pd.read_table(args.indicator, header=None)
-    binary_matrix = np.load(args.matrix_file)
+    binary_matrix = np.load(args.matrix_file).T
     sample_meta = pd.read_table(args.sample_meta)
     acc_prop_df = pd.read_table(args.acc_proportion)
 
@@ -180,7 +180,8 @@ if __name__ == '__main__':
 
     print("Done Z-score")
 
-    d = {'ag_id': sample_meta['ag_id'].values, 'mu': mu_np, 'sd': sd_np,
+    # 'ag_id': sample_meta['ag_id'].values
+    d = {'component_number': [i for i in range(1,25)], 'mu': mu_np, 'sd': sd_np,
          'z_score': z_score_np, 'motif_agid': motif_agid, 'p_value': pvalue}
     output_df = pd.DataFrame(data = d)
 

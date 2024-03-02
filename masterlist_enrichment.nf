@@ -221,7 +221,7 @@ process match_gc_background {
         ${indicator_file} \
         ${name} \
         ${params.dhs_index_masterlist} \
-        ${params.binary_dhs_agid} \
+        ${params.all_nmf} \
         ${params.all_samples_meta} \
         ${params.metadata_file} \
         ${params.acc_proportion}
