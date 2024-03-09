@@ -49,7 +49,7 @@ process convert_to_hg38 {
     label "med_mem"
 
     input:
-        tuple val(phen_id), path(sumstats), val(n_samples)
+        tuple val(phen_id), path(sumstats), val(n_cases), val(n_controls)
     
     output:
         tuple val(phen_id), path(hg38_bed)
@@ -68,7 +68,7 @@ process convert_to_hg38 {
             hg19.bed \
             ${params.population}
 
-    echo -e "#chr\tstart\tend\tSNP\tref\talt\tBeta\tBeta_se\tP\tneglog10_p\tINFO\tphen_id\tN" > tmp.bed
+    echo -e "#chr\tstart\tend\tSNP\tref\talt\tBeta\tBeta_se\tP\tneglog10_p\tINFO\tphen_id\tN_CASES\tN_CONTROLS" > tmp.bed
 
     # don't do all the operations if file is empty
     if [ -s hg19.bed ]; then
@@ -80,7 +80,7 @@ process convert_to_hg38 {
     
         sort-bed unsorted \
             | awk -v OFS='\t' \
-                '{print \$0, "${phen_id}", "${n_samples}"}' >> tmp.bed
+                '{print \$0, "${phen_id}", "${n_samples}","${n_controls}"}' >> tmp.bed
     fi
 
     bgzip -c tmp.bed> ${hg38_bed}
@@ -165,7 +165,8 @@ workflow {
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.phen_id,
             file(row.sumstats_file),
-            row["n_cases_${params.population}"] + row["n_controls_${params.population}"],
+            row["n_cases_${params.population}"],
+            row["n_controls_${params.population}"],
             row.pops))
         | filter { it[3] =~ /${params.population}/ }
         | map(it -> tuple(*it[0..2]))
