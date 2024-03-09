@@ -40,62 +40,67 @@ process download_file {
     """
 }
 
+process convert_manifest_to_hg38 {
+    publishDir "${params.outdir}"
+    conda params.conda
+    scratch true
+    label "med_mem"
 
-process convert_to_hg38 {
+    output:
+        path name
+
+    script:
+    name = "hg38.variants_manifes.bed.gz"
+    """
+    zcat ${params.variants_manifest} \
+        | cut -f-3,6 \
+        | tail -n +2 > hg19.bed
+    liftOver -bedPlus=3 \
+            hg19.bed \
+            ${params.chain_file} \
+            unsorted.bed \
+            unMapped
+
+    python3 $moduleDir/bin/merge_variants.py \
+        ${params.variants_manifest}
+        unsorted.bed \
+        ${name}
+    """
+}
+
+process convert_sumstats_to_hg38 {
     tag "${phen_id}"
-    publishDir "${params.outdir}/${phen_id}", pattern: "${hg38_bed}"
+    publishDir "${params.outdir}/phenotypes/${phen_id}", pattern: "${hg38_bed}"
     conda params.conda
     scratch true
     label "med_mem"
 
     input:
-        tuple val(phen_id), path(sumstats), val(n_cases), val(n_controls)
+        tuple val(phen_id), path(sumstats), val(n_cases), val(n_controls), path(manifest_hg38)
     
     output:
         tuple val(phen_id), path(hg38_bed)
     
     script:
     hg38_bed = "${phen_id}.hg38.bed.gz"
+    n_controls = n_controls ?: "N/A"
     """
-    zcat ${params.variants_manifest} \
-        | cut -f-5,11 > variants.txt
-    
     # returns file with columns: 
     # chr, start, end, ref, alt, Beta, Beta_se, P, neglog10_p
-    zcat ${sumstats} \
-        | paste - variants.txt \
+    zcat ${manifest_hg38} \
+        | paste - <(zcat ${sumstats}) \
         | python3 $moduleDir/bin/reformat_sumstats.py \
-            hg19.bed \
-            ${params.population}
+            hg38.unsorted.bed \
+            ${params.population} \
+            ${n_cases} \
+            ${n_controls} \
+            ${phen_id}
 
-    echo -e "#chr\tstart\tend\tSNP\tref\talt\tBeta\tBeta_se\tP\tneglog10_p\tINFO\tphen_id\tN" > tmp.bed
-
-    # don't do all the operations if file is empty
-    if [ -s hg19.bed ]; then
-        liftOver -bedPlus=3 \
-            hg19.bed \
-            ${params.chain_file} \
-            unsorted \
-            unMapped
     
-        sort-bed unsorted \
-            | awk -v OFS='\t' -F'\t' \
-                -v n_cases="${n_cases}" \
-                -v n_controls="${n_controls}" \
-                -v phen_id="${phen_id}" \
-                '{ \
-                    if (n_controls == "") { \
-                        neff = n_cases; \
-                    } else { \
-                        neff = 4 / (1/n_cases + 1/n_controls); \
-                    } \
-                    print \$0, phen_id, neff; \
-                }' >> tmp.bed
-    fi
-
-    bgzip -c tmp.bed> ${hg38_bed}
+    (head -1 hg38.unsorted.bed && tail -n+2 hg38.unsorted.bed | sort-bed - ) | bgzip -c > ${hg38_bed}
     """
 }
+//['#chr', 'start', 'end', 'SNP', 'ref', 'alt', 'Beta', 'Beta_se', 'P', 'neglog10_p', 'INFO', 'phen_id', 'N']
 
 process filter_significant_hits {
     publishDir "${params.outdir}/${phen_id}"
@@ -110,12 +115,12 @@ process filter_significant_hits {
         tuple val(phen_id), path(name)
     
     script:
-    name = "${phen_id}.significant_hits.bed"
+    name = "${phen_id}.significant_hits.bed.gz"
     """
     zcat ${bed_file} \
         | awk -v OFS='\t' \
             '((NR == 1) || (\$10 >= 7.301)) {print }' \
-        > ${name}
+        | bgzip -c > ${name}
     """
 }
 
@@ -171,6 +176,7 @@ workflow {
     params.population = "EUR"
     params.variants_manifest = "/net/seq/data2/projects/GWAS/UKBB_2023/sabramov/full_variant_qc_metrics.txt.bgz"
     params.chain_file = "/home/ehaugen/refseq/liftOver/hg19ToHg38.over.chain.gz"
+    
     data = Channel.fromPath(params.phenotypes_meta)
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.phen_id,
@@ -180,7 +186,8 @@ workflow {
             row.pops))
         | filter { it[4] =~ /${params.population}/ }
         | map(it -> tuple(*it[0..3]))
-        | convert_to_hg38
+        | combine(convert_manifest_to_hg38())
+        | convert_sumstats_to_hg38
 
     data
         | filter_significant_hits

@@ -1,0 +1,15 @@
+import pandas as pd
+import sys
+
+
+if __name__ == '__main__':
+    initial_variants = pd.read_table(sys.argv[1]).set_index('varid')
+    hg38_variants = pd.read_table(
+        sys.argv[2], 
+        names=['hg38_chr', 'hg38_start', 'hg38_end', 'varid']
+    ).set_index('varid')
+    initial_variants.join(hg38_variants, how='left').reset_index()[
+        ['hg38_chr', 'hg38_start', 'hg38_end', 'varid', *initial_variants.columns]
+    ].to_csv(
+        sys.argv[3], sep='\t', index=False
+    )
