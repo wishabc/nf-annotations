@@ -80,7 +80,7 @@ process convert_to_hg38 {
     
         sort-bed unsorted \
             | awk -v OFS='\t' \
-                '{print \$0, "${phen_id}", "${n_samples}","${n_controls}"}' >> tmp.bed
+                '{print \$0, "${phen_id}", "${n_cases}","${n_controls}"}' >> tmp.bed
     fi
 
     bgzip -c tmp.bed> ${hg38_bed}
