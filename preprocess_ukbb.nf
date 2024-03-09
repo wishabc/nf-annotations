@@ -68,7 +68,7 @@ process convert_to_hg38 {
             hg19.bed \
             ${params.population}
 
-    echo -e "#chr\tstart\tend\tSNP\tref\talt\tBeta\tBeta_se\tP\tneglog10_p\tINFO\tphen_id\tN_CASES\tN_CONTROLS" > tmp.bed
+    echo -e "#chr\tstart\tend\tSNP\tref\talt\tBeta\tBeta_se\tP\tneglog10_p\tINFO\tphen_id\tN" > tmp.bed
 
     # don't do all the operations if file is empty
     if [ -s hg19.bed ]; then
@@ -79,8 +79,9 @@ process convert_to_hg38 {
             unMapped
     
         sort-bed unsorted \
-            | awk -v OFS='\t' \
-                '{print \$0, "${phen_id}", "${n_cases}","${n_controls}"}' >> tmp.bed
+            | awk -v OFS='\t' -F'\t' \
+                'Neff = 4/(1/${n_cases} + 1 / ${n_controls})     \
+                {print \$0, "${phen_id}", Neff}' >> tmp.bed
     fi
 
     bgzip -c tmp.bed> ${hg38_bed}
