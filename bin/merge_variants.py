@@ -11,7 +11,7 @@ if __name__ == '__main__':
         names=['hg38_chr', 'hg38_start', 'hg38_end', 'varid']
     ).set_index('varid')
     
-    initial_variants.join(hg38_variants, how='left')[index].reset_index()[
+    initial_variants.join(hg38_variants, how='left').loc[index].reset_index()[
         ['hg38_chr', 'hg38_start', 'hg38_end', 'varid', *initial_variants.columns]
     ].to_csv(
         sys.argv[2], sep='\t', index=False
