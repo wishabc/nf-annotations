@@ -82,7 +82,7 @@ process convert_to_hg38 {
             | awk -v OFS='\t' -F'\t' \
                 -v n_cases="${n_cases}" \
                 -v n_controls="${n_controls}" \
-                -v phen_id="${phen_id}"
+                -v phen_id="${phen_id}" \
                 '{ \
                     if (n_controls == "") { \
                         neff = n_cases; \
