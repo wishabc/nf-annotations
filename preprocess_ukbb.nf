@@ -80,8 +80,13 @@ process convert_to_hg38 {
     
         sort-bed unsorted \
             | awk -v OFS='\t' -F'\t' \
-                'Neff = 4/(1/${n_cases} + 1/${n_controls})     \
-                {print \$0, "${phen_id}", Neff}' >> tmp.bed
+                'BEGIN { \
+                    if (n_controls == "")  \
+                        neff = ${n_cases}; \
+                    else \
+                        neff = 4 / (1/${n_cases} + 1/${n_controls}); \
+                    print \$0, "${phen_id}", neff; \
+                }' >> tmp.bed
     fi
 
     bgzip -c tmp.bed> ${hg38_bed}
