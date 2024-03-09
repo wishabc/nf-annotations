@@ -53,8 +53,7 @@ process convert_manifest_to_hg38 {
     name = "hg38.variants_manifes.bed.gz"
     """
     zcat ${params.variants_manifest} \
-        | cut -f-3,6 \
-        | tail -n +2 > hg19.bed
+        | awk -v OFS='\t' 'NR > 1 {print \$1,\$2-1,\$2,\$6}' > hg19.bed
     liftOver -bedPlus=3 \
             hg19.bed \
             ${params.chain_file} \
