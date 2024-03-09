@@ -177,7 +177,7 @@ workflow {
             file(row.sumstats_file),
             row["n_cases_${params.population}"],
             row["n_controls_${params.population}"],
-            row.pops))
+            row.pops_pass_qc))
         | filter { it[4] =~ /${params.population}/ }
         | map(it -> tuple(*it[0..3]))
         | convert_to_hg38
