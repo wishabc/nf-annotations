@@ -36,8 +36,8 @@ def main(df, population):
 
 if __name__ == '__main__':
     phen_df = pd.read_table(sys.stdin, dtype={'chr': str, 'chrom': str})
-    n_cases = int(sys.argv[3])
-    n_controls = None if sys.argv[4] == "N/A" else sys.argv[4]
+    n_cases = pd.to_numeric(sys.argv[3], errors='coerce').astype(int)
+    n_controls = None if sys.argv[4] == "N/A" else pd.to_numeric(sys.argv[4], errors='coerce').astype(int)
     phen_id = sys.argv[5]
     N_eff = n_cases if n_controls is None else 4/(1/n_cases + 1/n_controls)
     main(phen_df, sys.argv[2]).assign(
