@@ -71,7 +71,6 @@ process convert_sumstats_to_hg38 {
     tag "${phen_id}"
     publishDir "${params.outdir}/${phen_id}"
     conda params.conda
-    scratch true
     label "med_mem"
 
     input:
