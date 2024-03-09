@@ -60,8 +60,8 @@ process convert_manifest_to_hg38 {
             unsorted.bed \
             unMapped
 
-    python3 $moduleDir/bin/merge_variants.py \
-        ${params.variants_manifest}
+    zcat ${params.variants_manifest} \
+        | python3 $moduleDir/bin/merge_variants.py \
         unsorted.bed \
         ${name}
     """
