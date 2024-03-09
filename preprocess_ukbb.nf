@@ -80,11 +80,15 @@ process convert_to_hg38 {
     
         sort-bed unsorted \
             | awk -v OFS='\t' -F'\t' \
-                'BEGIN { \
-                    if (n_controls == "")  \
+                -v n_cases="${n_cases}" \
+                -v n_controls="${n_controls}" \
+                -v phen_id="${phen_id}"
+                '{ \
+                    if (${n_controls} == "") { \
                         neff = ${n_cases}; \
-                    else \
+                    } else { \
                         neff = 4 / (1/${n_cases} + 1/${n_controls}); \
+                    } \
                     print \$0, "${phen_id}", neff; \
                 }' >> tmp.bed
     fi
