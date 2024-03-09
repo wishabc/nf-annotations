@@ -168,8 +168,8 @@ workflow {
             row["n_cases_${params.population}"],
             row["n_controls_${params.population}"],
             row.pops))
-        | filter { it[3] =~ /${params.population}/ }
-        | map(it -> tuple(*it[0..2]))
+        | filter { it[4] =~ /${params.population}/ }
+        | map(it -> tuple(*it[0..3]))
         | convert_to_hg38
 
     data
