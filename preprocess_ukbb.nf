@@ -69,7 +69,7 @@ process convert_manifest_to_hg38 {
 
 process convert_sumstats_to_hg38 {
     tag "${phen_id}"
-    publishDir "${params.outdir}/phenotypes/${phen_id}", pattern: "${hg38_bed}"
+    publishDir "${params.outdir}/${phen_id}"
     conda params.conda
     scratch true
     label "med_mem"
@@ -81,7 +81,7 @@ process convert_sumstats_to_hg38 {
         tuple val(phen_id), path(hg38_bed)
     
     script:
-    hg38_bed = "${phen_id}.hg38.bed.gz"
+    name = "${phen_id}.hg38.bed.gz"
     n_controls = n_controls ?: "N/A"
     """
     # returns file with columns: 
@@ -96,7 +96,7 @@ process convert_sumstats_to_hg38 {
             ${phen_id}
 
     
-    (head -1 hg38.unsorted.bed && tail -n+2 hg38.unsorted.bed | sort-bed - ) | bgzip -c > ${hg38_bed}
+    (head -1 hg38.unsorted.bed && tail -n+2 hg38.unsorted.bed | sort-bed - ) | bgzip -c > ${name}
     """
 }
 //['#chr', 'start', 'end', 'SNP', 'ref', 'alt', 'Beta', 'Beta_se', 'P', 'neglog10_p', 'INFO', 'phen_id', 'N']
