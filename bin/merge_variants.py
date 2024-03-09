@@ -8,7 +8,8 @@ if __name__ == '__main__':
         sys.argv[1], 
         names=['hg38_chr', 'hg38_start', 'hg38_end', 'varid']
     ).set_index('varid')
-    initial_variants.join(hg38_variants, how='left').reset_index()[
+    index = hg38_variants.index.copy()
+    initial_variants.join(hg38_variants, how='left')[index].reset_index()[
         ['hg38_chr', 'hg38_start', 'hg38_end', 'varid', *initial_variants.columns]
     ].to_csv(
         sys.argv[2], sep='\t', index=False
