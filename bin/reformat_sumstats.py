@@ -36,7 +36,7 @@ def main(df, population):
         inplace=True
     )
     df['#chr'] = 'chr' + df['#chr']
-    df.dropna(subset=['Beta', 'neglog10_p', 'hg38_start'], inplace=True)
+    df.dropna(subset=['Beta', 'neglog10_p', 'start'], inplace=True)
     df[['start', 'end']] = df[['start', 'end']].astype(int)
     return df
 
