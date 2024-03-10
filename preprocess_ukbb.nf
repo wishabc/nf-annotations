@@ -77,7 +77,7 @@ process convert_sumstats_to_hg38 {
         tuple val(phen_id), path(sumstats), val(n_cases), val(n_controls), path(manifest_hg38)
     
     output:
-        tuple val(phen_id), path(hg38_bed)
+        tuple val(phen_id), path(name)
     
     script:
     name = "${phen_id}.hg38.bed.gz"
