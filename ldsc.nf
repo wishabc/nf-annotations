@@ -144,7 +144,7 @@ process collect_ldsc_results {
     # copy header from the first file
     head -1 filelist.txt \
         | xargs head -1 \
-        | xargs -I % echo "group_name\tphen_id\t%" > result.txt
+        | xargs -I % echo "group_id\tphen_id\t%" > result.txt
     
     # Aggregate the data
     echo -e "h^2\th^2_err" > h2.stats
