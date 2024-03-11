@@ -146,8 +146,6 @@ process collect_ldsc_results {
         | xargs head -1 \
         | xargs -I % echo "group_name\tphen_id\t%" > result.txt
     
-    echo "results_path" > fnames.txt
-    
     # Aggregate the data
     echo -e "h^2\th^2_err" > h2.stats
     while read line; do
@@ -163,9 +161,12 @@ process collect_ldsc_results {
             | sed "s/\\./\t/" \
             | xargs -I % echo "%\t`tail -1 "\$line"`" >> result.txt
         
-        echo "${params.outdir}/ldsc/ldsc_coefs_\${basename_f}/\${basename_f}.results" >> fnames.txt
     done < filelist.txt
-    paste result.txt fnames.txt h2.stats > ${name}
+    paste result.txt h2.stats \
+        | awk -v OFS='\t' \
+            -v outpath=${params.outdir} \
+            'fname=\$1"."\$2" NR == 1 {print \$0,results_path} \
+            NR>1 {print \$0, outpath"/ldsc/ldsc_coefs_"\$1"/"fname}' > ${name}
     """
 }
 
