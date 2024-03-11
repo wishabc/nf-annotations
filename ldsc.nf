@@ -144,22 +144,28 @@ process collect_ldsc_results {
     # copy header from the first file
     head -1 filelist.txt \
         | xargs head -1 \
-        | xargs -I % echo "group_name\tphenotype_id\t%" > result.txt
+        | xargs -I % echo "group_name\tphen_id\t%" > result.txt
+    
+    echo "results_path" > fnames.txt
     
     # Aggregate the data
     echo -e "h^2\th^2_err" > h2.stats
     while read line; do
         fname="\${line%.*}"
+        basename_f="\$(basename \$fname)"
+
         grep "Total Observed scale h2" \${fname}.log \
             | sed 's/[:(]/\t/g' \
             | sed 's/)//g' \
             | awk -F'\t' -v OFS='\t' '{print \$2,\$3}' >> h2.stats
 
-        basename \$fname \
+        echo \${basename_f} \
             | sed "s/\\./\t/" \
             | xargs -I % echo "%\t`tail -1 "\$line"`" >> result.txt
+        
+        echo "${params.outdir}/ldsc/ldsc_coefs_/\${basename_f}/\${basename_f}.results" >> fnames.txt
     done < filelist.txt
-    paste result.txt h2.stats > ${name}
+    paste result.txt fnames.txt h2.stats > ${name}
     """
 }
 
