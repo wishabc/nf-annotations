@@ -163,7 +163,7 @@ process collect_ldsc_results {
             | sed "s/\\./\t/" \
             | xargs -I % echo "%\t`tail -1 "\$line"`" >> result.txt
         
-        echo "${params.outdir}/ldsc/ldsc_coefs_/\${basename_f}/\${basename_f}.results" >> fnames.txt
+        echo "${params.outdir}/ldsc/ldsc_coefs_\${basename_f}/\${basename_f}.results" >> fnames.txt
     done < filelist.txt
     paste result.txt fnames.txt h2.stats > ${name}
     """
