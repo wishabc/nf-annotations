@@ -140,8 +140,8 @@ process munge_sumstats {
     python ${params.ldsc_scripts_path}/munge_sumstats.py \
         --sumstats ${sumstats_file} \
         --merge-alleles ${params.tested_snps} \
-        --a1 alt \
-        --a2 ref \
+        --a1 ref \
+        --a2 alt \
         --out ${prefix}
     """
 }
