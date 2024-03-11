@@ -153,7 +153,7 @@ process sort_and_index {
     publishDir params.outdir
 
     input:
-        path siginficant_gwas_hits
+        path "significant_hits/*"
     
     output:
         path name
@@ -161,11 +161,20 @@ process sort_and_index {
     script:
     name = "significant_hits.bed.gz"
     """
-    head -1 ${siginficant_gwas_hits} > result.bed
-    tail -n +2 ${siginficant_gwas_hits} \
-        | sort-bed - >> result.bed
+    find significant_hits -name '*.gz' \
+        | sort \
+        | head -n 1 \
+        | xargs zcat \
+        | head -1 > header.txt
     
-    bgzip -c result.bed > ${name}
+    find significant_hits -name '*.gz' \
+        | sort \
+        | xargs zcat \
+        | tail -n +2 \
+        | sort-bed - \
+        | cat header.txt - \
+        | bgzip -c > merged_and_sorted.gz
+
     """
 }
 
@@ -190,11 +199,8 @@ workflow {
     data
         | filter_significant_hits
         | map(it -> it[1])
-        | collectFile(
+        | collect(
             sort: true,
-            keepHeader: true,
-            skip: 1,
-            name: 'significant_hits.bed',
         )
         | sort_and_index
     
