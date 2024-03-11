@@ -21,7 +21,7 @@ process check_file {
 
 process download_file {
     tag "${phen_id}"
-    publishDir "${params.outdir}/${phen_id}"
+    publishDir "${params.outdir}/per_phenotype/${phen_id}"
     maxForks 4
 
     input:
@@ -69,7 +69,7 @@ process convert_manifest_to_hg38 {
 
 process convert_sumstats_to_hg38 {
     tag "${phen_id}"
-    publishDir "${params.outdir}/${phen_id}"
+    publishDir "${params.outdir}/${phen_id}" // "${params.outdir}/per_phenotype/${phen_id}"
     conda params.conda
     label "med_mem"
 
@@ -101,7 +101,7 @@ process convert_sumstats_to_hg38 {
 //['#chr', 'start', 'end', 'SNP', 'ref', 'alt', 'Beta', 'Beta_se', 'P', 'neglog10_p', 'INFO', 'phen_id', 'N']
 
 process filter_significant_hits {
-    publishDir "${params.outdir}/${phen_id}"
+    publishDir "${params.outdir}/${phen_id}" // "${params.outdir}/per_phenotype/${phen_id}"
     conda params.conda
     tag "${phen_id}"
     scratch true
@@ -125,7 +125,7 @@ process filter_significant_hits {
 process munge_sumstats {
     conda params.ldsc_conda
     tag "${phen_id}"
-    publishDir "${params.outdir}/${phen_id}"
+    publishDir "${params.outdir}/${phen_id}" // "${params.outdir}/per_phenotype/${phen_id}"
     scratch true
 
     input:
@@ -162,18 +162,18 @@ process sort_and_index {
     name = "significant_hits.bed.gz"
     """
     find significant_hits -name '*.gz' \
-        | sort \
-        | head -n 1 \
-        | xargs zcat \
-        | head -1 > header.txt
-    
-    find significant_hits -name '*.gz' \
-        | sort \
-        | xargs zcat \
+        | sort > filelist.txt
+
+    zcat \$(head -n 1 filelist.txt) | head -1 || true > header.txt
+
+
+    # Concatenate, sort, and merge with the header, excluding the header from all but the first file
+    xargs -a filelist.txt zcat \
         | tail -n +2 \
         | sort-bed - \
         | cat header.txt - \
         | bgzip -c > merged_and_sorted.gz
+
 
     """
 }
@@ -219,7 +219,8 @@ workflow checkData {
                 row.md5_hex)
             )
     
-    meta.map(it -> tuple(it[0], it[1]))
+    meta
+        | map(it -> tuple(it[0], it[1]))
         | check_file // phen_id, md5
         | join(
             meta.map(
