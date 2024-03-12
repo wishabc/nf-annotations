@@ -69,7 +69,7 @@ process convert_manifest_to_hg38 {
 
 process convert_sumstats_to_hg38 {
     tag "${phen_id}"
-    publishDir "${params.outdir}/${phen_id}" // "${params.outdir}/per_phenotype/${phen_id}"
+    publishDir "${params.outdir}/per_phenotype/${phen_id}"
     conda params.conda
     label "med_mem"
 
@@ -100,32 +100,32 @@ process convert_sumstats_to_hg38 {
 }
 //['#chr', 'start', 'end', 'SNP', 'ref', 'alt', 'Beta', 'Beta_se', 'P', 'neglog10_p', 'INFO', 'phen_id', 'N']
 
-process filter_significant_hits {
-    publishDir "${params.outdir}/${phen_id}" // "${params.outdir}/per_phenotype/${phen_id}"
-    conda params.conda
-    tag "${phen_id}"
-    scratch true
+// process filter_significant_hits {
+//     publishDir "${params.outdir}/per_phenotype/${phen_id}"
+//     conda params.conda
+//     tag "${phen_id}"
+//     scratch true
 
-    input:
-        tuple val(phen_id), path(bed_file)
+//     input:
+//         tuple val(phen_id), path(bed_file)
     
-    output:
-        tuple val(phen_id), path(name)
+//     output:
+//         tuple val(phen_id), path(name)
     
-    script:
-    name = "${phen_id}.significant_hits.bed.gz"
-    """
-    zcat ${bed_file} \
-        | awk -v OFS='\t' \
-            '((NR == 1) || (\$10 >= 7.301)) {print }' \
-        | bgzip -c > ${name}
-    """
-}
+//     script:
+//     name = "${phen_id}.significant_hits.bed.gz"
+//     """
+//     zcat ${bed_file} \
+//         | awk -v OFS='\t' \
+//             '((NR == 1) || (\$10 >= 7.301)) {print }' \
+//         | bgzip -c > ${name}
+//     """
+// }
 
 process munge_sumstats {
     conda params.ldsc_conda
     tag "${phen_id}"
-    publishDir "${params.outdir}/${phen_id}" // "${params.outdir}/per_phenotype/${phen_id}"
+    publishDir "${params.outdir}/per_phenotype/${phen_id}"
     scratch true
 
     input:
@@ -195,17 +195,18 @@ workflow {
         | map(it -> tuple(*it[0..3]))
         | combine(convert_manifest_to_hg38())
         | convert_sumstats_to_hg38
+        | munge_sumstats
 
-    data
-        | filter_significant_hits
-        | map(it -> it[1])
-        | collect(
-            sort: true,
-        )
-        | sort_and_index
+    // data
+    //     | filter_significant_hits
+    //     | map(it -> it[1])
+    //     | collect(
+    //         sort: true,
+    //     )
+    //     | sort_and_index
     
 
-    munge_sumstats(data)
+    // munge_sumstats(data)
 }
 
 workflow checkData {
