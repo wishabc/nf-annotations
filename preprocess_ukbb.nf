@@ -74,7 +74,7 @@ process convert_sumstats_to_hg38 {
     label "med_mem"
 
     input:
-        tuple val(phen_id), path(sumstats), val(n_cases), val(n_controls), path(manifest_hg38)
+        tuple val(phen_id), path(sumstats), path(manifest_hg38)
     
     output:
         tuple val(phen_id), path(name)
@@ -90,8 +90,6 @@ process convert_sumstats_to_hg38 {
         | python3 $moduleDir/bin/reformat_sumstats.py \
             hg38.unsorted.bed \
             ${params.population} \
-            ${n_cases} \
-            ${n_controls} \
             ${phen_id}
 
     
@@ -122,29 +120,29 @@ process convert_sumstats_to_hg38 {
 //     """
 // }
 
-process munge_sumstats {
-    conda params.ldsc_conda
-    tag "${phen_id}"
-    publishDir "${params.outdir}/per_phenotype/${phen_id}"
-    scratch true
+// process munge_sumstats {
+//     conda params.ldsc_conda
+//     tag "${phen_id}"
+//     publishDir "${params.outdir}/per_phenotype/${phen_id}"
+//     scratch true
 
-    input:
-        tuple val(phen_id), path(sumstats_file)
+//     input:
+//         tuple val(phen_id), path(sumstats_file)
 
-    output:
-        tuple val(phen_id), path("${prefix}.sumstats.gz"), path("${prefix}.log")
+//     output:
+//         tuple val(phen_id), path("${prefix}.sumstats.gz"), path("${prefix}.log")
     
-    script:
-    prefix = "${phen_id}.munge"
-    """
-    python ${params.ldsc_scripts_path}/munge_sumstats.py \
-        --sumstats ${sumstats_file} \
-        --merge-alleles ${params.tested_snps} \
-        --a1 ref \
-        --a2 alt \
-        --out ${prefix}
-    """
-}
+//     script:
+//     prefix = "${phen_id}.munge"
+//     """
+//     python ${params.ldsc_scripts_path}/munge_sumstats.py \
+//         --sumstats ${sumstats_file} \
+//         --merge-alleles ${params.tested_snps} \
+//         --a1 ref \
+//         --a2 alt \
+//         --out ${prefix}
+//     """
+// }
 
 process sort_and_index {
     conda params.conda
@@ -188,8 +186,6 @@ workflow {
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.phen_id,
             file(row.sumstats_file),
-            row["n_cases_${params.population}"],
-            row["n_controls_${params.population}"],
             row.pops))
         | filter { it[4] =~ /${params.population}/ }
         | map(it -> tuple(*it[0..3]))
