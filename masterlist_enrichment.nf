@@ -201,34 +201,6 @@ process geom_odd_ratio {
     """
 }
 
-process match_gc_background {
-    conda params.pyconda
-    tag "${motif_id}"
-    publishDir "${params.outdir}/z_score"
-
-    input:
-        tuple val(motif_id), path(indicator_file)
-    
-    output:
-        tuple val(motif_id), path(name)
-    
-    script:
-    prefix = "${motif_id}"
-    name = "${motif_id}.z_score.tsv"
-    """
-    python $moduleDir/bin/subsample_proportion.py \
-        ${motif_id} \
-        ${indicator_file} \
-        ${name} \
-        ${params.dhs_index_masterlist} \
-        ${params.all_nmf} \
-        ${params.all_samples_meta} \
-        ${params.metadata_file} \
-        ${params.acc_proportion}
-
-    """
-}
-
 workflow logisticRegression {
     params.r_conda = "/home/afathul/miniconda3/envs/r-kernel"
     params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
@@ -293,6 +265,34 @@ workflow hyperGeom {
             sort: true,
             keepHeader: true)
 
+}
+
+process match_gc_background {
+    conda params.pyconda
+    tag "${motif_id}"
+    publishDir "${params.outdir}/z_score"
+
+    input:
+        tuple val(motif_id), path(indicator_file)
+    
+    output:
+        tuple val(motif_id), path(name)
+    
+    script:
+    prefix = "${motif_id}"
+    name = "${motif_id}.z_score.tsv"
+    """
+    python $moduleDir/bin/subsample_proportion.py \
+        ${motif_id} \
+        ${indicator_file} \
+        ${name} \
+        ${params.dhs_index_masterlist} \
+        ${params.all_nmf_binary} \
+        ${params.all_samples_meta} \
+        ${params.metadata_file} \
+        ${params.acc_proportion}
+
+    """
 }
 
 workflow matchingBackground {
