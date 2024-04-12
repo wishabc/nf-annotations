@@ -269,25 +269,25 @@ workflow hyperGeom {
 
 process match_gc_background {
     conda params.pyconda
-    tag "${motif_id}"
-    publishDir "${params.outdir}/z_score"
+    tag "${motif_id}:${matrix_type}"
+    publishDir "${params.outdir}/${matrix_type}"
 
     input:
-        tuple val(motif_id), path(indicator_file)
+        tuple val(motif_id), path(indicator_file), val(matrix_type), path(binary_matrix)
     
     output:
-        tuple val(motif_id), path(name)
+        tuple val(motif_id), val(matrix_type), path(name)
     
     script:
-    prefix = "${motif_id}"
-    name = "${motif_id}.z_score.tsv"
+    name = "${motif_id}.${matrix_type}.z_score.tsv"
     """
     python $moduleDir/bin/subsample_proportion.py \
         ${motif_id} \
+        ${matrix_type} \
         ${indicator_file} \
         ${name} \
         ${params.dhs_index_masterlist} \
-        ${params.all_nmf_binary} \
+        ${binary_matrix} \
         ${params.all_samples_meta} \
         ${params.metadata_file} \
         ${params.acc_proportion}
@@ -298,17 +298,20 @@ process match_gc_background {
 workflow matchingBackground {
     params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
 
-    coeffs = Channel.fromPath("${params.moods_scans_dir}/*")
+    matrices = Channel.of([tuple("NMF", file(params.binary_nmf)), tuple("DHS_Binary", file(params.binary_dhs_agid))])
+
+    Channel.fromPath("${params.moods_scans_dir}/*")
         | map (it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it, params.all_samples_meta))
         | motif_hits_intersect // motif_id, indicator
+        | combine(matrices)
 	    | match_gc_background
-
-    coeffs | map(it -> it[1])
+        | map(it -> it[2])
         | collectFile(name: 'all.z_score.stats.tsv',
             storeDir: "${params.outdir}",
             skip: 1,
             sort: true,
-            keepHeader: true)
+            keepHeader: true
+        )
 
 }
 

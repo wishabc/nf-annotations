@@ -120,9 +120,9 @@ def get_sample_indicators(counts_to_sample, all_counts, seed=0):
 
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser(description='All_coeffs file to components')
     parser.add_argument('motif_id', help='value of motif id') # motif_id
+    parser.add_argument('matrix_type', help='Path to type of matrix file') # New addition
     parser.add_argument('indicator', help='Path to indicator file') # indicator_file
     parser.add_argument('output', help='Path to output file') # name
     parser.add_argument('index_meta', help='Path to sample metadata')
@@ -133,6 +133,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     motif_id_name = args.motif_id
+    matrix_type = args.matrix_type
     index_masterlist = pd.read_table(args.index_meta)
     motifs_meta = pd.read_table(args.meta_data, header=None, names=['#chr', 'start', 'end', 'dhs_id'])
     indicator_file = pd.read_table(args.indicator, header=None)
@@ -186,5 +187,6 @@ if __name__ == '__main__':
     output_df = pd.DataFrame(data = d)
 
     output_df['motif_id'] = motif_id_name
+    output_df['matrix_type'] = matrix_type
 
     output_df.to_csv(args.output, sep='\t', index=False)
