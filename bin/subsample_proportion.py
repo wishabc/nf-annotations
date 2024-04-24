@@ -183,7 +183,7 @@ if __name__ == '__main__':
     print("Done Z-score")
 
     # 'ag_id': sample_meta['ag_id'].values
-    d = {'component_number': [i for i in range(1,25)], 'mu': mu_np, 'sd': sd_np,
+    d = {'component_number': [i for i in range(1,30)], 'mu': mu_np, 'sd': sd_np,
          'z_score': z_score_np, 'motif_agid': motif_agid, 'p_value': pvalue}
     output_df = pd.DataFrame(data = d)
 
