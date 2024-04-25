@@ -137,7 +137,7 @@ if __name__ == '__main__':
     # index_masterlist = pd.read_table(args.index_meta)
     # motifs_meta = pd.read_table(args.meta_data, header=None, names=['#chr', 'start', 'end', 'dhs_id'])
     indicator_file = pd.read_table(args.indicator, header=None)
-    binary_matrix = np.load(args.matrix_file).T
+    binary_matrix = np.load(args.matrix_file) #.T
     # sample_meta = pd.read_table(args.sample_meta)
     # acc_prop_df = pd.read_table(args.acc_proportion)
     combined_masterlist = pd.read_table(args.acc_proportion)
