@@ -128,18 +128,21 @@ if __name__ == '__main__':
     # parser.add_argument('index_meta', help='Path to sample metadata')
     parser.add_argument('matrix_file', help='Path to matrix file') # params.nmf_matrix
     # parser.add_argument('meta_data', help='Path to metadata to named the sample or components')
-    # parser.add_argument('sample_meta', help='Path to sample metadata')
+    parser.add_argument('sample_meta', help='Path to sample metadata')
     parser.add_argument('acc_proportion', help='Path to dhs sample acc')
     args = parser.parse_args()
 
     motif_id_name = args.motif_id
     matrix_type = args.matrix_type
-    # index_masterlist = pd.read_table(args.index_meta)
-    # motifs_meta = pd.read_table(args.meta_data, header=None, names=['#chr', 'start', 'end', 'dhs_id'])
     indicator_file = pd.read_table(args.indicator, header=None)
+    # output name
+    # index_masterlist = pd.read_table(args.index_meta)
     binary_matrix = np.load(args.matrix_file) #.T
-    # sample_meta = pd.read_table(args.sample_meta)
+    # motifs_meta = pd.read_table(args.meta_data, header=None, names=['#chr', 'start', 'end', 'dhs_id'])
+    sample_meta = pd.read_table(args.sample_meta)
     # acc_prop_df = pd.read_table(args.acc_proportion)
+
+
     combined_masterlist = pd.read_table(args.acc_proportion)
 
     # Merge so that it filter out only Index DHSs
@@ -182,10 +185,16 @@ if __name__ == '__main__':
 
     print("Done Z-score")
 
-    # 'ag_id': sample_meta['ag_id'].values
-    d = {'component_number': [i for i in range(1,30)], 'mu': mu_np, 'sd': sd_np,
+    if matrix_type == "NMF":
+        d = {'component_number': [i for i in range(1,binary_matrix.shape[1] + 1)], 'mu': mu_np, 'sd': sd_np,
          'z_score': z_score_np, 'motif_agid': motif_agid, 'p_value': pvalue}
-    output_df = pd.DataFrame(data = d)
+        output_df = pd.DataFrame(data = d)
+    elif matrix_type == "DHS_Binary":
+        d = {'ag_id': sample_meta['ag_id'].values, 'mu': mu_np, 'sd': sd_np,
+         'z_score': z_score_np, 'motif_agid': motif_agid, 'p_value': pvalue}
+        output_df = pd.DataFrame(data = d)
+    else:
+        print("Type of matrix not specified in workflow")    
 
     output_df['motif_id'] = motif_id_name
     output_df['matrix_type'] = matrix_type

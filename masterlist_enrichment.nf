@@ -286,15 +286,19 @@ process match_gc_background {
         ${matrix_type} \
         ${indicator_file} \
         ${name} \
+        ${params.dhs_index_masterlist} \
         ${binary_matrix} \
+        ${params.metadata_file} \
+        ${params.all_samples_meta} \
         ${params.acc_proportion}
 
     """
 }
 
 //        ${params.dhs_index_masterlist} \
-//        ${params.all_samples_meta} \
 //        ${params.metadata_file} \
+//        ${params.all_samples_meta} \
+
 
 workflow matchingBackground {
     params.pyconda = "/home/afathul/miniconda3/envs/motif_enrichment"
