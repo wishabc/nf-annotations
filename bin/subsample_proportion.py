@@ -142,7 +142,6 @@ if __name__ == '__main__':
     sample_meta = pd.read_table(args.sample_meta)
     # acc_prop_df = pd.read_table(args.acc_proportion)
 
-
     combined_masterlist = pd.read_table(args.acc_proportion)
 
     # Merge so that it filter out only Index DHSs
