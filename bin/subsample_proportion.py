@@ -83,9 +83,13 @@ if __name__ == '__main__':
     mu_np, sd_np, z_score_np, pvalue = calculate_zscore(result_array, motif_hits_per_sample)
 
     print("Done Z-score")
+    if args.sample_names is not None:
+        sample_names = np.loadtxt(args.sample_names, dtype=str)
+    else:
+        sample_names = np.arange(binary_matrix.shape[1])
 
     output_df = pd.DataFrame({
-        'component_number': np.arange(binary_matrix.shape[1]),
+        'names': sample_names,
         'mu': mu_np,
         'sd': sd_np,
         'z_score': z_score_np,
