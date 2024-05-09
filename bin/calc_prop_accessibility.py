@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import argparse
-from scipy.sparse import csc_matrix
 from tqdm import tqdm
 
 def sample_with_weights(weights, n=1000, n_samples=10000, seed=None):
