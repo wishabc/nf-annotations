@@ -1,6 +1,4 @@
 
-params.conda = "/home/afathul/miniconda3/envs/motif_enrichment"
-
 process calc_prop_accessibility {
     conda params.conda
     publishDir "${params.outdir}"
@@ -77,13 +75,13 @@ workflow motifEnrichment {
             | combine(data)
             | motif_enrichment_z_score
             | groupTuple()
-            | collectFile {
-                it -> [ "${it[0]}.z_score_stats.tsv", it[2] ],
-                storeDir: "${params.outdir}",
-                skip: 1,
-                sort: true,
-                keepHeader: true
-            }
+            // | collectFile {
+            //     it -> [ "${it[0]}.z_score_stats.tsv", it[2] ],
+            //     storeDir: "${params.outdir}",
+            //     skip: 1,
+            //     sort: true,
+            //     keepHeader: true
+            // }
     emit:
         out
 }
@@ -102,7 +100,7 @@ workflow categoryEnrichment {
 
 workflow {
     matrices = Channel.fromPath(params.binary_matrix)
-        | map(it -> tuple("DHS_Binary", it, params.sample_names))
+        | map(it -> tuple("DHS_Binary", it, file(params.sample_names)))
         | combine(calc_prop_accessibility())
         | motifEnrichment
 }
