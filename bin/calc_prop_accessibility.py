@@ -29,7 +29,7 @@ def sample_with_weights(weights, n=1000, n_samples=10000, seed=None):
     return masks
 
 
-def main(binary_matrix, sample_weights, n=1000, n_samples=1000):
+def main(binary_matrix, sample_weights, n=500, n_samples=1000):
 
     sampled_masks = sample_with_weights(sample_weights, n=n, n_samples=n_samples, seed=0)
 
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('binary_matrix', help='Path to binary matrix to calculate proportion of accessibility')
     parser.add_argument('dhs_meta', help='Path to DHS metadata (index file)')
     parser.add_argument('dhs_annotations', help='DHS annotations file (BED format)')
-    parser.add_argument('ouput', help='Path to the output file')
+    parser.add_argument('output', help='Path to the output file')
     parser.add_argument('--samples_weights', help='Path to samples weights (to avoid class imbalanced)', default=None)
     parser.add_argument('--sampling_n', type=int, help='Number of sampling iterations to average proportion of accessibility', default=1000)
     parser.add_argument('--n', type=int, help='Number of samples to choose', default=None)

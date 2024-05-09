@@ -17,8 +17,8 @@ process calc_prop_accessibility {
         ${params.dhs_annotations} \
         ${name} \
         --samples_weights ${params.sample_weights} \
-        --sampling_n 1000 \
-        --n 1000
+        --sampling_n 500 \
+        --n 10
     """
 }
 
