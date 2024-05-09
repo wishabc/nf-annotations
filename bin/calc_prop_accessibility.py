@@ -54,7 +54,7 @@ if __name__ == '__main__':
     binary_matrix = np.load(args.binary_matrix).astype(int)
 
     if args.samples_weights is not None:
-        sample_weights = pd.read_table(args.samples_weights, header=None)['weights'].to_numpy()
+        sample_weights = pd.read_table(args.samples_weights, header=None)['weight'].to_numpy()
     else:
         sample_weights = np.ones(binary_matrix.shape[1])
     
