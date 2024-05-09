@@ -33,7 +33,7 @@ def main(binary_matrix, sample_weights, n=500, n_samples=1000):
 
     sampled_masks = sample_with_weights(sample_weights, n=n, n_samples=n_samples, seed=0)
 
-    acc_counts = np.zeros((n_samples, binary_matrix.shape[0]), dtype=int)
+    acc_counts = np.zeros((n_samples, binary_matrix.shape[0]), dtype=float)
 
     # Apply each mask and calculate the sums directly in a sparse-efficient way
     for i, mask in tqdm(enumerate(sampled_masks), total=len(sampled_masks)):
