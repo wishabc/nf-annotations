@@ -6,6 +6,7 @@ from scipy.spatial.distance import pdist, squareform
 from scipy.stats import norm
 from numba import jit, prange
 from numpy.lib.stride_tricks import as_strided
+from genome_tools.utils.sampling import stratified_sampling
 import argparse # using argparse for args
 print('import packages completed')
 
@@ -44,7 +45,7 @@ def calculate_zscore(result_array, motif_agid):
     
     return mu, sd, z_score, p_val
 
-def sparse_dot_product(resample_arr, binary_mat, indicator_df):
+def sparse_dot_product(resample_arr, binary_mat, motif_indicator):
     # sparse the matrix
     X_sparse = sparse.csr_matrix(resample_arr.T)
     Y_sparse = sparse.csc_matrix(binary_mat)
@@ -53,7 +54,7 @@ def sparse_dot_product(resample_arr, binary_mat, indicator_df):
     result_arr = X_sparse.dot(Y_sparse)
 
     # motif in sample agid
-    motif_agid_np = np.dot(indicator_df.to_numpy().T, binary_mat)[0]
+    motif_agid_np = np.dot(motif_indicator.T, binary_mat)[0]
 
     return result_arr, motif_agid_np
 
@@ -118,6 +119,11 @@ def get_sample_indicators(counts_to_sample, all_counts, seed=0):
     return res
 
 
+def transform_to_bins(data, n_quantiles=100):
+    bins = np.quantile(data, np.linspace(0, 1, n_quantiles + 1))
+    return pd.cut(data, np.unique(bins), include_lowest=True, labels=False)
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='All_coeffs file to components')
@@ -129,7 +135,7 @@ if __name__ == '__main__':
     parser.add_argument('matrix_file', help='Path to matrix file') # params.nmf_matrix
     # parser.add_argument('meta_data', help='Path to metadata to named the sample or components')
     parser.add_argument('sample_meta', help='Path to sample metadata')
-    parser.add_argument('acc_proportion', help='Path to dhs sample acc')
+    parser.add_argument('dhs_meta', help='Path to dhs annotations')
     args = parser.parse_args()
 
     motif_id_name = args.motif_id
@@ -142,40 +148,21 @@ if __name__ == '__main__':
     sample_meta = pd.read_table(args.sample_meta)
     # acc_prop_df = pd.read_table(args.acc_proportion)
 
-    combined_masterlist = pd.read_table(args.acc_proportion)
-
-    # Merge so that it filter out only Index DHSs
-    # combined_masterlist = motifs_meta.merge(index_masterlist)
-
-    # Combined the motif indicator
-    combined_masterlist['motif_indicator_file'] = indicator_file
-
-    # Add sample acc_proportion
-    # combined_masterlist = combined_masterlist.merge(acc_prop_df)
-
-    # gc_percent
-    gc_bins = np.quantile(combined_masterlist['percent_gc'], np.linspace(0, 1, 101))
-    combined_masterlist['gc_bin'] = pd.cut(combined_masterlist['percent_gc'], np.unique(gc_bins), include_lowest=True, labels=False)
-
-    # acc
-    acc_bins = np.quantile(combined_masterlist['acc_prop'], np.linspace(0, 1, 511))
-    combined_masterlist['acc_bin'] = pd.cut(combined_masterlist['acc_prop'], np.unique(acc_bins), include_lowest=True, labels=False)
-
+    combined_masterlist = pd.read_table(args.dhs_meta)
+    combined_masterlist['overlaps_motif'] = indicator_file
+    combined_masterlist['gc_bin'] = transform_to_bins(combined_masterlist['percent_gc'], n_quantiles=100)
+    combined_masterlist['acc_bin'] = transform_to_bins(combined_masterlist['acc_prop'], n_quantiles=100)
     matching_fields = ['gc_bin', 'acc_bin']
 
-    # Changed to include empty bins
-    all_bin_counts = combined_masterlist[matching_fields].value_counts().sort_index()
-    reference_bin_counts = combined_masterlist.query('motif_indicator_file == 1')[matching_fields].value_counts().reindex(all_bin_counts.index).sort_index()
-    bin_counts_to_sample = perturb_bin_counts(reference_bin_counts, num_samples=1000, w=0)
-
-    # Added sorting of indicators
-    sample_indicators = get_sample_indicators(bin_counts_to_sample, all_bin_counts.values)
-    sample_indicators = sample_indicators[np.argsort(combined_masterlist.sort_values(matching_fields).index), :]
-
-    # Change to integer
-    sample_indicator_int = sample_indicators.astype(int)
-
-    result_array, motif_agid = sparse_dot_product(sample_indicator_int, binary_matrix, indicator_file)
+    indices = stratified_sampling(
+        combined_masterlist,
+        combined_masterlist.query('overlaps_motif == 1'),
+        matching_fields,
+        num_samples=1000,
+        starting_seed=0,
+    )
+    
+    result_array, motif_agid = sparse_dot_product(indices, binary_matrix, indicator_file)
 
     print("Done Dot Product")
     
