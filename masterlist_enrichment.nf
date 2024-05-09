@@ -48,10 +48,10 @@ process motif_enrichment_z_score {
     publishDir "${params.outdir}/${matrix_type}"
 
     input:
-        tuple val(motif_id), path(indicator_file), val(matrix_type), path(binary_matrix), path(accessibility_proportion)
+        tuple val(motif_id), path(indicator_file), val(matrix_type), path(binary_matrix), path(sample_names), path(accessibility_proportion)
     
     output:
-        tuple val(motif_id), val(matrix_type), path(name)
+        tuple val(matrix_type), val(motif_id), path(name)
     
     script:
     name = "${motif_id}.${matrix_type}.z_score.tsv"
@@ -62,44 +62,49 @@ process motif_enrichment_z_score {
         ${name} \
         ${binary_matrix} \
         ${params.samples_file} \
-        ${accessibility_proportion}
+        ${accessibility_proportion} \
+        --sample_names ${sample_names}
     """
 }
 
 workflow motifEnrichment {
     take:
-        matrices
-        prop_accessibility
+        data
     main: 
         out = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
             | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
             | motif_hits_intersect // motif_id, indicator
-            | combine(matrices)
-            | combine(prop_accessibility)
+            | combine(data)
             | motif_enrichment_z_score
-            | map(it -> it[2])
-            | collectFile(name: 'all.z_score.stats.tsv',
+            | groupTuple()
+            | collectFile {
+                it -> [ "${it[0]}.z_score_stats.tsv", it[2] ],
                 storeDir: "${params.outdir}",
                 skip: 1,
                 sort: true,
                 keepHeader: true
-            )
+            }
     emit:
         out
 }
 
+
+workflow categoryEnrichment {
+    params.template_run = "${params.outdir}"
+    accessibility = Channel.fromPath("${params.template_run}/proportion_accessibility.tsv")
+    matrices = Channel.fromPath(params.matrices_list)
+       | splitCsv(header:true, sep:'\t')
+       | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
+       | combine(accessibility)
+       | motifEnrichment
+}
+
+
 workflow {
-    // matrices = Channel.fromPath(params.matrices_list)
-    //     | splitCsv(header:true, sep:'\t')
-    //     | map(row -> tuple(row.matrix_id, file(row.matrix)))
-    matrices = Channel.of(
-        //tuple("NMF", file(params.binary_nmf)),
-        tuple("DHS_Binary", file(params.binary_matrix))
-    )
-    acc = calc_prop_accessibility()
-
-    motifEnrichment(matrices, acc)
-
+    matrices = Channel.fromPath(params.binary_matrix)
+        | map(it -> tuple("DHS_Binary", it, params.sample_names))
+        | combine(calc_prop_accessibility())
+        | motifEnrichment
 }
 
 

@@ -30,9 +30,9 @@ def sparse_dot_product(resample_arr, binary_mat, motif_indicator):
     result_arr = X_sparse.dot(Y_sparse)
 
     # motif in sample agid
-    motif_agid_np = np.dot(motif_indicator.T, binary_mat).squeeze()
+    motifs_per_sample = np.dot(motif_indicator.T, binary_mat).squeeze()
 
-    return result_arr.toarray(), motif_agid_np
+    return result_arr.toarray(), motifs_per_sample
 
 
 def transform_to_bins(data, n_quantiles=100):
@@ -46,11 +46,10 @@ if __name__ == '__main__':
     parser.add_argument('motif_id', help='ID of the motif') # motif_id
     parser.add_argument('indicator', help='Path to a file with boolean indicator of overlap with significant motif hits') # indicator_file
     parser.add_argument('output', help='Path to output file') # name
-    # parser.add_argument('index_meta', help='Path to sample metadata')
     parser.add_argument('matrix_file', help='Path to matrix file') # params.nmf_matrix
-    # parser.add_argument('meta_data', help='Path to metadata to named the sample or components')
     parser.add_argument('sample_meta', help='Path to sample metadata')
     parser.add_argument('dhs_meta', help='Path to dhs annotations')
+    parser.add_argument('--sample_names', help='File with sample names in the same order as the matrix', default=None)
     args = parser.parse_args()
 
     motif_id_name = args.motif_id
@@ -77,10 +76,11 @@ if __name__ == '__main__':
         return_indicators=True
     )
     
-    result_array, motif_agid = sparse_dot_product(indices, binary_matrix, combined_masterlist['overlaps_motif'])
+    result_array, motif_hits_per_sample = sparse_dot_product(indices, binary_matrix, combined_masterlist['overlaps_motif'])
+    
     
     # call function for zscore
-    mu_np, sd_np, z_score_np, pvalue = calculate_zscore(result_array, motif_agid)
+    mu_np, sd_np, z_score_np, pvalue = calculate_zscore(result_array, motif_hits_per_sample)
 
     print("Done Z-score")
 
@@ -89,7 +89,7 @@ if __name__ == '__main__':
         'mu': mu_np,
         'sd': sd_np,
         'z_score': z_score_np,
-        'motif_agid': motif_agid,
+        'motif_hits_per_sample': motif_hits_per_sample,
         'p_value': pvalue
     })
  
