@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import argparse
 from scipy.sparse import csr_matrix
-
+from tqdm import tqdm
 
 def sample_with_weights(weights, n=1000, n_samples=10000, seed=None):
     prob_distribution = weights / weights.sum()
@@ -37,7 +37,7 @@ def main(binary_matrix, sample_weights, n=1000, n_samples=10000):
     acc_counts = np.zeros((n_samples, binary_matrix_sparse.shape[1]))
 
     # Apply each mask and calculate the sums directly in a sparse-efficient way
-    for i, mask in enumerate(sampled_masks):
+    for i, mask in tqdm(enumerate(sampled_masks), total=len(sampled_masks)):
         acc_counts[i, :] = binary_matrix_sparse[:, mask].sum(axis=1).A.flatten()
 
     return acc_counts / n
