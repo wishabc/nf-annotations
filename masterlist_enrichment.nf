@@ -93,13 +93,13 @@ workflow {
     // matrices = Channel.fromPath(params.matrices_list)
     //     | splitCsv(header:true, sep:'\t')
     //     | map(row -> tuple(row.matrix_id, file(row.matrix)))
-    // matrices = Channel.of(
-    //     tuple("NMF", file(params.binary_nmf)),
-    //     tuple("DHS_Binary", file(params.binary_dhs_agid))
-    // )
+    matrices = Channel.of(
+        //tuple("NMF", file(params.binary_nmf)),
+        tuple("DHS_Binary", file(params.binary_matrix))
+    )
     acc = calc_prop_accessibility()
 
-    //motifEnrichment(matrices, acc)
+    motifEnrichment(matrices, acc)
 
 }
 
