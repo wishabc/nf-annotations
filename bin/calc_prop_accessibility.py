@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import argparse
-from scipy.sparse import csr_matrix
+from scipy.sparse import csc_matrix
 from tqdm import tqdm
 
 def sample_with_weights(weights, n=1000, n_samples=10000, seed=None):
@@ -29,8 +29,7 @@ def sample_with_weights(weights, n=1000, n_samples=10000, seed=None):
     return masks
 
 
-def main(binary_matrix, sample_weights, n=1000, n_samples=10000):
-    binary_matrix_sparse = csr_matrix(binary_matrix)
+def main(binary_matrix_sparse, sample_weights, n=1000, n_samples=10000):
 
     sampled_masks = sample_with_weights(sample_weights, n=n, n_samples=n_samples, seed=0)
 
@@ -38,7 +37,7 @@ def main(binary_matrix, sample_weights, n=1000, n_samples=10000):
 
     # Apply each mask and calculate the sums directly in a sparse-efficient way
     for i, mask in tqdm(enumerate(sampled_masks), total=len(sampled_masks)):
-        acc_counts[i, :] = binary_matrix_sparse[:, mask].sum(axis=1).A.flatten()
+        acc_counts[i, :] = binary_matrix_sparse[mask].sum(axis=1).A.flatten()
 
     return acc_counts / n
 
@@ -59,6 +58,8 @@ if __name__ == '__main__':
     dhs_annotations = pd.read_table(args.dhs_annotations)
     dhs_annotations = dhs_annotations[dhs_annotations['dhs_id'].isin(dhs_ids)].reset_index(drop=True)
     binary_matrix = np.load(args.binary_matrix).astype(int)
+    binary_matrix_sparse = csc_matrix(binary_matrix)
+    print(binary_matrix.shape)
 
     if args.samples_weights is not None:
         sample_weights = pd.read_table(args.samples_weights)['weight'].to_numpy()
