@@ -77,7 +77,7 @@ workflow motifEnrichment {
             | groupTuple()
             | collectFile(
                 {
-                    it -> [ "${it[0]}.z_score_stats.tsv", it[2] ]
+                    it -> [ "${it[0]}.z_score_stats.tsv", it[2].text ]
                 },
                 storeDir: "${params.outdir}",
                 skip: 1,
