@@ -75,13 +75,15 @@ workflow motifEnrichment {
             | combine(data)
             | motif_enrichment_z_score
             | groupTuple()
-            // | collectFile {
-            //     it -> [ "${it[0]}.z_score_stats.tsv", it[2] ],
-            //     storeDir: "${params.outdir}",
-            //     skip: 1,
-            //     sort: true,
-            //     keepHeader: true
-            // }
+            | collectFile(
+                {
+                    it -> [ "${it[0]}.z_score_stats.tsv", it[2] ]
+                },
+                storeDir: "${params.outdir}",
+                skip: 1,
+                sort: true,
+                keepHeader: true
+            )
     emit:
         out
 }
