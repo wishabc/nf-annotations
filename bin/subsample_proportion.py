@@ -65,7 +65,7 @@ if __name__ == '__main__':
     combined_masterlist = pd.read_table(args.dhs_meta)
     combined_masterlist['overlaps_motif'] = indicator_file
     combined_masterlist['gc_bin'] = transform_to_bins(combined_masterlist['percent_gc'], n_quantiles=100)
-    combined_masterlist['acc_bin'] = transform_to_bins(combined_masterlist['acc_prop'], n_quantiles=100)
+    combined_masterlist['acc_bin'] = transform_to_bins(combined_masterlist['mean_acc'], n_quantiles=100)
     matching_fields = ['gc_bin', 'acc_bin']
 
     indices = stratified_sampling(
