@@ -74,7 +74,6 @@ workflow motifEnrichment {
             | motif_hits_intersect // motif_id, indicator
             | combine(data)
             | motif_enrichment_z_score
-            | groupTuple()
             | collectFile(
                 storeDir: "${params.outdir}",
                 skip: 1,
