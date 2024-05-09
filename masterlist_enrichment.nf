@@ -91,6 +91,7 @@ workflow categoryEnrichment {
        | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
        
     Channel.fromPath("${params.template_run}/motif_hits/*")
+        | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
         | combine(matrices)
         | combine(accessibility)
         | motifEnrichment
