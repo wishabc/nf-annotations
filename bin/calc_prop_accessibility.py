@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import argparse
+from scipy.sparse import csr_matrix
 
 
 def sample_with_weights(weights, n=1000, n_samples=10000, seed=None):
@@ -29,11 +30,17 @@ def sample_with_weights(weights, n=1000, n_samples=10000, seed=None):
 
 
 def main(binary_matrix, sample_weights, n=1000, n_samples=10000):
-    sampled_masks = sample_with_weights(sample_weights, n=n, n_samples=n_samples, seed=0)
-    result_matrices = np.stack([binary_matrix[:, mask] for mask in sampled_masks]) # n_samples x n_DHSs x n
+    binary_matrix_sparse = csr_matrix(binary_matrix)
 
-    acc_proportions = result_matrices.sum(axis=2) / result_matrices.shape[2] # n_samples x n_DHSs
-    return acc_proportions
+    sampled_masks = sample_with_weights(sample_weights, n=n, n_samples=n_samples, seed=0)
+
+    acc_counts = np.zeros((n_samples, binary_matrix_sparse.shape[1]))
+
+    # Apply each mask and calculate the sums directly in a sparse-efficient way
+    for i, mask in enumerate(sampled_masks):
+        acc_counts[i, :] = binary_matrix_sparse[:, mask].sum(axis=1).A.flatten()
+
+    return acc_counts / n
 
 
 
