@@ -2,10 +2,7 @@
 import pandas as pd
 import numpy as np
 from scipy import sparse
-from scipy.spatial.distance import pdist, squareform
 from scipy.stats import norm
-from numba import jit, prange
-from numpy.lib.stride_tricks import as_strided
 from genome_tools.utils.sampling import stratified_sampling
 import argparse # using argparse for args
 print('import packages completed')
