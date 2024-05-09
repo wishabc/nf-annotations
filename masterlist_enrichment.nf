@@ -69,10 +69,7 @@ workflow motifEnrichment {
     take:
         data
     main: 
-        out = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
-            | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
-            | motif_hits_intersect // motif_id, indicator
-            | combine(data)
+        out = data
             | motif_enrichment_z_score
             | collectFile(
                 storeDir: "${params.outdir}",
@@ -88,11 +85,15 @@ workflow motifEnrichment {
 workflow categoryEnrichment {
     params.template_run = "${params.outdir}"
     accessibility = Channel.fromPath("${params.template_run}/proportion_accessibility.tsv")
+    
     matrices = Channel.fromPath(params.matrices_list)
        | splitCsv(header:true, sep:'\t')
        | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
-       | combine(accessibility)
-       | motifEnrichment
+       
+    Channel.fromPath("${params.template_run}/motif_hits/*")
+        | combine(matrices)
+        | combine(accessibility)
+        | motifEnrichment
 }
 
 
@@ -100,6 +101,11 @@ workflow {
     matrices = Channel.fromPath(params.binary_matrix)
         | map(it -> tuple("DHS_Binary", it, file(params.sample_names)))
         | combine(calc_prop_accessibility())
+    
+    d = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
+        | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
+        | motif_hits_intersect // motif_id, indicator
+        | combine(matrices)
         | motifEnrichment
 }
 
