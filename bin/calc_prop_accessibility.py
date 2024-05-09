@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
     dhs_ids = pd.read_table(args.dhs_meta, header=None)[3]
     dhs_annotations = pd.read_table(args.dhs_annotations)
-    dhs_annotations = dhs_annotations[dhs_annotations['id'].isin(dhs_ids)].reset_index(drop=True)
+    dhs_annotations = dhs_annotations[dhs_annotations['dhs_id'].isin(dhs_ids)].reset_index(drop=True)
     binary_matrix = np.load(args.binary_matrix).astype(int)
 
     if args.samples_weights is not None:
