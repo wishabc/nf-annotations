@@ -58,7 +58,6 @@ process motif_enrichment_z_score {
     """
     python $moduleDir/bin/subsample_proportion.py \
         ${motif_id} \
-        ${matrix_type} \
         ${indicator_file} \
         ${name} \
         ${binary_matrix} \
