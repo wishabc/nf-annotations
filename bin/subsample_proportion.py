@@ -5,19 +5,15 @@ from scipy import sparse
 from scipy.stats import norm
 from genome_tools.utils.sampling import stratified_sampling
 import argparse # using argparse for args
-print('import packages completed')
 
 
-
-
-def calculate_zscore(result_array, motif_agid):
+def calculate_zscore(result_array, motif_counts):
     mu = result_array.mean(axis=0)
     sd = result_array.std(axis=0)
     
-    z_score = (motif_agid - mu) / sd
+    z_score = (motif_counts - mu) / sd
 
-    # Calculate p-value (one-tailed)
-    p_val = norm.sf(np.abs(z_score))
+    p_val = norm.sf(z_score)
     
     return mu, sd, z_score, p_val
 
@@ -50,37 +46,31 @@ if __name__ == '__main__':
     parser.add_argument('sample_meta', help='Path to sample metadata')
     parser.add_argument('dhs_meta', help='Path to dhs annotations')
     parser.add_argument('--sample_names', help='File with sample names in the same order as the matrix', default=None)
+    parser.add_argument('--n_bins', dtype=int, help='File with sample names in the same order as the matrix', default=100)
     args = parser.parse_args()
 
-    motif_id_name = args.motif_id
     indicator_file = pd.read_table(args.indicator, header=None)
-    # output name
-    # index_masterlist = pd.read_table(args.index_meta)
-    binary_matrix = np.load(args.matrix_file) #.T
-    # motifs_meta = pd.read_table(args.meta_data, header=None, names=['#chr', 'start', 'end', 'dhs_id'])
+    binary_matrix = np.load(args.matrix_file).astype(int)
     sample_meta = pd.read_table(args.sample_meta)
-    # acc_prop_df = pd.read_table(args.acc_proportion)
 
     combined_masterlist = pd.read_table(args.dhs_meta)
     combined_masterlist['overlaps_motif'] = indicator_file
-    combined_masterlist['gc_bin'] = transform_to_bins(combined_masterlist['percent_gc'], n_quantiles=100)
-    combined_masterlist['acc_bin'] = transform_to_bins(combined_masterlist['mean_acc'], n_quantiles=100)
-    matching_fields = ['gc_bin', 'acc_bin']
+    combined_masterlist['gc_bin'] = transform_to_bins(combined_masterlist['percent_gc'], n_quantiles=args.n_bins)
+    combined_masterlist['acc_bin'] = transform_to_bins(combined_masterlist['mean_acc'], n_quantiles=args.n_bins)
 
-    indices = stratified_sampling(
+
+    sampled_indices = stratified_sampling(
         combined_masterlist,
         combined_masterlist.query('overlaps_motif == 1'),
-        matching_fields,
+        matching_fields=['gc_bin', 'acc_bin'],
         num_samples=1000,
         starting_seed=0,
         return_indicators=True
     )
     
-    result_array, motif_hits_per_sample = sparse_dot_product(indices, binary_matrix, combined_masterlist['overlaps_motif'])
+    sampled_peaks, motif_hits_per_sample = sparse_dot_product(sampled_indices, binary_matrix, combined_masterlist['overlaps_motif'])
     
-    
-    # call function for zscore
-    mu_np, sd_np, z_score_np, pvalue = calculate_zscore(result_array, motif_hits_per_sample)
+    mu_np, sd_np, z_score_np, pvalue = calculate_zscore(sampled_peaks, motif_hits_per_sample)
 
     print("Done Z-score")
     if args.sample_names is not None:
@@ -97,7 +87,6 @@ if __name__ == '__main__':
         'p_value': pvalue
     })
  
-
-    output_df['motif_id'] = motif_id_name
+    output_df['motif_id'] = args.motif_id
 
     output_df.to_csv(args.output, sep='\t', index=False)

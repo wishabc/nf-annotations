@@ -61,7 +61,8 @@ process motif_enrichment_z_score {
         ${binary_matrix} \
         ${params.samples_file} \
         ${accessibility_proportion} \
-        --sample_names ${sample_names}
+        --sample_names ${sample_names} \
+        --n_bins ${params.matching_bins}
     """
 }
 
