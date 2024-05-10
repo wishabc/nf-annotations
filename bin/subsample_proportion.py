@@ -46,7 +46,7 @@ if __name__ == '__main__':
     parser.add_argument('sample_meta', help='Path to sample metadata')
     parser.add_argument('dhs_meta', help='Path to dhs annotations')
     parser.add_argument('--sample_names', help='File with sample names in the same order as the matrix', default=None)
-    parser.add_argument('--n_bins', dtype=int, help='File with sample names in the same order as the matrix', default=100)
+    parser.add_argument('--n_bins', type=int, help='File with sample names in the same order as the matrix', default=100)
     args = parser.parse_args()
 
     indicator_file = pd.read_table(args.indicator, header=None)
