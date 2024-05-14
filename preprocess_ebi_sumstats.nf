@@ -1,3 +1,5 @@
+include { munge_sumstats } from './preprocess_ukbb.nf'
+
 process download_file {
     tag "${phen_id}"
     publishDir "${params.outdir}/per_phenotype/${phen_id}"
@@ -23,4 +25,13 @@ workflow {
         | filter{ it[2] == "TRUE" }
         | map(it -> tuple(it[0], it[1]))
         | download_file
+        | munge_sumstats
+}
+
+workflow tmp {
+    meta = Channel.fromPath(params.phenotypes_meta)
+        | splitCsv(header:true, sep:'\t')
+        | map(row -> tuple(row.phen_id, row.ebi_link, row.sumstats_exists))
+        | filter{ it[2] == "TRUE" }
+        | map(it -> tuple(it[0], it[1]))
 }
