@@ -48,7 +48,6 @@ workflow tmp {
     meta = Channel.fromPath(params.phenotypes_meta)
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.phen_id, row.ebi_meta_link, row.sumstats_exists))
-        | filter{ it[2] == "TRUE" }
         | map(it -> tuple(it[0], it[1]))
         | download_meta
 }
