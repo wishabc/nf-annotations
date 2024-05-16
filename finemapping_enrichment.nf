@@ -60,6 +60,4 @@ workflow {
             Channel.fromPath("${params.finemapped_variants_file}")
        )
        | overlap_annotation
-       
-
 }
