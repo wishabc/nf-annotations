@@ -11,20 +11,10 @@ process split_matrices {
     
     script:
     """
-    awk -F'\t' -v names_file=${sample_names} -v matrix_name=${matrix_name} \
-        'BEGIN {
-            while ((getline line < names_file) > 0) {
-                names[NR] = line
-            }
-            close(names_file)
-        }
-        {
-            # For each column, print the value to the corresponding file
-            for (i = 1; i <= NF; i++) {
-                file = matrix_name"."names[i]".txt"
-                print \$i > file
-            }
-        }' "${matrix}"
+    python3 $moduleDir/bin/split_matrix.py \
+        ${matrix} \
+        ${sample_names} \
+        ${matrix_name}
     """
 }
 
