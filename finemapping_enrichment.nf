@@ -36,7 +36,7 @@ process overlap_annotation {
     awk 'NR==FNR { mask[FNR]=\$1; next } mask[FNR]==1' \
         ${dhs_mask} \
         ${params.masterlist_file} \
-        | bedmap --echo --indicator \
+        | bedmap --indicator \
             ${variants} - > ${name}
     """
 }
