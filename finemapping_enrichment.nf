@@ -2,6 +2,7 @@
 process split_matrices {
     conda params.conda
     //publishDir "${params.outdir}"
+    tag "${matrix_name}"
     
     input:
         tuple val(matrix_name), path(matrix), path(sample_names)
@@ -21,6 +22,7 @@ process split_matrices {
 process overlap_annotation {
     conda params.conda
     publishDir "${params.outdir}/${matrix_name}"
+    tag "${prefix}"
     
     input:
         tuple val(matrix_name), val(prefix), path(dhs_mask), path(variants)
