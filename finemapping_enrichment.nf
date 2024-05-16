@@ -30,16 +30,16 @@ process split_matrices {
 
 process overlap_annotation {
     conda params.conda
-    publishDir "${params.outdir}"
+    publishDir "${params.outdir}/${matrix_name}"
     
     input:
-        tuple val(prefix), path(dhs_mask), path(variants)
+        tuple val(matrix_name), val(prefix), path(dhs_mask), path(variants)
     
     output:
-        tuple val(component_id), path(name)
+        tuple val(prefix), path(name)
     
     script:
-    name = "comp${component_id}.overlap.bed"
+    name = "${prefix}.overlap.bed"
     """
     awk 'NR==FNR { mask[FNR]=\$1; next } mask[FNR]==1' \
         ${dhs_mask} \
@@ -55,7 +55,7 @@ workflow {
        | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
        | split_matrices
        | flatten()
-       | map(it -> tuple(it.baseName, it))
+       | map(it -> tuple(it.simpleName, it.baseName, it))
        | combine(
             Channel.fromPath("${params.finemapped_variants_file}")
        )
