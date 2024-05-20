@@ -226,7 +226,7 @@ process make_ldsc_annotation {
 process convert_to_bed {
 
     conda params.conda
-    tag "${prefix}"
+    tag "${mask_name}:${prefix}"
 
     input:
         tuple val(mask_name), path(mask)
@@ -235,7 +235,7 @@ process convert_to_bed {
         path name
     
     script:
-    prefix = "${mask_name.replaceAll('.', '_')}"
+    prefix = "${mask_name.replaceAll(/\./, '_')}"
     name = "${prefix}.bed"
     """
     awk -v OFS='\t' \
@@ -345,7 +345,7 @@ workflow fromMatrix {
        | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
        | split_matrices
        | flatten()
-       | map(it -> tuple(it.baseName, it)) // matrix_type, matrix_name, matrix
+       | map(it -> tuple(it.baseName, it)) // mask_name, mask
        | convert_to_bed
        | fromAnnotations
 }
