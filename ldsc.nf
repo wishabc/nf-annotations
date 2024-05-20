@@ -235,7 +235,7 @@ process convert_to_bed {
         path name
     
     script:
-    name = "${mask_name.replaceAll('.', '__')}.bed"
+    name = "${mask_name.replaceAll('.', '_')}.bed"
     """
     awk -v OFS='\t' \
         'NR==FNR {mask[NR]=\$1; next} \
