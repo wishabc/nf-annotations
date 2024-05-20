@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-// include { filterTestedVariants } from "./main"
+include { split_matrices } from './finemapping_enrichment'
 
 params.conda = "$moduleDir/environment.yml"
 
