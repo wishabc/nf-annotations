@@ -1,3 +1,4 @@
+include { split_matrices } from './finemapping_enrichment'
 
 process calc_prop_accessibility {
     conda params.conda

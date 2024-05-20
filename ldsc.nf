@@ -223,6 +223,30 @@ process make_ldsc_annotation {
     """
 }
 
+process convert_to_bed {
+
+    conda params.conda
+    tag "${prefix}"
+
+    input:
+        tuple val(mask_name), path(mask)
+
+    output:
+        path name
+    
+    script:
+    name = "${mask_name.replaceAll('.', '__')}.bed"
+    """
+    awk -v OFS='\t' \
+        'NR==FNR {mask[NR]=\$1; next} \
+            mask[FNR] == 1' \
+            ${mask} ${params.masterlist_file} \
+        | cut -f 1-3 > ${name}
+
+    """
+
+}
+
 workflow LDSCcellTypes {
     take:
         ld_data
@@ -312,6 +336,17 @@ workflow fromPvalFiles {
         | filter { it.countLines() >= params.min_snps }
         | fromAnnotations
    
+}
+
+workflow fromMatrix {
+    matrices = Channel.fromPath(params.matrices_list)
+       | splitCsv(header:true, sep:'\t')
+       | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
+       | split_matrices
+       | flatten()
+       | map(it -> tuple(it.baseName, it)) // matrix_type, matrix_name, matrix
+       | convert_to_bed
+       | fromAnnotations
 }
 
 workflow {
