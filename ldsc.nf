@@ -226,7 +226,7 @@ process make_ldsc_annotation {
 process convert_to_bed {
 
     conda params.conda
-    tag "${mask_name}"
+    tag "${prefix}"
 
     input:
         tuple val(mask_name), path(mask)
@@ -235,7 +235,8 @@ process convert_to_bed {
         path name
     
     script:
-    name = "${mask_name.replaceAll('.', '_')}.bed"
+    prefix = "${mask_name.replaceAll('.', '_')}"
+    name = "${prefix}.bed"
     """
     awk -v OFS='\t' \
         'NR==FNR {mask[NR]=\$1; next} \
