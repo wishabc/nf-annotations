@@ -235,7 +235,7 @@ process convert_to_bed {
         path name
     
     script:
-    prefix = "${mask_name.replaceAll(/\./, '_')}"
+    prefix = "${mask_name.replaceAll(/\./, '__')}"
     name = "${prefix}.bed"
     """
     awk -v OFS='\t' \
