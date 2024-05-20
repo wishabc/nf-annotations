@@ -259,7 +259,7 @@ workflow LDSCcellTypes {
                 skip: 1,
                 keepHeader: true,
                 sort: true,
-                name: "ldsc_${params.aggregation_key}_results.tsv"
+                name: "ldsc_cell_types_results.tsv"
             )
     emit:
         out
