@@ -226,7 +226,7 @@ process make_ldsc_annotation {
 process convert_to_bed {
 
     conda params.conda
-    tag "${prefix}"
+    tag "${mask_name}"
 
     input:
         tuple val(mask_name), path(mask)
