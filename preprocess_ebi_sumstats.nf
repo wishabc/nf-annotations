@@ -58,7 +58,7 @@ process munge_sumstats {
         --a1 other_allele \
         --a2 effect_allele \
         --snp variant_id \
-        --N-col n \
+        --N ${n_samples} \
         --frq effect_allele_frequency \
         --out ${prefix}
     """
