@@ -76,6 +76,8 @@ workflow {
 workflow tmp {
     meta = Channel.fromPath(params.phenotypes_meta)
         | splitCsv(header:true, sep:'\t')
-        | map(row -> tuple(row.phen_id, file(row.sumstats_file)))
+        | map(row -> tuple(row.phen_id, file(row.sumstats_file), row.n_samples))
+        | filter{ it[2] }
+        | map(it -> tuple(it[0], it[1]))
         | munge_sumstats
 }
