@@ -55,8 +55,8 @@ process munge_sumstats {
     python ${params.ldsc_scripts_path}/munge_sumstats.py \
         --sumstats ${sumstats_file} \
         --merge-alleles ${params.tested_snps} \
-        --a1 other_allele \
-        --a2 effect_allele \
+        --a1 effect_allele \
+        --a2 other_allele \
         --snp variant_id \
         --N ${n_samples} \
         --frq effect_allele_frequency \
