@@ -44,7 +44,7 @@ process munge_sumstats {
     scratch true
 
     input:
-        tuple val(phen_id), path(sumstats_file)
+        tuple val(phen_id), path(sumstats_file), val(n_samples)
 
     output:
         tuple val(phen_id), path("${prefix}.sumstats.gz"), path("${prefix}.log")
@@ -78,6 +78,5 @@ workflow tmp {
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.phen_id, file(row.sumstats_file), row.n_samples))
         | filter{ it[2] }
-        | map(it -> tuple(it[0], it[1]))
         | munge_sumstats
 }
