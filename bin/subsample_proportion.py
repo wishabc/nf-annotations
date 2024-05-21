@@ -5,7 +5,7 @@ from scipy import sparse
 from scipy.stats import norm
 from genome_tools.utils.sampling import stratified_sampling
 import argparse # using argparse for args
-
+from matplotlib import pyplot as plt
 
 def calculate_zscore(result_array, motif_counts):
     mu = result_array.mean(axis=0)
@@ -17,16 +17,15 @@ def calculate_zscore(result_array, motif_counts):
     
     return mu, sd, z_score, p_val
 
-def sparse_dot_product(resample_arr, binary_mat, motif_indicator):
+def sparse_dot_product(sample_arr, binary_mat, motif_indicator):
     # sparse the matrix
-    X_sparse = sparse.csr_matrix(resample_arr.T)
-    Y_sparse = sparse.csc_matrix(binary_mat)
+    X_sparse = sparse.csr_matrix(sample_arr.T) # 1000 x dhs
+    Y_sparse = sparse.csc_matrix(binary_mat) # dhs x sample
 
     # dot product
-    result_arr = X_sparse.dot(Y_sparse)
+    result_arr = X_sparse.dot(Y_sparse) # 1000 x sample
 
-    # motif in sample agid
-    motifs_per_sample = np.dot(motif_indicator.T, binary_mat).squeeze()
+    motifs_per_sample = np.dot(motif_indicator.T, binary_mat).squeeze() # sample
 
     return result_arr.toarray(), motifs_per_sample
 
