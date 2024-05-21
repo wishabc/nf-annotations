@@ -3,9 +3,10 @@ import pandas as pd
 import numpy as np
 from scipy import sparse
 from scipy.stats import norm
-from genome_tools.utils.sampling import stratified_sampling
 import argparse # using argparse for args
 from matplotlib import pyplot as plt
+from genome_tools.utils.sampling import stratified_sampling
+
 
 def calculate_zscore(result_array, motif_counts):
     mu = result_array.mean(axis=0)
@@ -33,7 +34,6 @@ def sparse_dot_product(sample_arr, binary_mat, motif_indicator):
 def transform_to_bins(data, n_quantiles=100):
     bins = np.quantile(data, np.linspace(0, 1, n_quantiles + 1))
     return pd.cut(data, np.unique(bins), include_lowest=True, labels=False)
-
 
 
 if __name__ == '__main__':
