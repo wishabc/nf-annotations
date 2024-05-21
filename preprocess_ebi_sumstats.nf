@@ -44,7 +44,7 @@ process munge_sumstats {
     scratch true
 
     input:
-        tuple val(phen_id), path(sumstats_file), val(n_samples)
+        tuple val(phen_id), path(sumstats_file)
 
     output:
         tuple val(phen_id), path("${prefix}.sumstats.gz"), path("${prefix}.log")
@@ -58,7 +58,7 @@ process munge_sumstats {
         --a1 other_allele \
         --a2 effect_allele \
         --snp variant_id \
-        --N ${n_samples} \
+        --frq effect_allele_frequency \
         --out ${prefix}
     """
 }
@@ -75,6 +75,6 @@ workflow {
 workflow tmp {
     meta = Channel.fromPath(params.phenotypes_meta)
         | splitCsv(header:true, sep:'\t')
-        | map(row -> tuple(row.phen_id, file(row.sumstats_file), row.n_samples))
+        | map(row -> tuple(row.phen_id, file(row.sumstats_file)))
         | munge_sumstats
 }
