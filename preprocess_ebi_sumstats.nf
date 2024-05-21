@@ -52,6 +52,17 @@ process munge_sumstats {
     script:
     prefix = "${phen_id}.munge"
     """
+    check_effect_allele_frequency=\$( \
+        awk 'BEGIN {FS="\t"} \
+            NR==1 {for (i=1; i<=NF; i++) \
+                if (\$i == "effect_allele_frequency") col=i} 
+                    NR > 1 && col && \$col != "NA" {found=1} 
+            END {if (found) print "present"}'\
+            "${sumstats_file}")
+
+    effect_allele_frequency_flag=\$([ "\$check_effect_allele_frequency" == "present" ] && echo " --frq effect_allele_frequency" || echo "")
+
+    
     python ${params.ldsc_scripts_path}/munge_sumstats.py \
         --sumstats ${sumstats_file} \
         --merge-alleles ${params.tested_snps} \
@@ -59,7 +70,7 @@ process munge_sumstats {
         --a2 other_allele \
         --snp variant_id \
         --N ${n_samples} \
-        --frq effect_allele_frequency \
+        \${effect_allele_frequency_flag} \
         --out ${prefix}
     """
 }
