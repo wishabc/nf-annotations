@@ -1,7 +1,7 @@
 process calc_prop_accessibility {
     conda params.conda
     publishDir "${params.outdir}"
-    label "med_mem"
+    label "high_mem"
     
     output:
         path name
