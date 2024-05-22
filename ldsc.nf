@@ -165,7 +165,7 @@ process collect_ldsc_results {
     paste result.txt h2.stats \
         | awk -v OFS='\t' \
             -v outpath=${params.outdir} \
-            'fname=\$1"."\$2" NR == 1 {print \$0,results_path} \
+            'fname=\$1"."\$2 NR == 1 {print \$0,results_path} \
             NR>1 {print \$0, outpath"/ldsc/ldsc_coefs_"\$1"/"fname}' > ${name}
     """
 }
