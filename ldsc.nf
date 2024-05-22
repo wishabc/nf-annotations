@@ -86,7 +86,7 @@ process run_ldsc_cell_types {
         --out ${phen_id}
 
     awk -v OFS='\t' \
-        '{print (NR==1 ? "Phenotype_ID" : "${phen_id}"), \$0}' \
+        '{print (NR==1 ? "phen_id" : "${phen_id}"), \$0}' \
         ${phen_id}.cell_type_results.txt > ${name}
     """
 }
