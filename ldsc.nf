@@ -125,7 +125,6 @@ process run_ldsc_single_sample {
 
 
 process collect_ldsc_results {
-    scratch true
     publishDir "${params.outdir}"
 
     input:
@@ -144,10 +143,7 @@ process collect_ldsc_results {
     # copy header from the first file
     head -1 filelist.txt \
         | xargs head -1 \
-        | xargs -I % echo "group_id\tphen_id\t%" > result.txt
-    
-    # Aggregate the data
-    echo -e "h^2\th^2_err" > h2.stats
+        | xargs -I % echo -e "group_id\tphen_id\t%\th^2\th^2_err\tldsc_path" > result.txt
 
     while read -r line; do
         fname="\${line%.*}"
@@ -161,7 +157,7 @@ process collect_ldsc_results {
 
         # Combine and format the output
         output_path="${params.outdir}/ldsc/ldsc_coefs_\${basename_f}/\${basename_f}.\${line##*.}"
-        echo -e "\${basename_f}\t`tail -n 1 "\$line"`\t`cat h2_data.txt`\t\${output_path}" >> "$name"
+        echo -e "\${basename_f}\t`tail -n 1 "\$line"`\t`cat h2_data.txt`\t\${output_path}" >> "${name}"
     done < filelist.txt
     """
 }
