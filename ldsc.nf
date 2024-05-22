@@ -103,7 +103,7 @@ process run_ldsc_single_sample {
         tuple val(phen_id), path(sumstats_file), val(baseline_ld), val(prefix), path(ld_files)
     
     output:
-        tuple val(prefix), val(phen_id), path("${name}.results"), path("${name}.log")
+        tuple val(prefix), val(phen_id), path("${name}.results"), path("${name}.log"), path("${name}.summary_result")
 
     script:
     name = "${prefix}.${phen_id}"
@@ -120,6 +120,19 @@ process run_ldsc_single_sample {
         --overlap-annot \
         --print-coefficients \
         --out ${name}
+    
+    head -1 ${name}.results
+        | xargs -I % echo -e "group_id\tphen_id\t%\th^2\th^2_err\tldsc_path" > ${name}.summary_result
+
+    grep "Total Observed scale h2" ${name}.log \
+        | awk -F'[:()]' -v OFS='\t' \
+        '{gsub(/[[:space:]]/, "", \$2); gsub(/[[:space:]]/, "", \$3); \
+            print \$2, \$3}' > h2_data.txt
+
+    # Combine and format the output
+    output_path="${params.outdir}/ldsc/ldsc_coefs_${prefix}/${name}.results"
+    ldsc_annotation_output=\$(tail -n 1 ${name}.results)
+    echo -e "${prefix}\t${phen_id}\t\$ldsc_annotation_output\t\$(cat h2_data.txt)\t\${output_path}" >> ${name}.summary_result
     """
 }
 
@@ -267,11 +280,13 @@ workflow LDSC {
         out = sumstats_files
             | combine(ld_data)
             | run_ldsc_single_sample
-            | map(it -> tuple(it[2], it[3]))
-            | flatten()
-            | map(it -> it.toString())
-            | collectFile(name: 'all.paths.txt', newLine: true)
-            | collect_ldsc_results
+            | map(it -> it[4])
+            | collectFile(
+                name: 'ldsc_enrichments_results.tsv',
+                storeDir: params.outdir,
+                skip: 1,
+                keepHeader: true
+            )
     emit:
         out
 }
