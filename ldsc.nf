@@ -270,7 +270,7 @@ workflow LDSC {
             | map(it -> tuple(it[2], it[3]))
             | flatten()
             | map(it -> it.toString())
-            | collectFile(name: 'all.paths.txt', newLine: true),
+            | collectFile(name: 'all.paths.txt', newLine: true)
             | collect_ldsc_results
     emit:
         out
