@@ -129,7 +129,7 @@ process collect_ldsc_results {
     publishDir "${params.outdir}"
 
     input:
-        val ldsc_files
+        path filelist
     
     output:
         path name
@@ -137,7 +137,7 @@ process collect_ldsc_results {
     script:
     name = "ldsc_enrichments_results.tsv"
     """
-    echo "${ldsc_files.join('\n')}" \
+    cat ${filelist} \
         | grep '.results' \
          > filelist.txt
 
@@ -148,25 +148,21 @@ process collect_ldsc_results {
     
     # Aggregate the data
     echo -e "h^2\th^2_err" > h2.stats
-    while read line; do
+
+    while read -r line; do
         fname="\${line%.*}"
-        basename_f="\$(basename \$fname)"
+        basename_f=$(basename "\$fname")
 
-        grep "Total Observed scale h2" \${fname}.log \
-            | sed 's/[:(]/\t/g' \
-            | sed 's/)//g' \
-            | awk -F'\t' -v OFS='\t' '{print \$2,\$3}' >> h2.stats
+        # Extract h^2 and h^2_err in a single step using awk
+        grep "Total Observed scale h2" "\${fname}.log" \
+            | awk -F'[:()]' \
+            '{gsub(/[[:space:]]/, "", \$2); gsub(/[[:space:]]/, "", \$3); \
+                print \$2, \$3}' > h2_data.txt
 
-        echo \${basename_f} \
-            | sed "s/\\./\t/" \
-            | xargs -I % echo "%\t`tail -1 "\$line"`" >> result.txt
-        
+        # Combine and format the output
+        output_path="${params.outdir}/ldsc/ldsc_coefs_\${basename_f}/\${basename_f}.\${line##*.}"
+        echo -e "\${basename_f}\t`tail -n 1 "\$line"`\t`cat h2_data.txt`\t\${output_path}" >> "$name"
     done < filelist.txt
-    paste result.txt h2.stats \
-        | awk -v OFS='\t' \
-            -v outpath=${params.outdir} \
-            'fname=\$1"."\$2 NR == 1 {print \$0,results_path} \
-            NR>1 {print \$0, outpath"/ldsc/ldsc_coefs_"\$1"/"fname}' > ${name}
     """
 }
 
@@ -276,7 +272,9 @@ workflow LDSC {
             | combine(ld_data)
             | run_ldsc_single_sample
             | map(it -> tuple(it[2], it[3]))
-            | collect(sort: true, flat: true)
+            | flatten()
+            | map(it -> it.toString())
+            | collectFile(name: 'all.paths.txt', newLine: true),
             | collect_ldsc_results
     emit:
         out
