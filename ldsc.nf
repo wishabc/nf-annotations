@@ -143,11 +143,11 @@ process collect_ldsc_results {
     # copy header from the first file
     head -1 filelist.txt \
         | xargs head -1 \
-        | xargs -I % echo -e "group_id\tphen_id\t%\th^2\th^2_err\tldsc_path" > result.txt
+        | xargs -I % echo -e "group_id\tphen_id\t%\th^2\th^2_err\tldsc_path" > ${name}
 
     while read -r line; do
         fname="\${line%.*}"
-        basename_f=$(basename "\$fname")
+        basename_f=\$(basename "\$fname")
 
         # Extract h^2 and h^2_err in a single step using awk
         grep "Total Observed scale h2" "\${fname}.log" \
@@ -157,7 +157,7 @@ process collect_ldsc_results {
 
         # Combine and format the output
         output_path="${params.outdir}/ldsc/ldsc_coefs_\${basename_f}/\${basename_f}.\${line##*.}"
-        echo -e "\${basename_f}\t`tail -n 1 "\$line"`\t`cat h2_data.txt`\t\${output_path}" >> "${name}"
+        echo -e "\${basename_f}\t`tail -n 1 "\$line"`\t`cat h2_data.txt`\t\${output_path}" >> ${name}
     done < filelist.txt
     """
 }
