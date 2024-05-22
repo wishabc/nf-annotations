@@ -121,57 +121,19 @@ process run_ldsc_single_sample {
         --print-coefficients \
         --out ${name}
     
-    head -1 ${name}.results
+    head -1 ${name}.results \
         | xargs -I % echo -e "group_id\tphen_id\t%\th^2\th^2_err\tldsc_path" > ${name}.summary_result
 
     grep "Total Observed scale h2" ${name}.log \
         | awk -F'[:()]' -v OFS='\t' \
-        '{gsub(/[[:space:]]/, "", \$2); gsub(/[[:space:]]/, "", \$3); \
+        '{gsub(/[[:space:]]/, "", \$2); \
+         gsub(/[[:space:]]/, "", \$3); \
             print \$2, \$3}' > h2_data.txt
 
     # Combine and format the output
     output_path="${params.outdir}/ldsc/ldsc_coefs_${prefix}/${name}.results"
     ldsc_annotation_output=\$(tail -n 1 ${name}.results)
-    echo -e "${prefix}\t${phen_id}\t\$ldsc_annotation_output\t\$(cat h2_data.txt)\t\${output_path}" >> ${name}.summary_result
-    """
-}
-
-
-process collect_ldsc_results {
-    publishDir "${params.outdir}"
-
-    input:
-        path filelist
-    
-    output:
-        path name
-
-    script:
-    name = "ldsc_enrichments_results.tsv"
-    """
-    cat ${filelist} \
-        | grep '.results' \
-         > filelist.txt
-
-    # copy header from the first file
-    head -1 filelist.txt \
-        | xargs head -1 \
-        | xargs -I % echo -e "group_id\tphen_id\t%\th^2\th^2_err\tldsc_path" > ${name}
-
-    while read -r line; do
-        fname="\${line%.*}"
-        basename_f=\$(basename "\$fname")
-
-        # Extract h^2 and h^2_err in a single step using awk
-        grep "Total Observed scale h2" "\${fname}.log" \
-            | awk -F'[:()]' -v OFS='\t' \
-            '{gsub(/[[:space:]]/, "", \$2); gsub(/[[:space:]]/, "", \$3); \
-                print \$2, \$3}' > h2_data.txt
-
-        # Combine and format the output
-        output_path="${params.outdir}/ldsc/ldsc_coefs_\${basename_f}/\${basename_f}.\${line##*.}"
-        echo -e "`echo \${basename_f} | tr '.' '\t'`\t`tail -n 1 \$line`\t`cat h2_data.txt`\t\${output_path}" >> ${name}
-    done < filelist.txt
+    echo -e "${prefix}\t${phen_id}\t\$ldsc_annotation_output\t\$(cat h2_data.txt)\t\$output_path" >> ${name}.summary_result
     """
 }
 
