@@ -157,7 +157,7 @@ process collect_ldsc_results {
 
         # Combine and format the output
         output_path="${params.outdir}/ldsc/ldsc_coefs_\${basename_f}/\${basename_f}.\${line##*.}"
-        echo -e "\${basename_f}\t`tail -n 1 "\$line"`\t`cat h2_data.txt`\t\${output_path}" >> ${name}
+        echo -e "`echo \${basename_f} | tr '.' '\t'`\t`tail -n 1 \$line`\t`cat h2_data.txt`\t\${output_path}" >> ${name}
     done < filelist.txt
     """
 }
