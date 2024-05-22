@@ -151,7 +151,7 @@ process collect_ldsc_results {
 
         # Extract h^2 and h^2_err in a single step using awk
         grep "Total Observed scale h2" "\${fname}.log" \
-            | awk -F'[:()]' \
+            | awk -F'[:()]' -v OFS='\t' \
             '{gsub(/[[:space:]]/, "", \$2); gsub(/[[:space:]]/, "", \$3); \
                 print \$2, \$3}' > h2_data.txt
 
