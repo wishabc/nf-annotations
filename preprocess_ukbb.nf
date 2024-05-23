@@ -187,8 +187,8 @@ workflow {
         | map(row -> tuple(row.phen_id,
             file(row.sumstats_file),
             row.pops))
-        | filter { it[4] =~ /${params.population}/ }
-        | map(it -> tuple(*it[0..3]))
+        | filter { it[2] =~ /${params.population}/ }
+        | map(it -> tuple(it[0], it[1]))
         | combine(convert_manifest_to_hg38())
         | convert_sumstats_to_hg38
         | munge_sumstats
