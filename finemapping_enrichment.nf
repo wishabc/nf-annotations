@@ -37,7 +37,7 @@ process overlap_annotation {
         ${dhs_mask} \
         ${params.masterlist_file} \
         | bedmap --indicator \
-            ${variants} - > ${name}
+            <(zcat ${variants}) - > ${name}
     """
 }
 
