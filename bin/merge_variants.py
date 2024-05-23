@@ -15,7 +15,7 @@ if __name__ == '__main__':
         ['hg38_chr', 'hg38_start', 'hg38_end', 'varid', *initial_variants.columns]
     ]
     
-    initial_variants = initial_variants[['hg38_start', 'hg38_end']].astype('Int64')
+    initial_variants[['hg38_start', 'hg38_end']] = initial_variants[['hg38_start', 'hg38_end']].astype('Int64')
     initial_variants.to_csv(
         sys.argv[2], sep='\t', index=False
     )
