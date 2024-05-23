@@ -52,6 +52,7 @@ process convert_manifest_to_hg38 {
     script:
     name = "hg38.variants_manifes.bed.gz"
     """
+    echo 1
     zcat ${params.variants_manifest} \
         | awk -v OFS='\t' 'NR > 1 {print "chr"\$1,\$2-1,\$2,\$6}' > hg19.bed
     liftOver -bedPlus=3 \
