@@ -81,7 +81,6 @@ process convert_sumstats_to_hg38 {
     
     script:
     name = "${phen_id}.hg38.bed.gz"
-    n_controls = n_controls ?: "N/A"
     """
     # returns file with columns: 
     # chr, start, end, ref, alt, Beta, Beta_se, P, neglog10_p
