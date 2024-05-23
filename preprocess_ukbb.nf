@@ -42,7 +42,7 @@ process download_file {
 
 process convert_manifest_to_hg38 {
     publishDir "${params.outdir}"
-    conda params.conda
+    conda "/home/sabramov/miniconda3/envs/babachi"
     scratch true
     label "med_mem"
 
