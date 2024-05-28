@@ -101,27 +101,27 @@ process convert_sumstats_to_hg38 {
 }
 //['#chr', 'start', 'end', 'SNP', 'ref', 'alt', 'Beta', 'Beta_se', 'P', 'neglog10_p', 'INFO', 'phen_id', 'N']
 
-// process filter_significant_hits {
-//     publishDir "${params.outdir}/per_phenotype/${phen_id}"
-//     conda params.conda
-//     tag "${phen_id}"
-//     scratch true
+process filter_significant_hits {
+    publishDir "${params.outdir}/per_phenotype/${phen_id}"
+    conda params.conda
+    tag "${phen_id}"
+    scratch true
 
-//     input:
-//         tuple val(phen_id), path(bed_file)
+    input:
+        tuple val(phen_id), path(bed_file)
     
-//     output:
-//         tuple val(phen_id), path(name)
+    output:
+        tuple val(phen_id), path(name)
     
-//     script:
-//     name = "${phen_id}.significant_hits.bed.gz"
-//     """
-//     zcat ${bed_file} \
-//         | awk -v OFS='\t' \
-//             '((NR == 1) || (\$10 >= 7.301)) {print }' \
-//         | bgzip -c > ${name}
-//     """
-// }
+    script:
+    name = "${phen_id}.significant_hits.bed.gz"
+    """
+    zcat ${bed_file} \
+        | awk -v OFS='\t' \
+            '((NR == 1) || (\$10 >= 7.301)) {print }' \
+        | bgzip -c > ${name}
+    """
+}
 
 process munge_sumstats {
     conda params.ldsc_conda
@@ -212,6 +212,7 @@ workflow {
     // munge_sumstats(data)
 }
 
+
 workflow checkData {
     meta = Channel.fromPath(params.phenotypes_meta)
         | splitCsv(header:true, sep:'\t')
@@ -234,4 +235,15 @@ workflow checkData {
         | filter { it[1] != it[4] }
         | map(it -> tuple(it[0], *it[2..4]))
         | download_file
+}
+
+
+workflow filterSignificantHits {
+    data = Channel.fromPath(params.phenotypes_meta)
+        | splitCsv(header:true, sep:'\t')
+        | map(row -> tuple(row.phen_id,
+            file(row.sumstats_file),
+            )
+        )
+
 }
