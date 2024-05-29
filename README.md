@@ -8,13 +8,15 @@ Repository with nextflow scripts for motif and GWAS analysis<br><br>
 - `conda` - path to existing conda environment
 
 # Quick start
+## Fresh start, preprocessing
 - preprocess_ebi_sumstats.nf - download, reformat and run munge_sumstats on GWAS data downloaded from ebi portal. **You'd need to annotate metadata with `n_samples` field after downloading**
 - preprocess_ukbb.nf - download, reformat and run munge_sumstats on GWAS data downloaded from [https://www.nealelab.is/uk-biobank](https://www.nealelab.is/uk-biobank). **You'd need to annotate metadata with `n_samples` field after downloading**
-- Create a metadata file for all phenotypes of interest, add paths to reformatted sumstats
-- (optional) Run `ldsc.nf -entry calcBaseline` to get h^2 estimates and obtain baseline_ld files. The pipeline will create `output/ldsc_enrichments_results.tsv` file with h^2 estimates.
+- Create a metadata file for all phenotypes of interest, add paths to reformatted sumstats as `munge_sumstats_file` column
+- (optional) Run `baseline_ldsc.nf` to get h^2 estimates and obtain baseline_ld files. The pipeline will create `output/ldsc_enrichments_results.tsv` file with h^2 estimates.
 - (optional) Filter your metadata by h^2 estimates
-- Fill in `baseline_ld` option in params.config with path to [ref ld files](https://github.com/bulik/ldsc/wiki/Partitioned-Heritability#--ref-ld-chr). If you ran calcBaseline entry, the files are saved to `output/ldsc/l2/baseline.`
-- Run LDSC (`ldsc.nf` script) using custom annotations or matrix (use respective entry).
+- Fill in `baseline_ld` option in params.config with path to [ref ld files](https://github.com/bulik/ldsc/wiki/Partitioned-Heritability#--ref-ld-chr). If you ran calcBaseline entry, the files are saved to `output/ldsc/l2/baseline.` 
+
+After that You can run LDSC (`ldsc.nf` script) using custom annotations or matrix (use respective entry).
 
 ### LDSC params
 - `base_ann_path`, `frqfiles`, `gtfiles`, `weights` - input files for LDSC regresion, see [here](https://github.com/bulik/ldsc)
