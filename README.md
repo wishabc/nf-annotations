@@ -13,7 +13,7 @@ Repository with nextflow scripts for motif and GWAS analysis<br><br>
 - Create a metadata file for all phenotypes of interest, add paths to reformatted sumstats
 - (optional) Run `ldsc.nf -entry calcBaseline` to get h^2 estimates and obtain baseline_ld files. The pipeline will create `output/ldsc_enrichments_results.tsv` file with h^2 estimates.
 - (optional) Filter your metadata by h^2 estimates
-- Fill in `baseline_ld` option in params.config with path to [ref ld files](https://github.com/bulik/ldsc/wiki/Partitioned-Heritability#--ref-ld-chr). If you ran calcBaseline entry, they will be saved to `output/ldsc/l2/baseline.`
+- Fill in `baseline_ld` option in params.config with path to [ref ld files](https://github.com/bulik/ldsc/wiki/Partitioned-Heritability#--ref-ld-chr). If you ran calcBaseline entry, the files are saved to `output/ldsc/l2/baseline.`
 - Run LDSC (`ldsc.nf` script) using custom annotations or matrix (use respective entry).
 
 ### LDSC params
