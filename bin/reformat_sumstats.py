@@ -15,12 +15,6 @@ def main(df, population):
         df['P'] = np.power(10, -df[f'neglog10_pval_{population}'])
     except KeyError:
         return pd.DataFrame([], columns=result_columns)
-    df.rename(
-        columns={
-
-        },
-        inplace=True
-    )
 
     df.rename(
         columns={
@@ -35,7 +29,6 @@ def main(df, population):
         }, 
         inplace=True
     )
-    df['#chr'] = 'chr' + df['#chr']
     df.dropna(subset=['Beta', 'neglog10_p', 'start'], inplace=True)
     df[['start', 'end']] = df[['start', 'end']].astype(int)
     return df
