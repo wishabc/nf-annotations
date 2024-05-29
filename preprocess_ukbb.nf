@@ -75,7 +75,7 @@ process convert_sumstats_to_hg38 {
     label "med_mem"
 
     input:
-        tuple val(phen_id), path(sumstats), val(n_samples), path(manifest_hg38), val(population)
+        tuple val(phen_id), path(sumstats), val(n_samples), val(population), path(manifest_hg38)
     
     output:
         tuple val(phen_id), path(name)
@@ -91,9 +91,8 @@ process convert_sumstats_to_hg38 {
             hg38.unsorted.bed \
             ${population} \
             ${n_samples} \
-            ${phen_id} \
+            ${phen_id}
 
-    
     (head -1 hg38.unsorted.bed && tail -n+2 hg38.unsorted.bed | sort-bed - ) | bgzip -c > ${name}
     """
 }
