@@ -44,7 +44,7 @@ process convert_manifest_to_hg38 {
     publishDir "${params.outdir}"
     conda params.conda
     scratch true
-    label "med_mem"
+    label "high_mem"
 
     output:
         path name
