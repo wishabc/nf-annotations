@@ -42,13 +42,11 @@ def main(df, population):
 
 if __name__ == '__main__':
     phen_df = pd.read_table(sys.stdin, dtype={'chr': str, 'chrom': str})
-    n_cases = pd.to_numeric(sys.argv[3], errors='coerce').astype(int)
-    n_controls = None if sys.argv[4] == "N/A" else pd.to_numeric(sys.argv[4], errors='coerce').astype(int)
-    phen_id = sys.argv[5]
-    N_eff = n_cases if n_controls is None else 4/(1/n_cases + 1/n_controls)
+    n_samples = pd.to_numeric(sys.argv[3], errors='coerce').astype(int)
+    phen_id = sys.argv[4]
     main(phen_df, sys.argv[2]).assign(
         phen_id=phen_id,
-        N=N_eff
+        N=n_samples
     )[result_columns].to_csv(
         sys.argv[1], sep='\t',
         index=False,

@@ -75,14 +75,13 @@ process convert_sumstats_to_hg38 {
     label "med_mem"
 
     input:
-        tuple val(phen_id), path(sumstats), val(n_controls), val(n_cases), path(manifest_hg38)
+        tuple val(phen_id), path(sumstats), val(n_samples), path(manifest_hg38), val(population)
     
     output:
         tuple val(phen_id), path(name)
     
     script:
-    name = "${phen_id}.hg38.bed.gz"
-    n_controls = n_controls ?: "N/A"
+    name = "${phen_id}.${population}.hg38.bed.gz"
     """
     # returns file with columns: 
     # chr, start, end, ref, alt, Beta, Beta_se, P, neglog10_p
@@ -90,9 +89,8 @@ process convert_sumstats_to_hg38 {
         | paste - <(zcat ${sumstats}) \
         | python3 $moduleDir/bin/reformat_sumstats.py \
             hg38.unsorted.bed \
-            ${params.population} \
-            ${n_cases} \
-            ${n_controls} \
+            ${population} \
+            ${n_samples} \
             ${phen_id} \
 
     
@@ -174,8 +172,6 @@ process sort_and_index {
         | sort-bed - \
         | cat header.txt - \
         | bgzip -c > merged_and_sorted.gz
-
-
     """
 }
 
@@ -189,13 +185,12 @@ workflow {
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.phen_id,
             file(row.sumstats_file),
-            row["n_controls_${params.population}"],
-            row["n_cases_${params.population}"],
+            row.n_samples.toFloat(),
             row.pops,
             )
         )
-        | filter { it[4] =~ /${params.population}/ }
-        | map(it -> tuple(*it[0..3]))
+        | filter { it[3] =~ /${params.population}/ }
+        | map(it -> tuple(*it[0..2], params.population))
         | combine(convert_manifest_to_hg38())
         | convert_sumstats_to_hg38
         | munge_sumstats
