@@ -1,4 +1,4 @@
-include { LDSC } from './ldsc'
+include { LDSC; calc_ld } from './ldsc'
 
 
 workflow {
