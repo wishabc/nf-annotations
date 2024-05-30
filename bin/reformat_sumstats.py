@@ -4,7 +4,8 @@ import numpy as np
 
 result_columns = ['#chr', 'start', 'end', 'SNP', 'ref', 'alt', 'Beta', 'Beta_se', 'P', 'neglog10_p', 'INFO', 'phen_id', 'N']
 
-def main(df, population):
+
+def process_chunk(df, population):
     assert np.all(
         (df['chrom'] == df['chr']) & 
         (df['pos'] == df['pos.1']) & 
@@ -32,6 +33,18 @@ def main(df, population):
     df.dropna(subset=['Beta', 'neglog10_p', 'start'], inplace=True)
     df[['start', 'end']] = df[['start', 'end']].astype(int)
     return df
+
+def main(input_file, population):
+    chunk_size = 1e6  # Adjust chunk size according to your memory constraints
+    chunks = pd.read_table(input_file, dtype={'chr': str, 'chrom': str}, chunksize=chunk_size)
+
+    processed_chunks = []
+    for chunk in chunks:
+        processed_chunk = process_chunk(chunk, population)
+        processed_chunks.append(processed_chunk)
+    
+    return pd.concat(processed_chunks)
+
 
 if __name__ == '__main__':
     phen_df = pd.read_table(sys.stdin, dtype={'chr': str, 'chrom': str})

@@ -28,7 +28,7 @@ process overlap_annotation {
         tuple val(matrix_name), val(prefix), path(dhs_mask), path(variants)
     
     output:
-        tuple val(prefix), path(name)
+        tuple val(matrix_name), path(name)
     
     script:
     name = "${prefix}.overlap.bed"
