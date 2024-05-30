@@ -6,7 +6,7 @@ result_columns = ['#chr', 'start', 'end', 'SNP', 'ref', 'alt', 'Beta', 'Beta_se'
 
 def get_req_columns(population):
     return [
-        'chr', 'chrom', 'pos', 'pos.1', 'ref', 'ref.1', 'alt', 'alt.1',
+        'hg38_chr', 'hg38_start', 'hg38_end', 'chr', 'chrom', 'pos', 'pos.1', 'ref', 'ref.1', 'alt', 'alt.1',
         f'beta_{population}', f'se_{population}', f'neglog10_pval_{population}', 
         'info', 'rsid'
     ]
