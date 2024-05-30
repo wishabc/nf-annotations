@@ -4,14 +4,14 @@ import numpy as np
 
 result_columns = ['#chr', 'start', 'end', 'SNP', 'ref', 'alt', 'Beta', 'Beta_se', 'P', 'neglog10_p', 'INFO', 'phen_id', 'N']
 
+def get_req_columns(population):
+    return [
+        'chr', 'chrom', 'pos', 'pos.1', 'ref', 'ref.1', 'alt', 'alt.1',
+        f'beta_{population}', f'se_{population}', f'neglog10_pval_{population}', 
+        'info', 'rsid'
+    ]
 
-def process_chunk(df, population):
-    assert np.all(
-        (df['chrom'] == df['chr']) & 
-        (df['pos'] == df['pos.1']) & 
-        (df['ref'] == df['ref.1']) & 
-        (df['alt'] == df['alt.1'])
-    )    
+def main(df, population):  
     try:
         df['P'] = np.power(10, -df[f'neglog10_pval_{population}'])
     except KeyError:
@@ -30,26 +30,23 @@ def process_chunk(df, population):
         }, 
         inplace=True
     )
-    df.dropna(subset=['Beta', 'neglog10_p', 'start'], inplace=True)
     df[['start', 'end']] = df[['start', 'end']].astype(int)
     return df
 
-def main(input_file, population):
-    chunk_size = 1e6 # Adjust chunk size according to your memory constraints
-    chunks = pd.read_table(input_file, dtype={'chr': str, 'chrom': str}, chunksize=chunk_size)
-
-    processed_chunks = []
-    for chunk in chunks:
-        processed_chunk = process_chunk(chunk, population)
-        processed_chunks.append(processed_chunk)
-    
-    return pd.concat(processed_chunks)
-
-
 if __name__ == '__main__':
+    population = sys.argv[2]
+    columns = get_req_columns(population)
+    phen_df = pd.read_table(sys.stdin, dtype={'chr': str, 'chrom': str}, usecols=columns)
+    assert np.all(
+        (phen_df['chrom'] == phen_df['chr']) & 
+        (phen_df['pos'] == phen_df['pos.1']) & 
+        (phen_df['ref'] == phen_df['ref.1']) & 
+        (phen_df['alt'] == phen_df['alt.1'])
+    )
+    phen_df.dropna(inplace=True)
     n_samples = pd.to_numeric(sys.argv[3], errors='coerce').astype(int)
     phen_id = sys.argv[4]
-    main(sys.stdin, sys.argv[2]).assign(
+    main(phen_df, population).assign(
         phen_id=phen_id,
         N=n_samples
     )[result_columns].to_csv(
