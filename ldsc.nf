@@ -7,7 +7,7 @@ params.conda = "$moduleDir/environment.yml"
 process calc_ld {
     publishDir "${params.outdir}/ldsc/l2_logs", pattern: "${prefix}.log"
     publishDir "${params.outdir}/ldsc/l2", pattern: "${prefix}.l2.*"
-    publishDir "${params.outdir}/ldsc/l2", pattern: "${annotation_file}"
+    publishDir "${params.outdir}/ldsc/l2", pattern: "${new_annot}"
     
     tag "chr${chrom}:${group_id}"
     scratch true
