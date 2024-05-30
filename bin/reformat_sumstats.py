@@ -35,7 +35,7 @@ def process_chunk(df, population):
     return df
 
 def main(input_file, population):
-    chunk_size = 1e6  # Adjust chunk size according to your memory constraints
+    chunk_size = 5e5  # Adjust chunk size according to your memory constraints
     chunks = pd.read_table(input_file, dtype={'chr': str, 'chrom': str}, chunksize=chunk_size)
 
     processed_chunks = []
