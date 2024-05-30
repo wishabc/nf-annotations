@@ -72,7 +72,6 @@ process convert_sumstats_to_hg38 {
     tag "${phen_id}"
     publishDir "${params.outdir}/per_phenotype/${phen_id}"
     conda params.conda
-    label "med_mem"
 
     input:
         tuple val(phen_id), path(sumstats), val(n_samples), val(population), path(manifest_hg38)
