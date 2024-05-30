@@ -47,10 +47,9 @@ def main(input_file, population):
 
 
 if __name__ == '__main__':
-    phen_df = pd.read_table(sys.stdin, dtype={'chr': str, 'chrom': str})
     n_samples = pd.to_numeric(sys.argv[3], errors='coerce').astype(int)
     phen_id = sys.argv[4]
-    main(phen_df, sys.argv[2]).assign(
+    main(sys.stdin, sys.argv[2]).assign(
         phen_id=phen_id,
         N=n_samples
     )[result_columns].to_csv(
