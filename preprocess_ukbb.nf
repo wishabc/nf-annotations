@@ -124,6 +124,7 @@ process munge_sumstats {
     tag "${phen_id}"
     publishDir "${params.outdir}/per_phenotype/${phen_id}"
     scratch true
+    label "ldsc"
 
     input:
         tuple val(phen_id), path(sumstats_file)

@@ -12,6 +12,7 @@ process calc_ld {
     tag "chr${chrom}:${group_id}"
     scratch true
     conda params.ldsc_conda
+    label "ldsc"
 
     input:
         tuple val(group_id), val(chrom), path(annotation)
@@ -52,6 +53,7 @@ process run_ldsc_cell_types {
     publishDir "${params.outdir}/ldsc/ldsc_coefs", pattern: "${name}"
     publishDir "${params.outdir}/ldsc/ldsc_logs", pattern: "${phen_id}.log"
     tag "${phen_id}"
+    label "ldsc"
     scratch true
 
     input:
@@ -97,6 +99,7 @@ process run_ldsc_single_sample {
     publishDir "${params.outdir}/ldsc/ldsc_coefs_${prefix}", pattern: "${name}.results"
     publishDir "${params.outdir}/ldsc/ldsc_logs/${prefix}", pattern: "${name}.log"
     tag "${prefix}:${phen_id}"
+    label "ldsc"
     scratch true
 
     input:

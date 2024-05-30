@@ -40,6 +40,7 @@ process download_meta {
 process munge_sumstats {
     conda params.ldsc_conda
     tag "${phen_id}"
+    label "ldsc"
     publishDir "${params.outdir}/per_phenotype/${phen_id}"
     scratch true
 
