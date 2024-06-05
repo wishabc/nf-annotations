@@ -103,7 +103,7 @@ workflow {
         | map(it -> tuple("DHS_Binary", it, file(params.sample_names)))
         | combine(calc_prop_accessibility())
     
-    d = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
+    Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
         | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
         | motif_hits_intersect // motif_id, indicator
         | combine(matrices)

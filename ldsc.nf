@@ -168,13 +168,12 @@ process make_ldsc_annotation {
     scratch true
 
     input:
-        tuple val(chrom), path(custom_annotation)
+        tuple val(chrom), val(group_id), path(custom_annotation)
 
     output:
         tuple val(group_id), val(chrom), path(name)
     
     script:
-    group_id = "${custom_annotation.simpleName}"
     name = "${group_id}.${chrom}.annot.gz"
     """
     echo ANNOT | gzip > ${name}
@@ -202,7 +201,7 @@ process convert_to_bed {
         tuple val(mask_name), path(mask)
 
     output:
-        path name
+        tuple val(prefix), path(name)
     
     script:
     prefix = "${mask_name.replaceAll(/\./, '__')}"
@@ -222,15 +221,20 @@ workflow LDSCcellTypes {
     take:
         ld_data
         sumstats_files
+        out_prefix
     main:
-        out = run_ldsc_cell_types(sumstats_files, ld_data.map(it -> it[1]).collect(sort: true))
+        dat = ld_data
+            | map(it -> it[1])
+            | collect(sort: true)
+
+        out = run_ldsc_cell_types(sumstats_files, dat)
             | map(it -> it[1])
             | collectFile(
                 storeDir: params.outdir,
                 skip: 1,
                 keepHeader: true,
                 sort: true,
-                name: "ldsc_cell_types_results.tsv"
+                name: "${out_prefix}.ldsc_cell_types_results.tsv"
             )
     emit:
         out
@@ -241,13 +245,14 @@ workflow LDSC {
     take:
         ld_data
         sumstats_files
+        out_prefix
     main:
         out = sumstats_files
             | combine(ld_data)
             | run_ldsc_single_sample
             | map(it -> it[4])
             | collectFile(
-                name: 'ldsc_enrichments_results.tsv',
+                name: "${out_prefix}.ldsc_enrichments_results.tsv",
                 storeDir: params.outdir,
                 skip: 1,
                 keepHeader: true
@@ -259,42 +264,31 @@ workflow LDSC {
 workflow fromAnnotations {
     take:
         annotations
+        out_prefix
     main:
         sumstats_files = Channel.fromPath(params.phenotypes_meta)
             | splitCsv(header:true, sep:'\t')
             | map(row -> tuple(row.phen_id, file(row.munge_sumstats_file), params.baseline_ld))
             | filter { it[1].exists() }
 
-        ldsc_annotations = Channel.of(1..22)
+        ld_data = Channel.of(1..22)
             | combine(annotations)
             | make_ldsc_annotation // group_id, chrom, annotation
-
-        ld_data = ldsc_annotations
             | calc_ld //  group_id, chrom, ld, ld_log, annotation
             | map(it -> tuple(it[0], [it[2], it[4]].flatten()))
             | groupTuple(size: 22)
             | map(it -> tuple(it[0], it[1].flatten()))
 
         if (params.by_cell_type) {
-            out = LDSCcellTypes(ld_data, sumstats_files)
+            out = LDSCcellTypes(ld_data, sumstats_files, out_prefix)
         } else {
-            out = LDSC(ld_data, sumstats_files) 
+            out = LDSC(ld_data, sumstats_files, out_prefix) 
         }   
     emit:
         out
 }
 
 // Entry workflows
-workflow fromPvalFiles {
-    params.result_pval_file = "${params.outdir}/aggregated.${params.aggregation_key}.bed"
-    Channel.fromPath(params.result_pval_file) 
-        | split_cell_specific_aggregation
-        | flatten()
-        | filter { it.countLines() >= params.min_snps }
-        | fromAnnotations
-   
-}
-
 workflow fromMatrix {
     matrices = Channel.fromPath(params.matrices_list)
        | splitCsv(header:true, sep:'\t')
@@ -302,11 +296,28 @@ workflow fromMatrix {
        | split_matrices
        | flatten()
        | map(it -> tuple(it.baseName, it)) // mask_name, mask
-       | convert_to_bed
-       | fromAnnotations
+       | convert_to_bed // group_id, annotation
+    fromAnnotations(matrices, "${file(params.matrices_list).baseName}")
 }
 
 workflow {
     custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
-        | fromAnnotations
+        | map(it -> tuple(it.baseName, it)) // group_id, custom_annotation
+    
+    params.custom_annotation_name = params.custom_annotation_name ?: "custom_annotations"
+
+    fromAnnotations(custom_annotations, params.custom_annotation_name)
+}
+
+// Start from CAV calling pval file
+workflow fromAggregatedCavs {
+    params.result_pval_file = "${params.outdir}/aggregated.${params.aggregation_key}.bed"
+    pvals = Channel.fromPath(params.result_pval_file) 
+        | split_cell_specific_aggregation
+        | flatten()
+        | filter { it.countLines() >= params.min_snps }
+        | map(it -> tuple(it.baseName, it)) // group_id, aggregated_pval_file
+    
+    fromAnnotations(pvals, "CAVs.${params.aggregation_key}")
+   
 }
