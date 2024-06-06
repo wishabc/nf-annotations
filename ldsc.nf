@@ -57,7 +57,8 @@ process run_ldsc_cell_types {
     scratch true
 
     input:
-        tuple val(phen_id), path(sumstats_file), val(baseline_ld), path(filepaths)
+        tuple val(phen_id), path(sumstats_file), val(baseline_ld)
+        path(filepaths)
     
     output:
         tuple val(phen_id), path(name), path("${phen_id}.log")
@@ -69,11 +70,12 @@ process run_ldsc_cell_types {
     export GOTO_NUM_THREADS=${task.cpus}
     export OMP_NUM_THREADS=${task.cpus}
 
-    cat ${filepaths} \
+    ls -1 data_files \
         | cut -d"." -f 1 \
         | sort \
         | uniq \
-        | awk -F"/" -v OFS='\t' '{ print \$NF, \$0"." }' > per_sample.ldcts
+        | awk -v OFS='\\t' \
+            '{ print \$1,"data_files/"\$1"." }' > per_sample.ldcts
     
     ${params.ldsc_scripts_path}/ldsc.py \
         --h2-cts ${sumstats_file} \
@@ -223,13 +225,9 @@ workflow LDSCcellTypes {
     main:
         dat = ld_data
             | map(it -> it[1])
-            | flatten()
-            | map(it -> it.toString())
-            | collectFile(name: 'all.paths.txt', newLine: true)
+            | collect(sort: true)
 
-        out = sumstats_files
-            | combine(dat)
-            | run_ldsc_cell_types
+        out = run_ldsc_cell_types(sumstats_files, dat)
             | map(it -> it[1])
             | collectFile(
                 storeDir: params.outdir,
