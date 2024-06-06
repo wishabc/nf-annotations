@@ -15,6 +15,6 @@ workflow {
         | map(it -> tuple('baseline', it))
     
     // phen_id, sumstats_file, baseline_ld, val(prefix), path(ld_files)
-    LDSC(ld_data, sumstats_files)
+    LDSC(ld_data, sumstats_files, 'baseline')
         
 }
