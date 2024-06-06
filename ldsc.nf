@@ -58,7 +58,7 @@ process run_ldsc_cell_types {
 
     input:
         tuple val(phen_id), path(sumstats_file), val(baseline_ld)
-        path("data_files/*")
+        path(filepaths)
     
     output:
         tuple val(phen_id), path(name), path("${phen_id}.log")
@@ -70,7 +70,7 @@ process run_ldsc_cell_types {
     export GOTO_NUM_THREADS=${task.cpus}
     export OMP_NUM_THREADS=${task.cpus}
 
-    ls -1 data_files \
+    cat ${filepaths} \
         | cut -d"." -f 1 \
         | sort \
         | uniq \
@@ -224,8 +224,8 @@ workflow LDSCcellTypes {
         out_prefix
     main:
         dat = ld_data
-            | map(it -> it[1])
-            | collect(sort: true)
+            | map(it -> it[1].toString())
+            | collectFile(name: 'all.paths.txt', newLine: true)
 
         out = run_ldsc_cell_types(sumstats_files, dat)
             | map(it -> it[1])
