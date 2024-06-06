@@ -288,18 +288,22 @@ workflow fromAnnotations {
         out
 }
 
-// Entry workflows
 workflow fromMatrix {
-    matrices = Channel.fromPath(params.matrices_list)
-       | splitCsv(header:true, sep:'\t')
-       | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
-       | split_matrices
-       | flatten()
-       | map(it -> tuple(it.baseName, it)) // mask_name, mask
-       | convert_to_bed // group_id, annotation
-    fromAnnotations(matrices, "${file(params.matrices_list).baseName}")
+    take:
+        matrices
+        out_prefix
+    main:
+        data = matrices
+            | split_matrices
+            | flatten()
+            | map(it -> tuple(it.baseName, it)) // mask_name, mask
+            | convert_to_bed // group_id, annotation
+        out = fromAnnotations(matrices, out_prefix)
+    emit:
+        out
 }
 
+// Entry workflows
 workflow {
     custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
         | map(it -> tuple(it.baseName, it)) // group_id, custom_annotation
@@ -307,6 +311,20 @@ workflow {
     params.custom_annotation_name = params.custom_annotation_name ?: "custom_annotations"
 
     fromAnnotations(custom_annotations, params.custom_annotation_name)
+}
+
+
+workflow fromMatricesList {
+    matrices = Channel.fromPath(params.matrices_list)
+       | splitCsv(header:true, sep:'\t')
+       | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
+    fromMatrix(matrices, "${file(params.matrices_list).baseName}")
+}
+
+workflow fromBinaryMatrix {
+    matrices = Channel.fromPath(params.binary_matrix)
+       | map(it -> tuple("DHS_Binary", it, file(params.sample_names)))
+    fromMatrix(matrices, "DHS_Binary")
 }
 
 // Start from CAV calling pval file
