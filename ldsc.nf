@@ -223,7 +223,9 @@ workflow LDSCcellTypes {
         out_prefix
     main:
         dat = ld_data
-            | map(it -> it[1].toString())
+            | map(it -> it[1])
+            | flatten()
+            | map(it -> it.toString())
             | collectFile(name: 'all.paths.txt', newLine: true)
 
         out = sumstats_files
