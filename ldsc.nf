@@ -298,7 +298,7 @@ workflow fromMatrix {
             | flatten()
             | map(it -> tuple(it.baseName, it)) // mask_name, mask
             | convert_to_bed // group_id, annotation
-        out = fromAnnotations(matrices, out_prefix)
+        out = fromAnnotations(data, out_prefix)
     emit:
         out
 }
