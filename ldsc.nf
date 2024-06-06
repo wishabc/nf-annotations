@@ -73,8 +73,7 @@ process run_ldsc_cell_types {
         | cut -d"." -f 1 \
         | sort \
         | uniq \
-        | awk -v OFS='\\t' \
-            '{ print \$1,"data_files/"\$1"." }' > per_sample.ldcts
+        | awk -F"/" -v OFS='\t' '{ print \$NF, \$0"." }' > per_sample.ldcts
     
     ${params.ldsc_scripts_path}/ldsc.py \
         --h2-cts ${sumstats_file} \
