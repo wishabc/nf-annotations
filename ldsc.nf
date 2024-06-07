@@ -58,7 +58,7 @@ process run_ldsc_cell_types {
 
     input:
         tuple val(phen_id), path(sumstats_file), val(baseline_ld)
-        path(filepaths)
+        path("data_files/*")
     
     output:
         tuple val(phen_id), path(name), path("${phen_id}.log")
