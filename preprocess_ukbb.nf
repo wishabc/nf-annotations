@@ -98,28 +98,6 @@ process convert_sumstats_to_hg38 {
 }
 //['#chr', 'start', 'end', 'SNP', 'ref', 'alt', 'Beta', 'Beta_se', 'P', 'neglog10_p', 'INFO', 'phen_id', 'N']
 
-process filter_significant_hits {
-    publishDir "${params.outdir}/per_phenotype/${phen_id}"
-    conda params.conda
-    tag "${phen_id}"
-    scratch true
-
-    input:
-        tuple val(phen_id), path(bed_file)
-    
-    output:
-        tuple val(phen_id), path(name)
-    
-    script:
-    name = "${phen_id}.significant_hits.bed.gz"
-    """
-    zcat ${bed_file} \
-        | awk -v OFS='\t' \
-            '((NR == 1) || (\$10 >= 7.301)) {print }' \
-        | bgzip -c > ${name}
-    """
-}
-
 process munge_sumstats {
     conda params.ldsc_conda
     tag "${phen_id}"
@@ -145,35 +123,6 @@ process munge_sumstats {
     """
 }
 
-process sort_and_index {
-    conda params.conda
-    scratch true
-
-    publishDir params.outdir
-
-    input:
-        path "significant_hits/*"
-    
-    output:
-        path name
-    
-    script:
-    name = "significant_hits.bed.gz"
-    """
-    find significant_hits -name '*.gz' \
-        | sort > filelist.txt
-
-    zcat \$(head -n 1 filelist.txt) | head -1 || true > header.txt
-
-
-    # Concatenate, sort, and merge with the header, excluding the header from all but the first file
-    xargs -a filelist.txt zcat \
-        | tail -n +2 \
-        | sort-bed - \
-        | cat header.txt - \
-        | bgzip -c > merged_and_sorted.gz
-    """
-}
 
 workflow {
     // Code needs some adjustment for meta study!

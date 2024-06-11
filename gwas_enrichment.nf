@@ -1,3 +1,109 @@
+
+process filter_significant_hits {
+    publishDir "${params.outdir}/per_phenotype/${phen_id}"
+    conda params.conda
+    tag "${phen_id}"
+    scratch true
+
+    input:
+        tuple val(phen_id), path(bed_file)
+    
+    output:
+        tuple val(phen_id), path(name)
+    
+    script:
+    name = "${phen_id}.significant_hits.bed.gz"
+    """
+    zcat ${bed_file} \
+        | awk -v OFS='\t' \
+            '((NR == 1) || (\$10 >= 7.301)) {print }' \
+        | bgzip -c > ${name}
+    """
+}
+
+
+process sort_and_index {
+    conda params.conda
+    scratch true
+
+    publishDir params.outdir
+
+    input:
+        path significant_hits_paths
+    
+    output:
+        path name
+    
+    script:
+    name = "significant_hits.bed.gz"
+    """
+
+    zcat \$(head -n 1 ${significant_hits_paths}) | head -1 || true > header.txt
+
+
+    # Concatenate, sort, and merge with the header from the first file
+
+    xargs -a ${significant_hits_paths} zcat \
+        | tail -n +2 \
+        | sort-bed - \
+        | cat header.txt - \
+        | bgzip -c > merged_and_sorted.gz
+    """
+}
+
+
+workflow {
+    phenotypes = Channel.fromPath(params.phenotypes_file)
+        | splitCsv(header:true, sep:'\t')
+        | map(row -> tuple(row.phen_id, file(row.bed_file)))
+        | filter_significant_hits
+        | map(it -> it.toString())
+        | collectFile(name: 'significant_hits_paths.txt', newLine: true)
+        | sort_and_index
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// DEFUNC
+
 process gwas_logistic_regression {
     conda params.r_conda
     tag "${prefix}"
