@@ -1,44 +1,44 @@
 
-process annotate_motif_hits {
-    conda params.conda
-    tag "${prefix}"
+// process annotate_motif_hits {
+//     conda params.conda
+//     tag "${prefix}"
 
-    input:
-        tuple val(prefix), path(motif)
-    output:
-        tuple val(prefix), path(name)
+//     input:
+//         tuple val(prefix), path(motif)
+//     output:
+//         tuple val(prefix), path(name)
     
-    script:
-    name = "${prefix}.footprints_hits.bed"
-    """
-    bedtools intersect \
-        -a ${params.footprints_index} \
-        -b ${motifs} \
-        -F 0.5 \
-        -wa -wb > ${name}
-    """
-}
+//     script:
+//     name = "${prefix}.footprints_hits.bed"
+//     """
+//     bedtools intersect \
+//         -a ${params.footprints_index} \
+//         -b ${motifs} \
+//         -F 0.5 \
+//         -wa -wb > ${name}
+//     """
+// }
 
-process sort_and_index {
-    conda params.conda
-    publishDir params.outdir
-    label "highmem"
+// process sort_and_index {
+//     conda params.conda
+//     publishDir params.outdir
+//     label "highmem"
 
-    input:
-        path overlaps
+//     input:
+//         path overlaps
     
-    output:
-        tuple path(name), path("${name}.tbi")
+//     output:
+//         tuple path(name), path("${name}.tbi")
     
-    script:
-    name = "motif_overlaps.bed.gz"
-    """
-    cat ${overlaps} | sort-bed - \
-        | bgzip -c > ${name}
-    tabix ${name}
-    """
+//     script:
+//     name = "motif_overlaps.bed.gz"
+//     """
+//     cat ${overlaps} | sort-bed - \
+//         | bgzip -c > ${name}
+//     tabix ${name}
+//     """
 
-}
+// }
 
 workflow {
     params.footprints_index = "/net/seq/data2/projects/ENCODE4Plus/footprints/4078_Index/footprint_index_0521/output/unfiltered_masterlists/masterlist_DHSs_Altius_all_chunkIDs.bed"
