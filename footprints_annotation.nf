@@ -11,9 +11,10 @@ process annotate_motif_hits {
     script:
     name = "${prefix}.footprints_hits.bed"
     """
-    bedtools intersect \
+    zcat ${motifs} \
+        | bedtools intersect \
         -a ${params.footprints_index} \
-        -b ${motifs} \
+        -b stdin \
         -F 0.9 -f 0.9 \
         -wa -wb > ${name}
     """
@@ -43,8 +44,8 @@ process sort_and_index {
 workflow {
     params.footprints_index = "/net/seq/data2/projects/ENCODE4Plus/footprints/4078_Index/footprint_index_0521/output/unfiltered_masterlists/masterlist_DHSs_Altius_all_chunkIDs.bed"
 
-    Channel.fromPath("${params.template_run}/motif_hits/*")
-        | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
+    Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
+        | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
         | annotate_motif_hits
         | collectFile(
             name: "motifs_annotated.bed",
