@@ -47,6 +47,7 @@ workflow {
     Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
         | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
         | annotate_motif_hits
+        | map(it -> it[1])
         | collectFile(
             name: "motifs_annotated.bed",
             sort: true
