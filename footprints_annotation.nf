@@ -11,7 +11,7 @@ process annotate_motif_hits {
     script:
     name = "${prefix}.footprints_hits.bed"
     """
-    zcat ${motifs} \
+    zcat ${motif} \
         | bedtools intersect \
         -a ${params.footprints_index} \
         -b stdin \
