@@ -14,7 +14,7 @@ process annotate_motif_hits {
     bedtools intersect \
         -a ${params.footprints_index} \
         -b ${motifs} \
-        -F 0.5 \
+        -F 0.9 -f 0.9 \
         -wa -wb > ${name}
     """
 }
