@@ -40,18 +40,18 @@
 
 // }
 
-workflow {
-    params.footprints_index = "/net/seq/data2/projects/ENCODE4Plus/footprints/4078_Index/footprint_index_0521/output/unfiltered_masterlists/masterlist_DHSs_Altius_all_chunkIDs.bed"
+// workflow {
+//     params.footprints_index = "/net/seq/data2/projects/ENCODE4Plus/footprints/4078_Index/footprint_index_0521/output/unfiltered_masterlists/masterlist_DHSs_Altius_all_chunkIDs.bed"
 
-    Channel.fromPath("${params.template_run}/motif_hits/*")
-        | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
-        | annotate_motif_hits
-        | collectFile(
-            name: "motifs_annotated.bed"
-            sort: true,
-        )
-        | sort_and_index
-}
+//     Channel.fromPath("${params.template_run}/motif_hits/*")
+//         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
+//         | annotate_motif_hits
+//         | collectFile(
+//             name: "motifs_annotated.bed"
+//             sort: true,
+//         )
+//         | sort_and_index
+// }
 
 
 // DEFUNC
