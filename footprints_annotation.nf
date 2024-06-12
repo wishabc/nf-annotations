@@ -16,7 +16,8 @@ process annotate_motif_hits {
         -a ${params.footprints_index} \
         -b stdin \
         -F 0.9 -f 0.9 \
-        -wa -wb > ${name}
+        -wa -wb \
+        | cut -f1-4,15- > ${name}
     """
 }
 
