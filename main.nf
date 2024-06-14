@@ -40,7 +40,7 @@ process top_samples_track {
         tuple val(component), val(prefix), path(density_bw, stageAs: "?/*")
     
     output:
-        tuple val(prefix), path(name), path("${component}.top_samples.bg")
+        tuple val(prefix), path(name), path(bg)
     
     script:
     name = "${prefix}.${component}.top_samples.bw"
@@ -129,4 +129,6 @@ workflow {
     mixing_data.pure
         | mix(mixing_data.mixing)
         | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version if run from here.
+    
+    craft_config()
 }
