@@ -15,9 +15,10 @@ process find_top_samples {
     script:
     """
     python3 $moduleDir/bin/find_top_samples.py \
-        ${params.samples_file} \
-        ${samples_order} \
         ${W_matrix} \
+        ${samples_order} \
+        ${params.samples_file} \
+        ${prefix} \
         ${params.top_count}
     """
 }
@@ -58,17 +59,19 @@ process prepare_mixings_data {
             tuple val("${prefix}.mixing"), path(mixing_matrix), path(mixing_comp_order), emit: mixing
     
         script:
-        clean_comps_matrix = "clean_50pr.${prefix}.npy"
-        mixings_matrix = "mixings_80pr.${prefix}.npy"
-        clean_comp_order = "clean_50pr.${prefix}.order.txt"
-        mixing_comp_order = "mixings_80pr.${prefix}.order.txt"
+        clean_prefix = "${prefix}.clean"
+        mixing_prefix = "${prefix}.mixing"
+        clean_comps_matrix = "${clean_prefix}.50pr.npy"
+        mixings_matrix = "${mixing_prefix}.mixings_80pr.npy"
+        clean_comp_order = "${clean_prefix}.clean_50pr.order.txt"
+        mixing_comp_order = "${mixing_prefix}.mixings_80pr.order.txt"
         """
         python3 $moduleDir/bin/prepare_mixings_data.py \
             ${W_matrix} \
             ${H_matrix} \
             ${samples_order} \
-            ${peaks_order} \
-            ${params.samples_file}
+            ${params.samples_file} \
+            ${prefix}
         """
 }
 
@@ -88,19 +91,19 @@ workflow {
     input_data
         | map(it -> tuple(it[0], it[1], it[3]))
         | find_top_samples
+        | map(it -> tuple(it.simpleName, it))
+        | groupTuple()
         | top_samples_track
 
-    // Mixings
-    mixing_data = prepare_mixings_data(input_data)
+    // // Mixings
+    // mixing_data = prepare_mixings_data(input_data)
     
-    if !file("${params.template_run}/proportion_accessibility.tsv").exists() {
-        error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first. Once per binary matrix."
+    // if !file("${params.template_run}/proportion_accessibility.tsv").exists() {
+    //     error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first. Once per binary matrix."
         
-    }
+    // }
     
-    data = mixing_data.clean
-        | mix(mixing_data.mixing)
-    
-    motifEnrichmentFromMatrix(data)
-    ldscFromMatrix(data, file(nmf_metadata).baseName) // ldsc. ALWAYS uses by_cell_type version if run from here.
+    // mixing_data.clean
+    //     | mix(mixing_data.mixing)
+    //     | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version if run from here.
 }
