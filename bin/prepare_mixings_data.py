@@ -44,9 +44,9 @@ def main(H):
     return (np.arange(H.shape[0]), clean_annotations), mixing_annotations
 
 if __name__ == "__main__":
-    H = np.load(sys.argv[2]).T
+    H = np.load(sys.argv[1]).T
     H =  H / H.sum(axis=0, keepdims=True)
-    prefix = sys.argv[5]
+    prefix = sys.argv[2]
     clean_ann, mixing_ann = main(H)
     np.save(f'{prefix}.clean.50pr.npy', clean_ann[1])
     np.savetxt(f'{prefix}.clean.50pr.order.txt', clean_ann[0], fmt='%s')

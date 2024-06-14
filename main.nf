@@ -69,10 +69,7 @@ process prepare_mixings_data {
     mixing_comp_order = "${mixing_prefix}.80pr.order.txt"
     """
     python3 $moduleDir/bin/prepare_mixings_data.py \
-        ${W_matrix} \
         ${H_matrix} \
-        ${samples_order} \
-        ${params.samples_file} \
         ${prefix}
     """
 }
