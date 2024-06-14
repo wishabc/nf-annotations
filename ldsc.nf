@@ -1,5 +1,4 @@
 #!/usr/bin/env nextflow
-include { split_matrices } from './finemapping_enrichment'
 
 params.conda = "$moduleDir/environment.yml"
 
@@ -279,17 +278,38 @@ workflow {
         | fromAnnotations
 }
 
+workflow fromBinaryMatrix {
+    // Doesn't really work just yet
+    Channel.fromPath(params.binary_matrix)
+        | map(it -> tuple("DHS_Binary", it, file(params.sample_names)))
+        | fromMatrix
+}
 
+// Start from matrices list
+
+process split_matrices {
+    conda params.conda
+    //publishDir "${params.outdir}"
+    tag "${matrix_name}"
+    
+    input:
+        tuple val(matrix_name), path(matrix), path(sample_names)
+    
+    output:
+        path "${matrix_name}.*.txt"
+    
+    script:
+    """
+    python3 $moduleDir/bin/split_matrix.py \
+        ${matrix} \
+        ${sample_names} \
+        ${matrix_name}
+    """
+}
 workflow fromMatricesList {
     Channel.fromPath(params.matrices_list)
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
-        | fromMatrix
-}
-
-workflow fromBinaryMatrix {
-    Channel.fromPath(params.binary_matrix)
-        | map(it -> tuple("DHS_Binary", it, file(params.sample_names)))
         | fromMatrix
 }
 

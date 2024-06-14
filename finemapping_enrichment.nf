@@ -1,23 +1,6 @@
+include { split_matrices } from './ldsc'
 
-process split_matrices {
-    conda params.conda
-    //publishDir "${params.outdir}"
-    tag "${matrix_name}"
-    
-    input:
-        tuple val(matrix_name), path(matrix), path(sample_names)
-    
-    output:
-        path "${matrix_name}.*.txt"
-    
-    script:
-    """
-    python3 $moduleDir/bin/split_matrix.py \
-        ${matrix} \
-        ${sample_names} \
-        ${matrix_name}
-    """
-}
+
 
 process overlap_annotation {
     conda params.conda
