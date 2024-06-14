@@ -88,7 +88,7 @@ workflow {
         | combine(input_data)
         | map(it -> tuple(it[0].simpleName, it[1], it[0]))
         | groupTuple(by: [0, 1])
-        | top_samples_track
+        // | top_samples_track
 
     // Mixings
     mixing_data = input_data 
