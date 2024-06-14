@@ -36,7 +36,7 @@ process top_samples_track {
         tuple val(component), val(prefix), path(density_bw, stageAs: "?/*")
     
     output:
-        tuple path(name), val(prefix), path("${component}.top_samples.bg")
+        tuple val(prefix), path(name), path("${component}.top_samples.bg")
     
     script:
     name = "${prefix}.${component}.top_samples.bw"
@@ -98,12 +98,12 @@ workflow {
         | map(it -> tuple(it[0], it[2]))
         | prepare_mixings_data
     
-    if !file("${params.template_run}/proportion_accessibility.tsv").exists() {
-        error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first or specify template_run folder. Once per binary matrix."
+    // if !file("${params.template_run}/proportion_accessibility.tsv").exists() {
+    //     error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first or specify template_run folder. Once per binary matrix."
         
-    }
+    // }
     
-    mixing_data.clean
-        | mix(mixing_data.mixing)
-        | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version if run from here.
+    // mixing_data.clean
+    //     | mix(mixing_data.mixing)
+    //     | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version if run from here.
 }
