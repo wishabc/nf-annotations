@@ -94,7 +94,9 @@ workflow {
         | top_samples_track
 
     // Mixings
-    mixing_data = prepare_mixings_data(input_data)
+    mixing_data = input_data 
+        | map(it -> tuple(it[0], it[2]))
+        | prepare_mixings_data
     
     if !file("${params.template_run}/proportion_accessibility.tsv").exists() {
         error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first or specify template_run folder. Once per binary matrix."
