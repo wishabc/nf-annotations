@@ -3,7 +3,7 @@ import sys
 from tqdm import tqdm
 
 
-def construct_binary_labels(H, threshold=0.8):
+def construct_binary_labels(H, threshold=0.8, min_count=5_000):
     k, n = H.shape
     labels = np.zeros((n,), dtype=int)
     total_sums = H.sum(axis=0)
@@ -25,15 +25,14 @@ def construct_binary_labels(H, threshold=0.8):
     
     unique_labels, indices, counts = np.unique(labels, axis=0, return_inverse=True, return_counts=True)
     
-    mixing_w_enough_dhs = counts >= 5000
+    sufficient_dhs_labels_mask = counts >= min_count
+    filtered_unique_labels = unique_labels[sufficient_dhs_labels_mask]
     
-    unique_labels = unique_labels[mixing_w_enough_dhs]
-    indices = indices[mixing_w_enough_dhs]
-
     # Create the binary matrix with unique labels as columns
-    binary_matrix = np.zeros((unique_labels.shape[0], n), dtype=bool)
-    for i, index in enumerate(indices):
-        binary_matrix[index, i] = 1
+    filtered_indices = np.array([i for i, index in enumerate(indices) if sufficient_dhs_labels_mask[index]])
+    binary_matrix = np.zeros((n, filtered_unique_labels.shape[0]), dtype=bool)
+    for i, index in enumerate(filtered_indices):
+        binary_matrix[i, index] = 1
     
     return unique_labels, binary_matrix
 
