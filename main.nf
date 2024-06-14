@@ -85,6 +85,7 @@ workflow {
     input_data
         | map(it -> tuple(it[0], it[1], it[3]))
         | find_top_samples
+        | flatten()
         | map(it -> tuple(it.simpleName, it))
         | groupTuple()
         | top_samples_track
