@@ -5,6 +5,7 @@ process find_top_samples {
 
     conda params.conda
     publishDir "${params.outdir}/top_samples"
+    tag "${prefix}"
 
     input:
         tuple val(prefix), path(W_matrix), path(samples_order)
@@ -28,18 +29,18 @@ process top_samples_track {
 
     scratch true
     conda params.conda
-    tag "${component}"
-    publishDir "${params.outdir}/top_samples"
+    tag "${prefix}:${component}"
+    publishDir "${params.outdir}/top_samples/${prefix}"
 
     input:
-        tuple val(component), path(density_bw, stageAs: "?/*")
+        tuple val(component), val(prefix), path(density_bw, stageAs: "?/*")
     
     output:
-        tuple path(name), path("${component}.top_samples.bg")
+        tuple path(name), val(prefix), path("${component}.top_samples.bg")
     
     script:
-    name = "${component}.top_samples.bw"
-    bg = "${component}.top_samples.bg"
+    name = "${prefix}.${component}.top_samples.bw"
+    bg = "${prefix}.${component}.top_samples.bg"
     """
     wiggletools write_bg ${bg} mean ${density_bw}
     bedGraphToBigWig "${bg}" "${params.chrom_sizes}" "${name}"
@@ -49,10 +50,11 @@ process top_samples_track {
 
 process prepare_mixings_data {
     conda params.conda
-    publishDir "${params.outdir}/mixings"
+    publishDir "${params.outdir}/mixings/${prefix}"
+    tag "${prefix}"
 
     input:
-        tuple val(prefix), path(W_matrix), path(H_matrix), path(samples_order)
+        tuple val(prefix), path(H_matrix)
 
     output:
         tuple val("${prefix}.clean"), path(clean_comps_matrix), path(clean_comp_order), emit: clean
@@ -86,8 +88,9 @@ workflow {
         | map(it -> tuple(it[0], it[1], it[3]))
         | find_top_samples
         | flatten()
-        | map(it -> tuple(it.simpleName, it))
-        | groupTuple()
+        | combine(input_data)
+        | map(it -> tuple(it[0].simpleName, it[1], it[0]))
+        | groupTuple(by: [0, 1])
         | top_samples_track
 
     // Mixings

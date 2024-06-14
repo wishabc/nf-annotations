@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 import sys
 from tqdm import tqdm
@@ -45,12 +44,8 @@ def main(H):
     return (np.arange(H.shape[0]), clean_annotations), mixing_annotations
 
 if __name__ == "__main__":
-    W = np.load(sys.argv[1]).T
     H = np.load(sys.argv[2]).T
-    assert W.shape[0] == H.shape[0]
     H =  H / H.sum(axis=0, keepdims=True)
-    samples_order = np.loadtxt(sys.argv[3], dtype=str)
-    metadata = pd.read_table(sys.argv[4]).loc[samples_order]
     prefix = sys.argv[5]
     clean_ann, mixing_ann = main(H)
     np.save(f'{prefix}.clean.50pr.npy', clean_ann[1])
