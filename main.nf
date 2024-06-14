@@ -4,23 +4,26 @@ include { fromMatrix as motifEnrichmentFromMatrix } from './masterlist_enrichmen
 process find_top_samples {
 
     conda params.conda
-    publishDir "${params.outdir}/top_samples"
     tag "${prefix}"
+    publishDir "${params.outdir}/top_samples/${prefix}", pattern: "${name}"
 
     input:
         tuple val(prefix), path(W_matrix), path(samples_order)
 
     output:
-        path "*.*.component_${prefix}.bw"
+        tuple path(name), path(res), path "*.*.component_${prefix}.bw"
 
     script:
+    name = "${prefix}.top_samples.tsv"
+    res = "${prefix}.density_tracks.tsv"
     """
     python3 $moduleDir/bin/find_top_samples.py \
         ${W_matrix} \
         ${samples_order} \
         ${params.samples_file} \
         ${prefix} \
-        ${params.top_count}
+        ${params.top_count} \
+        ${params.outdir}/top_samples/${prefix}/ \
     """
 }
 
@@ -50,18 +53,18 @@ process top_samples_track {
 
 process prepare_mixings_data {
     conda params.conda
-    publishDir "${params.outdir}/mixings/${prefix}"
+    publishDir "${params.outdir}/mixing/${prefix}"
     tag "${prefix}"
 
     input:
         tuple val(prefix), path(H_matrix)
 
     output:
-        tuple val("${prefix}.clean"), path(clean_comps_matrix), path(clean_comp_order), emit: clean
-        tuple val("${prefix}.mixing"), path(mixing_matrix), path(mixing_comp_order), emit: mixing
+        tuple val(clean_prefix), path(clean_comps_matrix), path(clean_comp_order), emit: clean
+        tuple val(mixing_prefix), path(mixing_matrix), path(mixing_comp_order), emit: mixing
 
     script:
-    clean_prefix = "${prefix}.clean"
+    clean_prefix = "${prefix}.pure"
     mixing_prefix = "${prefix}.mixing"
     clean_comps_matrix = "${clean_prefix}.50pr.npy"
     mixings_matrix = "${mixing_prefix}.80pr.npy"
@@ -74,6 +77,26 @@ process prepare_mixings_data {
     """
 }
 
+process craft_config {
+    conda params.conda
+    publishDir "${params.outdir}"
+    tag "${prefix}"
+
+    input:
+        tuple val(prefix), path(samples_order)
+
+    output:
+        tuple val(prefix), path("${prefix}.ini")
+
+    script:
+    """
+    python3 $moduleDir/bin/craft_config.py \
+        ${samples_order} \
+        ${prefix} \
+        ${params.nmf_metadata}
+    """
+
+}
 
 workflow {
     input_data = Channel.fromPath(params.nmf_metadata)
