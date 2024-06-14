@@ -62,9 +62,9 @@ process prepare_mixings_data {
     clean_prefix = "${prefix}.clean"
     mixing_prefix = "${prefix}.mixing"
     clean_comps_matrix = "${clean_prefix}.50pr.npy"
-    mixings_matrix = "${mixing_prefix}.mixings_80pr.npy"
-    clean_comp_order = "${clean_prefix}.clean_50pr.order.txt"
-    mixing_comp_order = "${mixing_prefix}.mixings_80pr.order.txt"
+    mixings_matrix = "${mixing_prefix}.80pr.npy"
+    clean_comp_order = "${clean_prefix}.50pr.order.txt"
+    mixing_comp_order = "${mixing_prefix}.80pr.order.txt"
     """
     python3 $moduleDir/bin/prepare_mixings_data.py \
         ${W_matrix} \
@@ -90,15 +90,15 @@ workflow {
         | groupTuple()
         | top_samples_track
 
-    // // Mixings
-    // mixing_data = prepare_mixings_data(input_data)
+    // Mixings
+    mixing_data = prepare_mixings_data(input_data)
     
-    // if !file("${params.template_run}/proportion_accessibility.tsv").exists() {
-    //     error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first. Once per binary matrix."
+    if !file("${params.template_run}/proportion_accessibility.tsv").exists() {
+        error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first or specify template_run folder. Once per binary matrix."
         
-    // }
+    }
     
-    // mixing_data.clean
-    //     | mix(mixing_data.mixing)
-    //     | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version if run from here.
+    mixing_data.clean
+        | mix(mixing_data.mixing)
+        | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version if run from here.
 }
