@@ -48,39 +48,33 @@ process top_samples_track {
 
 
 process prepare_mixings_data {
-        conda params.conda
-        publishDir "${params.outdir}/mixings"
-    
-        input:
-            tuple val(prefix), path(W_matrix), path(H_matrix), path(samples_order)
-    
-        output:
-            tuple val("${prefix}.clean"), path(clean_comps_matrix), path(clean_comp_order), emit: clean
-            tuple val("${prefix}.mixing"), path(mixing_matrix), path(mixing_comp_order), emit: mixing
-    
-        script:
-        clean_prefix = "${prefix}.clean"
-        mixing_prefix = "${prefix}.mixing"
-        clean_comps_matrix = "${clean_prefix}.50pr.npy"
-        mixings_matrix = "${mixing_prefix}.mixings_80pr.npy"
-        clean_comp_order = "${clean_prefix}.clean_50pr.order.txt"
-        mixing_comp_order = "${mixing_prefix}.mixings_80pr.order.txt"
-        """
-        python3 $moduleDir/bin/prepare_mixings_data.py \
-            ${W_matrix} \
-            ${H_matrix} \
-            ${samples_order} \
-            ${params.samples_file} \
-            ${prefix}
-        """
+    conda params.conda
+    publishDir "${params.outdir}/mixings"
+
+    input:
+        tuple val(prefix), path(W_matrix), path(H_matrix), path(samples_order)
+
+    output:
+        tuple val("${prefix}.clean"), path(clean_comps_matrix), path(clean_comp_order), emit: clean
+        tuple val("${prefix}.mixing"), path(mixing_matrix), path(mixing_comp_order), emit: mixing
+
+    script:
+    clean_prefix = "${prefix}.clean"
+    mixing_prefix = "${prefix}.mixing"
+    clean_comps_matrix = "${clean_prefix}.50pr.npy"
+    mixings_matrix = "${mixing_prefix}.mixings_80pr.npy"
+    clean_comp_order = "${clean_prefix}.clean_50pr.order.txt"
+    mixing_comp_order = "${mixing_prefix}.mixings_80pr.order.txt"
+    """
+    python3 $moduleDir/bin/prepare_mixings_data.py \
+        ${W_matrix} \
+        ${H_matrix} \
+        ${samples_order} \
+        ${params.samples_file} \
+        ${prefix}
+    """
 }
 
-workflow topSamples {
-    Channel.fromPath(params.nmf_metadata)
-        | splitCsv(header: true, sep: "\t")
-        | map(row -> tuple(row.prefix, file(row.W), file(row.samples_order)))
-
-}
 
 workflow {
     input_data = Channel.fromPath(params.nmf_metadata)

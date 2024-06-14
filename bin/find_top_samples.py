@@ -21,7 +21,7 @@ def main(W, densitity_files, samples_order, topX, suffix):
 
 
 if __name__ == "__main__":
-    W = np.load(sys.argv[1])
+    W = np.load(sys.argv[1]).T
     samples_order = np.loadtxt(sys.argv[2], dtype=str)
     density_tracks = pd.read_table(
         sys.argv[3]
