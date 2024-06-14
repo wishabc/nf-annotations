@@ -61,15 +61,17 @@ process prepare_mixings_data {
         tuple val(prefix), path(H_matrix)
 
     output:
-        tuple val(clean_prefix), path(clean_comps_matrix), path(clean_comp_order), emit: clean
+        tuple val(clean_prefix), path(clean_comps_matrix), path(clean_comp_order), emit: pure
         tuple val(mixing_prefix), path(mixing_matrix), path(mixing_comp_order), emit: mixing
 
     script:
     clean_prefix = "${prefix}.pure"
-    mixing_prefix = "${prefix}.mixing"
     clean_comps_matrix = "${clean_prefix}.50pr.npy"
-    mixings_matrix = "${mixing_prefix}.80pr.npy"
     clean_comp_order = "${clean_prefix}.50pr.order.txt"
+    
+    
+    mixing_prefix = "${prefix}.mixing"
+    mixing_matrix = "${mixing_prefix}.80pr.npy"
     mixing_comp_order = "${mixing_prefix}.80pr.order.txt"
     """
     python3 $moduleDir/bin/prepare_mixings_data.py \
@@ -112,18 +114,18 @@ workflow {
         | combine(input_data)
         | map(it -> tuple(it[0].simpleName, it[3], it[0]))
         | groupTuple(by: [0, 1])
-        // | top_samples_track
+        | top_samples_track
 
     // Mixings
     mixing_data = input_data 
         | map(it -> tuple(it[0], it[2]))
         | prepare_mixings_data
     
-    // if (!file("${params.template_run}/proportion_accessibility.tsv").exists()) {
-    //     error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first or specify template_run folder. Once per binary matrix."
-    // }
+    if (!file("${params.template_run}/proportion_accessibility.tsv").exists()) {
+        error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first or specify template_run folder. Once per binary matrix."
+    }
     
-    // mixing_data.clean
+    // mixing_data.pure
     //     | mix(mixing_data.mixing)
     //     | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version if run from here.
 }
