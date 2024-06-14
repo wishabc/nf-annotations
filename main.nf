@@ -5,13 +5,14 @@ process find_top_samples {
 
     conda params.conda
     tag "${prefix}"
-    publishDir "${params.outdir}/top_samples/${prefix}", pattern: "${name}"
+    publishDir "${params.outdir}", pattern: "${name}"
+    publishDir "${params.outdir}", pattern: "${res}"
 
     input:
         tuple val(prefix), path(W_matrix), path(samples_order)
 
     output:
-        tuple path(name), path(res), path "*.*.component_${prefix}.bw"
+        tuple path(name), path(res), path("*.*.component_${prefix}.bw")
 
     script:
     name = "${prefix}.top_samples.tsv"
@@ -23,7 +24,7 @@ process find_top_samples {
         ${params.samples_file} \
         ${prefix} \
         ${params.top_count} \
-        ${params.outdir}/top_samples/${prefix}/ \
+        ${params.outdir} \
     """
 }
 
@@ -109,7 +110,7 @@ workflow {
         | find_top_samples
         | flatten()
         | combine(input_data)
-        | map(it -> tuple(it[0].simpleName, it[1], it[0]))
+        | map(it -> tuple(it[0].simpleName, it[3], it[0]))
         | groupTuple(by: [0, 1])
         // | top_samples_track
 
