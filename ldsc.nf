@@ -241,18 +241,18 @@ workflow fromAnnotations {
             | map(row -> tuple(row.phen_id, file(row.munge_sumstats_file), params.baseline_ld))
             | filter { it[1].exists() }
 
-        ld_data = Channel.of(1..22)
-            | combine(annotations)
-            | make_ldsc_annotation // matrix_prefix, group_id, chrom, annotation
-            | calc_ld //  matrix_prefix, group_id, chrom, ld, ld_log, annotation
-            | map(it -> tuple(it[0], it[1], [it[3], it[5]].flatten()))
+        ld_data = Channel.of(1..22) // chroms, move to a separate file
+            | combine(annotations) // matrix_prefix, annotation_name, annotation
+            | make_ldsc_annotation // matrix_prefix, annotation_name, chrom, annotation
+            | calc_ld //  matrix_prefix, annotation_name, chrom, ld, ld_log, annotation
+            | map(it -> tuple(it[0], it[1], [it[3], it[5]].flatten())) // matrix_prefix, group_id, ld_files
             | groupTuple(size: 22, by: [0, 1])
-            | map(it -> tuple(it[0], it[1], it[2].flatten()))
+            | map(it -> tuple(it[0], it[1], it[2].flatten())) // matrix_prefix, group_id, ld_files_flatten
 
         if (params.by_cell_type) {
             out = LDSCcellTypes(ld_data, sumstats_files)
         } else {
-            out = LDSC(ld_data, sumstats_files) 
+            out = LDSC(ld_data, sumstats_files)
         }   
     emit:
         out
