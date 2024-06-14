@@ -81,24 +81,27 @@ workflow motifEnrichment {
         out
 }
 
+workflow fromMatrix {
+    take:
+        matrices
+    main:
+        accessibility = Channel.fromPath("${params.template_run}/proportion_accessibility.tsv", checkIfExists: true)
+        Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
+            | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
+            | combine(matrices)
+            | combine(accessibility)
+            | motifEnrichment
+}
 
 workflow categoryEnrichment {
-    params.template_run = "${params.outdir}"
-    accessibility = Channel.fromPath("${params.template_run}/proportion_accessibility.tsv")
-    
-    matrices = Channel.fromPath(params.matrices_list)
-       | splitCsv(header:true, sep:'\t')
-       | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
-       
-    Channel.fromPath("${params.template_run}/motif_hits/*")
-        | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
-        | combine(matrices)
-        | combine(accessibility)
-        | motifEnrichment
+    Channel.fromPath(params.matrices_list)
+        | splitCsv(header:true, sep:'\t')
+        | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
+        | fromMatrix
 }
 
 
-workflow {
+workflow fromBinaryMatrix {
     matrices = Channel.fromPath(params.binary_matrix)
         | map(it -> tuple("DHS_Binary", it, file(params.sample_names)))
         | combine(calc_prop_accessibility())
@@ -109,7 +112,6 @@ workflow {
         | combine(matrices)
         | motifEnrichment
 }
-
 
 
 // DEFUNC

@@ -15,10 +15,10 @@ process calc_ld {
     label "ldsc"
 
     input:
-        tuple val(group_id), val(chrom), path(annotation)
+        tuple val(matrix_prefix), val(group_id), val(chrom), path(annotation)
     
     output:
-        tuple val(group_id), val(chrom), path("${prefix}.l2.*"), path("${prefix}.log"), path(new_annot)
+        tuple val(matrix_prefix), val(group_id), val(chrom), path("${prefix}.l2.*"), path("${prefix}.log"), path(new_annot)
     
     script:
     prefix = "${group_id}.${chrom}"
@@ -57,11 +57,10 @@ process run_ldsc_cell_types {
     scratch true
 
     input:
-        tuple val(phen_id), path(sumstats_file), val(baseline_ld)
-        path("data_files/*")
+        tuple val(phen_id), path(sumstats_file), val(baseline_ld), val(matrix_prefix), path("data_files/*")
     
     output:
-        tuple val(phen_id), path(name), path("${phen_id}.log")
+        tuple val(matrix_prefix), val(phen_id), path(name), path("${phen_id}.log")
 
     script:
     name = "${phen_id}.results.tsv"
@@ -103,10 +102,10 @@ process run_ldsc_single_sample {
     scratch true
 
     input:
-        tuple val(phen_id), path(sumstats_file), val(baseline_ld), val(prefix), path(ld_files)
+        tuple val(phen_id), path(sumstats_file), val(baseline_ld), val(matrix_prefix), val(prefix), path(ld_files)
     
     output:
-        tuple val(prefix), val(phen_id), path("${name}.results"), path("${name}.log"), path("${name}.summary_result")
+        tuple val(matrix_prefix), val(prefix), val(phen_id), path("${name}.results"), path("${name}.log"), path("${name}.summary_result")
 
     script:
     name = "${prefix}.${phen_id}"
@@ -140,27 +139,6 @@ process run_ldsc_single_sample {
     """
 }
 
-// Make annotation workflows
-process split_cell_specific_aggregation {
-    conda params.conda
-    publishDir "${params.outdir}/ldsc/annotations", pattern: "*${suffix}"
-
-    input:
-        path aggregated_pval_file
-
-    output:
-        path "*${suffix}"
-    
-    script:
-    suffix = ".annotation.bed"
-    """
-    python3 $moduleDir/bin/split_cell_specific_aggregation.py \
-        ${aggregated_pval_file} \
-        --fdr_tr ${params.fdr_tr} \
-        --suffix ${suffix}
-    """
-}
-
 process make_ldsc_annotation {
     conda params.conda
     tag "chr${chrom}:${group_id}"
@@ -168,10 +146,10 @@ process make_ldsc_annotation {
     scratch true
 
     input:
-        tuple val(chrom), val(group_id), path(custom_annotation)
+        tuple val(chrom), val(matrix_prefix), val(group_id), path(custom_annotation)
 
     output:
-        tuple val(group_id), val(chrom), path(name)
+        tuple val(matrix_prefix), val(group_id), val(chrom), path(name)
     
     script:
     name = "${group_id}.${chrom}.annot.gz"
@@ -195,17 +173,16 @@ process make_ldsc_annotation {
 process convert_to_bed {
 
     conda params.conda
-    tag "${mask_name}:${prefix}"
+    tag "${prefix}"
 
     input:
-        tuple val(mask_name), path(mask)
+        tuple val(matrix_name), val(prefix), path(mask)
 
     output:
-        tuple val(prefix), path(name)
+        tuple val(matrix_name), val(prefix), path(name)
     
     script:
-    prefix = "${mask_name.replaceAll(/\./, '__')}"
-    name = "${prefix}.bed"
+    name = "${prefix}.annotation.bed"
     """
     awk -v OFS='\t' \
         'NR==FNR {mask[NR]=\$1; next} \
@@ -221,21 +198,18 @@ workflow LDSCcellTypes {
     take:
         ld_data
         sumstats_files
-        out_prefix
     main:
-        dat = ld_data
-            | map(it -> it[1])
-            | collect(sort: true)
-
-        out = run_ldsc_cell_types(sumstats_files, dat)
-            | map(it -> it[1])
+        out = ld_data // matrix_prefix, group_id, ld_files
+            | map(it -> tuple(it[0], it[2]))
+            | groupTuple()
+            | combine(sumstats_files)
+            | run_ldsc_cell_types // matrix_prefix, phen_id, result, log
             | collectFile(
                 storeDir: params.outdir,
                 skip: 1,
                 keepHeader: true,
                 sort: true,
-                name: "${out_prefix}.ldsc_cell_types_results.tsv"
-            )
+            ) { it -> [ "${it[0]}.ldsc_cell_types_results.tsv", it[2].text ] }
     emit:
         out
 }
@@ -245,18 +219,15 @@ workflow LDSC {
     take:
         ld_data
         sumstats_files
-        out_prefix
     main:
-        out = sumstats_files
-            | combine(ld_data)
-            | run_ldsc_single_sample
-            | map(it -> it[4])
+        out = sumstats_files // phen_id, sumstats_file, baseline_ld
+            | combine(ld_data) // phen_id, sumstats_file, baseline_ld, matrix_prefix, group_id, ld_files
+            | run_ldsc_single_sample // matrix_prefix, group_id, phen_id, result, log, annotation_result
             | collectFile(
-                name: "${out_prefix}.ldsc_enrichments_results.tsv",
                 storeDir: params.outdir,
                 skip: 1,
                 keepHeader: true
-            )
+            ) { it -> [ "${it[0]}.ldsc_enrichments_results.tsv", it[4].text ] }
     emit:
         out
 }
@@ -264,7 +235,6 @@ workflow LDSC {
 workflow fromAnnotations {
     take:
         annotations
-        out_prefix
     main:
         sumstats_files = Channel.fromPath(params.phenotypes_meta)
             | splitCsv(header:true, sep:'\t')
@@ -273,16 +243,16 @@ workflow fromAnnotations {
 
         ld_data = Channel.of(1..22)
             | combine(annotations)
-            | make_ldsc_annotation // group_id, chrom, annotation
-            | calc_ld //  group_id, chrom, ld, ld_log, annotation
-            | map(it -> tuple(it[0], [it[2], it[4]].flatten()))
-            | groupTuple(size: 22)
-            | map(it -> tuple(it[0], it[1].flatten()))
+            | make_ldsc_annotation // matrix_prefix, group_id, chrom, annotation
+            | calc_ld //  matrix_prefix, group_id, chrom, ld, ld_log, annotation
+            | map(it -> tuple(it[0], it[1], [it[3], it[5]].flatten()))
+            | groupTuple(size: 22, by: [0, 1])
+            | map(it -> tuple(it[0], it[1], it[2].flatten()))
 
         if (params.by_cell_type) {
-            out = LDSCcellTypes(ld_data, sumstats_files, out_prefix)
+            out = LDSCcellTypes(ld_data, sumstats_files)
         } else {
-            out = LDSC(ld_data, sumstats_files, out_prefix) 
+            out = LDSC(ld_data, sumstats_files) 
         }   
     emit:
         out
@@ -291,14 +261,13 @@ workflow fromAnnotations {
 workflow fromMatrix {
     take:
         matrices
-        out_prefix
     main:
-        data = matrices
+        out =  matrices
             | split_matrices
             | flatten()
-            | map(it -> tuple(it.baseName, it)) // mask_name, mask
-            | convert_to_bed // group_id, annotation
-        out = fromAnnotations(data, out_prefix)
+            | map(it -> tuple(it.simpleName, it.baseName, it)) // matrix_name, annotation_name, annotation_bool
+            | convert_to_bed // matrix_name, group_id, annotation_bed
+            | fromAnnotations
     emit:
         out
 }
@@ -306,36 +275,56 @@ workflow fromMatrix {
 // Entry workflows
 workflow {
     custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
-        | map(it -> tuple(it.baseName, it)) // group_id, custom_annotation
-    
-    params.custom_annotation_name = params.custom_annotation_name ?: "custom_annotations"
-
-    fromAnnotations(custom_annotations, params.custom_annotation_name)
+        | map(it -> tuple(it.baseName, it.baseName, it)) // matrix_name, group_id, custom_annotation
+        | fromAnnotations
 }
 
 
 workflow fromMatricesList {
-    matrices = Channel.fromPath(params.matrices_list)
-       | splitCsv(header:true, sep:'\t')
-       | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
-    fromMatrix(matrices, "${file(params.matrices_list).baseName}")
+    Channel.fromPath(params.matrices_list)
+        | splitCsv(header:true, sep:'\t')
+        | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
+        | fromMatrix
 }
 
 workflow fromBinaryMatrix {
-    matrices = Channel.fromPath(params.binary_matrix)
-       | map(it -> tuple("DHS_Binary", it, file(params.sample_names)))
-    fromMatrix(matrices, "DHS_Binary")
+    Channel.fromPath(params.binary_matrix)
+        | map(it -> tuple("DHS_Binary", it, file(params.sample_names)))
+        | fromMatrix
 }
 
+
+
 // Start from CAV calling pval file
+
+// Make annotation workflows
+process split_cell_specific_aggregation {
+    conda params.conda
+    publishDir "${params.outdir}/ldsc/annotations", pattern: "*${suffix}"
+
+    input:
+        path aggregated_pval_file
+
+    output:
+        path "*${suffix}"
+    
+    script:
+    suffix = ".annotation.bed"
+    """
+    python3 $moduleDir/bin/split_cell_specific_aggregation.py \
+        ${aggregated_pval_file} \
+        --fdr_tr ${params.fdr_tr} \
+        --suffix ${suffix}
+    """
+}
+
 workflow fromAggregatedCavs {
     params.result_pval_file = "${params.outdir}/aggregated.${params.aggregation_key}.bed"
     pvals = Channel.fromPath(params.result_pval_file) 
         | split_cell_specific_aggregation
         | flatten()
         | filter { it.countLines() >= params.min_snps }
-        | map(it -> tuple(it.baseName, it)) // group_id, aggregated_pval_file
-    
-    fromAnnotations(pvals, "CAVs.${params.aggregation_key}")
+        | map(it -> tuple(it.baseName, it.baseName, it)) // matrix_name, group_id, aggregated_pval_file
+        | fromAnnotations
    
 }

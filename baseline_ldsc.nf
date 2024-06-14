@@ -8,13 +8,13 @@ workflow {
         | filter { it[1].exists() } // phen_id, sumstats, baseline
 
     ld_data = Channel.of(1..22)
-        | map(it -> tuple('baseline', it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true)))
-        | calc_ld //  group_id, chrom, ld, ld_log, annotation
-        | flatMap(it -> [it[2], it[4]])
+        | map(it -> tuple('baseline', 'baseline', it, file("${params.base_ann_path}${it}.annot.gz", checkIfExists: true)))
+        | calc_ld //  matrix_name, group_id, chrom, ld, ld_log, annotation
+        | flatMap(it -> [it[3], it[5]])
         | collect(sort: true)
-        | map(it -> tuple('baseline', it))
+        | map(it -> tuple('baseline', 'baseline', it))
     
     // phen_id, sumstats_file, baseline_ld, val(prefix), path(ld_files)
-    LDSC(ld_data, sumstats_files, 'baseline')
+    LDSC(ld_data, sumstats_files)
         
 }
