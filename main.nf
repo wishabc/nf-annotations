@@ -126,7 +126,7 @@ workflow {
         error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first or specify template_run folder. Once per binary matrix."
     }
     
-    // mixing_data.pure
-    //     | mix(mixing_data.mixing)
-    //     | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version if run from here.
+    mixing_data.pure
+        | mix(mixing_data.mixing)
+        | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version if run from here.
 }
