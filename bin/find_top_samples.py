@@ -32,10 +32,11 @@ if __name__ == "__main__":
     unique_suffix = sys.argv[4] 
     top = int(sys.argv[5])
     top_samples = main(W, density_tracks, samples_order, topX=top, suffix=unique_suffix)
-    top_samples.to_csv(f"{sys.argv[4]}.top_samples.tsv", index=False, sep="\t")
+    top_samples.to_csv(f"{unique_suffix}.top_samples.tsv", index=False, sep="\t")
     
+    print(len(sys.argv))
     if len(sys.argv) == 7:
-        basepath = f"{sys.argv[6]}/{sys.argv[4]}"
+        basepath = f"{sys.argv[6]}/{unique_suffix}"
         tracks_paths = pd.DataFrame({
             'component': np.arange(W.shape[0]),
             'aggregated_bw': [f'{basepath}.{i}.top_samples.bw' for i in range(W.shape[0])],
