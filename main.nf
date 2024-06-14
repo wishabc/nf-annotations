@@ -12,7 +12,7 @@ process find_top_samples {
         tuple val(prefix), path(W_matrix), path(samples_order)
 
     output:
-        tuple path(name), path(res), path("*.*.component_${prefix}.bw")
+        tuple path("*.*.component_${prefix}.bw"), path(name), path(res)
 
     script:
     name = "${prefix}.top_samples.tsv"
@@ -110,9 +110,10 @@ workflow {
     input_data
         | map(it -> tuple(it[0], it[1], it[3]))
         | find_top_samples
+        | map(it -> it[0])
         | flatten()
         | combine(input_data)
-        | map(it -> tuple(it[0].simpleName, it[3], it[0]))
+        | map(it -> tuple(it[0].simpleName, it[1], it[0]))
         | groupTuple(by: [0, 1])
         | top_samples_track
 
