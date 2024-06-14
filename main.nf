@@ -24,7 +24,7 @@ process find_top_samples {
         ${params.samples_file} \
         ${prefix} \
         ${params.top_count} \
-        ${params.outdir} \
+        ${params.outdir}/top_samples/${prefix} \
     """
 }
 
