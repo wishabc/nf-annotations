@@ -214,7 +214,9 @@ workflow LDSCcellTypes {
         out = ld_data // matrix_prefix, group_id, ld_files
             | map(it -> tuple(it[0], it[2])) // matrix_prefix, ld_files
             | groupTuple()
-            | combine(sumstats_files) // matrix_prefix, group_id, ld_files, phen_id, sumstats_file, baseline_ld
+            | map(it -> tuple(it[0], it[1].flatten())) // matrix_prefix, ld_files_flatten
+            | combine(sumstats_files) // matrix_prefix, ld_files, phen_id, sumstats_file, baseline_ld
+            | view()
             | run_ldsc_cell_types // matrix_prefix, phen_id, result, log
             | collectFile(
                 storeDir: params.outdir,
@@ -252,7 +254,6 @@ workflow fromAnnotations {
             | splitCsv(header:true, sep:'\t')
             | map(row -> tuple(row.phen_id, file(row.munge_sumstats_file), params.baseline_ld)) // | filter { it[1].exists() }
             | take(2)
-            | view()
 
         ld_data = Channel.of(1..22) // chroms, move to a separate file
             | combine(annotations) // matrix_prefix, annotation_name, annotation
