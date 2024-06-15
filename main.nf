@@ -74,6 +74,7 @@ process prepare_mixings_data {
     mixing_matrix = "${mixing_prefix}.80pr.npy"
     mixing_comp_order = "${mixing_prefix}.80pr.order.txt"
     """
+    echo 1
     python3 $moduleDir/bin/prepare_mixings_data.py \
         ${H_matrix} \
         ${prefix}
