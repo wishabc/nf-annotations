@@ -246,8 +246,7 @@ workflow fromAnnotations {
     main:
         sumstats_files = Channel.fromPath(params.phenotypes_meta)
             | splitCsv(header:true, sep:'\t')
-            | map(row -> tuple(row.phen_id, file(row.munge_sumstats_file), params.baseline_ld))
-            | filter { it[1].exists() }
+            | map(row -> tuple(row.phen_id, file(row.munge_sumstats_file), params.baseline_ld)) // | filter { it[1].exists() }
             | take(2)
             | view()
 
