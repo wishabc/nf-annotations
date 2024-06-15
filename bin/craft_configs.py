@@ -23,8 +23,8 @@ def main(metadata, outdir):
             'MIXING.80PR_ANNOTATION': f"{base_path}.mixing.80pr.npy",
             'MIXING.80PR_ORDER': f"{base_path}.mixing.80pr.order.txt",
 
-            'TOP_SAMPLES': f"{outdir}/top_samples/{prefix}.top_samples.tsv",
-            'DENSITY_TRACKS_META': f"{outdir}/top_samples/{prefix}.density_tracks_meta.tsv"
+            'TOP_SAMPLES': f"{outdir}/{prefix}.top_samples.tsv",
+            'DENSITY_TRACKS_META': f"{outdir}/{prefix}.density_tracks_meta.tsv"
         }
 
         config['LDSC'] = {
