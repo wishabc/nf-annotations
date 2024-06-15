@@ -199,9 +199,13 @@ workflow LDSCcellTypes {
         ld_data
         sumstats_files
     main:
+        sumstats_files
+            | take(2)
+            | view()
         sumstats_data = ld_data
             | map(it -> it[0])
             | unique()
+            | view()
             | combine(sumstats_files) // matrix_prefix, phen_id, sumstats_file, baseline_ld
             | take(2)
             | view()
