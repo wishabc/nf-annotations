@@ -58,7 +58,6 @@ process motif_enrichment_z_score {
         ${indicator_file} \
         ${name} \
         ${binary_matrix} \
-        ${params.samples_file} \
         ${accessibility_proportion} \
         --sample_names ${sample_names} \
         --n_bins ${params.matching_bins}
@@ -72,7 +71,7 @@ workflow motifEnrichment {
         out = data
             | motif_enrichment_z_score
             | collectFile(
-                storeDir: "${params.outdir}",
+                storeDir: params.outdir,
                 skip: 1,
                 sort: true,
                 keepHeader: true

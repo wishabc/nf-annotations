@@ -3,8 +3,7 @@ import pandas as pd
 import numpy as np
 from scipy import sparse
 from scipy.stats import norm
-import argparse # using argparse for args
-from matplotlib import pyplot as plt
+import argparse
 from genome_tools.utils.sampling import stratified_sampling
 
 
@@ -42,7 +41,6 @@ if __name__ == '__main__':
     parser.add_argument('indicator', help='Path to a file with boolean indicator of overlap with significant motif hits') # indicator_file
     parser.add_argument('output', help='Path to output file') # name
     parser.add_argument('matrix_file', help='Path to matrix file') # params.nmf_matrix
-    parser.add_argument('sample_meta', help='Path to sample metadata')
     parser.add_argument('dhs_meta', help='Path to dhs annotations')
     parser.add_argument('--sample_names', help='File with sample names in the same order as the matrix', default=None)
     parser.add_argument('--n_bins', type=int, help='File with sample names in the same order as the matrix', default=100)
@@ -50,7 +48,6 @@ if __name__ == '__main__':
 
     indicator_file = pd.read_table(args.indicator, header=None)
     binary_matrix = np.load(args.matrix_file).astype(int)
-    sample_meta = pd.read_table(args.sample_meta)
 
     combined_masterlist = pd.read_table(args.dhs_meta)
     combined_masterlist['overlaps_motif'] = indicator_file
