@@ -199,8 +199,6 @@ workflow LDSCcellTypes {
         ld_data
         sumstats_files
     main:
-        sumstats_files
-            | view()
 
         sumstats_data = ld_data
             | map(it -> it[0])
@@ -251,6 +249,7 @@ workflow fromAnnotations {
             | map(row -> tuple(row.phen_id, file(row.munge_sumstats_file), params.baseline_ld))
             | filter { it[1].exists() }
             | take(2)
+            | view()
 
         ld_data = Channel.of(1..22) // chroms, move to a separate file
             | combine(annotations) // matrix_prefix, annotation_name, annotation
