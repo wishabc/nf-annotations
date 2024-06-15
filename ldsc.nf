@@ -201,10 +201,10 @@ workflow LDSCcellTypes {
     main:
         sumstats_data = ld_data
             | map(it -> it[0])
+            | view()
             | unique()
             | combine(sumstats_files) // matrix_prefix, phen_id, sumstats_file, baseline_ld
             | take(10)
-            | view()
 
         out = ld_data // matrix_prefix, group_id, ld_files
             | map(it -> tuple(it[0], it[2])) // matrix_prefix, ld_files
