@@ -2,12 +2,16 @@ import configparser
 import sys
 import pandas as pd
 
-def main(metadata, outdir):
+def main(metadata, samples_meta_path, outdir):
     for _, row in metadata.iterrows():
         config = configparser.ConfigParser()
         prefix = row['prefix']
         base_path = f"{outdir}/mixing_annotations/{prefix}/{prefix}"
         # Add sections and settings
+        config['METADATA'] = {
+            'SAMPLES_META': samples_meta_path
+        }
+        
         config['NMF'] = {
             'PREFIX': prefix,
             'N_COMPONENTS': prefix.split('.')[-1],

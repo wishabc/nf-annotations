@@ -56,7 +56,7 @@ process run_ldsc_cell_types {
     scratch true
 
     input:
-        tuple val(phen_id), path(sumstats_file), val(baseline_ld), val(matrix_prefix), path("data_files/*")
+        tuple val(matrix_prefix), path("data_files/*"), val(phen_id), path(sumstats_file), val(baseline_ld)
     
     output:
         tuple val(matrix_prefix), val(phen_id), path(name), path("${phen_id}.log")
@@ -100,6 +100,7 @@ process run_ldsc_single_sample {
     label "ldsc"
     scratch true
 
+    // phen_id, sumstats_file, baseline_ld, matrix_prefix, group_id, ld_files
     input:
         tuple val(phen_id), path(sumstats_file), val(baseline_ld), val(matrix_prefix), val(prefix), path(ld_files)
     
@@ -199,9 +200,9 @@ workflow LDSCcellTypes {
         sumstats_files
     main:
         out = ld_data // matrix_prefix, group_id, ld_files
-            | map(it -> tuple(it[0], it[2]))
+            | map(it -> tuple(it[0], it[2])) // matrix_prefix, ld_files
             | groupTuple()
-            | combine(sumstats_files)
+            | combine(sumstats_files) // matrix_prefix, ld_files, phen_id, sumstats_file, baseline_ld
             | run_ldsc_cell_types // matrix_prefix, phen_id, result, log
             | collectFile(
                 storeDir: params.outdir,
