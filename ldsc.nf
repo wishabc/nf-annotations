@@ -292,7 +292,7 @@ process split_matrices {
         tuple val(matrix_name), path(matrix), path(sample_names)
     
     output:
-        path val(matrix_name), "${matrix_name}.*.txt"
+        tuple val(matrix_name), path("${matrix_name}.*.txt")
     
     script:
     """
