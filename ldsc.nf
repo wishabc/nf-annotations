@@ -201,8 +201,8 @@ workflow LDSCcellTypes {
     main:
         out = ld_data // matrix_prefix, group_id, ld_files
             | map(it -> tuple(it[0], it[2])) // matrix_prefix, ld_files
-            | groupTuple()
             | combine(sumstats_files) // matrix_prefix, ld_files, phen_id, sumstats_file, baseline_ld
+            | groupTuple(by: [0, 2, 3, 4, 5])
             | run_ldsc_cell_types // matrix_prefix, phen_id, result, log
             | collectFile(
                 storeDir: params.outdir,
