@@ -52,12 +52,13 @@ def main(H):
     return (clean_annotations.T, np.arange(H.shape[0])), mixing_annotations
 
 if __name__ == "__main__":
-    H = np.load(sys.argv[1]).T
-    H =  H / H.sum(axis=0, keepdims=True)
+    H = np.load(sys.argv[1]).T # comp x DHSs
+    H =  H / H.sum(axis=0, keepdims=True) # normalize per DHS
     prefix = sys.argv[2]
-    clean_ann, mixing_ann = main(H)
-    np.save(f'{prefix}.pure.50pr.npy', clean_ann[0])
-    np.savetxt(f'{prefix}.pure.50pr.order.txt', clean_ann[1], fmt='%s')
+    (pure_annotation, pure_order), (mixing_annotation, mixing_order) = main(H)
+    assert pure_annotation.shape[0] == H.shape[1] == mixing_annotation.shape[0]
+    np.save(f'{prefix}.pure.50pr.npy', pure_annotation)
+    np.savetxt(f'{prefix}.pure.50pr.order.txt', pure_order, fmt='%s')
 
-    np.save(f'{prefix}.mixing.80pr.npy', mixing_ann[0])
-    np.savetxt(f'{prefix}.mixing.80pr.order.txt', mixing_ann[1], fmt='%s')
+    np.save(f'{prefix}.mixing.80pr.npy', mixing_annotation)
+    np.savetxt(f'{prefix}.mixing.80pr.order.txt', mixing_order, fmt='%s')
