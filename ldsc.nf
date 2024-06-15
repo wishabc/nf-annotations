@@ -200,17 +200,21 @@ workflow LDSCcellTypes {
         sumstats_files
     main:
 
-        sumstats_data = ld_data
-            | map(it -> it[0])
-            | unique()
-            | combine(sumstats_files) // matrix_prefix, phen_id, sumstats_file, baseline_ld
-            | view()
+        // sumstats_data = ld_data
+        //     | map(it -> it[0])
+        //     | unique()
+        //     | combine(sumstats_files) // matrix_prefix, phen_id, sumstats_file, baseline_ld
+
+        // out = ld_data // matrix_prefix, group_id, ld_files
+        //     | map(it -> tuple(it[0], it[2])) // matrix_prefix, ld_files
+        //     | groupTuple()
+        //     | cross(sumstats_data) // [[matrix_prefix, ld_files], [matrix_prefix, phen_id, sumstats_file, baseline_ld]
+        //     | map(it -> tuple(it[0][0], it[0][1], it[1][1], it[1][2], it[1][3])) // matrix_prefix, ld_files, phen_id, sumstats_file, baseline_ld
 
         out = ld_data // matrix_prefix, group_id, ld_files
             | map(it -> tuple(it[0], it[2])) // matrix_prefix, ld_files
             | groupTuple()
-            | cross(sumstats_data) // [[matrix_prefix, ld_files], [matrix_prefix, phen_id, sumstats_file, baseline_ld]
-            | map(it -> tuple(it[0][0], it[0][1], it[1][1], it[1][2], it[1][3])) // matrix_prefix, ld_files, phen_id, sumstats_file, baseline_ld
+            | combine(sumstats_files) // matrix_prefix, group_id, ld_files, phen_id, sumstats_file, baseline_ld
             | run_ldsc_cell_types // matrix_prefix, phen_id, result, log
             | collectFile(
                 storeDir: params.outdir,
