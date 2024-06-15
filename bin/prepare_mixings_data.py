@@ -11,16 +11,16 @@ def binary_labels_to_strings(binary_matrix, func=str, sep='_'):
     return np.array(result)
 
     
-def construct_binary_matrix_for_enrichment(binary_matrix_of_labels, min_count=5_000):
+def construct_binary_matrix_for_enrichment(binary_matrix_of_labels, n_dhs, min_count=5_000):
     index_labels = binary_labels_to_strings(binary_matrix_of_labels)
     uq_labels, label_counts = np.unique(index_labels, return_counts=True)
     labels_for_enrichment = uq_labels[label_counts >= min_count]
 
-    mat_for_enrichment = np.zeros((H.shape[1], len(labels_for_enrichment)), dtype=bool)
+    mat_for_enrichment = np.zeros((n_dhs, len(labels_for_enrichment)), dtype=bool)
     for i, l in enumerate(labels_for_enrichment):
         mat_for_enrichment[:, i] = index_labels == l
 
-    return mat_for_enrichment.T, labels_for_enrichment
+    return mat_for_enrichment, labels_for_enrichment
 
 
 def construct_binary_matrix_of_labels(H, threshold=0.8):
@@ -48,8 +48,8 @@ def construct_binary_matrix_of_labels(H, threshold=0.8):
 def main(H):
     clean_annotations = H >= 0.5
     binary_matrix_of_labels = construct_binary_matrix_of_labels(H, threshold=0.8)
-    mixing_annotations = construct_binary_matrix_for_enrichment(binary_matrix_of_labels, min_count=5_000)
-    return (clean_annotations, np.arange(H.shape[0])), mixing_annotations
+    mixing_annotations = construct_binary_matrix_for_enrichment(binary_matrix_of_labels, n_dhs=H.shape[1], min_count=5_000)
+    return (clean_annotations.T, np.arange(H.shape[0])), mixing_annotations
 
 if __name__ == "__main__":
     H = np.load(sys.argv[1]).T
