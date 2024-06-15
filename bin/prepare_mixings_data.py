@@ -49,7 +49,7 @@ def main(H):
     clean_annotations = H >= 0.5
     binary_matrix_of_labels = construct_binary_matrix_of_labels(H, threshold=0.8)
     mixing_annotations = construct_binary_matrix_for_enrichment(binary_matrix_of_labels, min_count=5_000)
-    return (clean_annotations.T, np.arange(H.shape[0])), mixing_annotations
+    return (clean_annotations, np.arange(H.shape[0])), mixing_annotations
 
 if __name__ == "__main__":
     H = np.load(sys.argv[1]).T
