@@ -68,7 +68,7 @@ process run_ldsc_cell_types {
     export GOTO_NUM_THREADS=${task.cpus}
     export OMP_NUM_THREADS=${task.cpus}
 
-    python3 $moduleDir/bin/metadata_cl_ldsc.py \
+    python $moduleDir/bin/metadata_cl_ldsc.py \
         ${matrix_prefix} \
         data_files/ \
         per_sample.ldcts
