@@ -203,10 +203,13 @@ workflow LDSCcellTypes {
             | map(it -> it[0])
             | unique()
             | combine(sumstats_files) // matrix_prefix, phen_id, sumstats_file, baseline_ld
+            | take(10)
+            | view()
 
         out = ld_data // matrix_prefix, group_id, ld_files
             | map(it -> tuple(it[0], it[2])) // matrix_prefix, ld_files
             | groupTuple()
+            | view()
             | cross(sumstats_data) // [[matrix_prefix, ld_files], [matrix_prefix, phen_id, sumstats_file, baseline_ld]
             | map(it -> tuple(it[0][0], it[0][1], it[1][1], it[1][2], it[1][3])) // matrix_prefix, ld_files, phen_id, sumstats_file, baseline_ld
             | take(2)
