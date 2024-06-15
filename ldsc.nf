@@ -68,12 +68,10 @@ process run_ldsc_cell_types {
     export GOTO_NUM_THREADS=${task.cpus}
     export OMP_NUM_THREADS=${task.cpus}
 
-    ls -1 data_files \
-        | cut -d"." -f 1 \
-        | sort \
-        | uniq \
-        | awk -v OFS='\\t' \
-            '{ print \$1,"data_files/"\$1"." }' > per_sample.ldcts
+    python3 $moduleDir/bin/metadata_cl_ldsc.py \
+        ${matrix_prefix} \
+        data_files/ \
+        per_sample.ldcts
     
     ${params.ldsc_scripts_path}/ldsc.py \
         --h2-cts ${sumstats_file} \
