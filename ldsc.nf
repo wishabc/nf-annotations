@@ -212,15 +212,13 @@ workflow LDSCcellTypes {
             | view()
             | cross(sumstats_data) // [[matrix_prefix, ld_files], [matrix_prefix, phen_id, sumstats_file, baseline_ld]
             | map(it -> tuple(it[0][0], it[0][1], it[1][1], it[1][2], it[1][3])) // matrix_prefix, ld_files, phen_id, sumstats_file, baseline_ld
-            | take(2)
-            | view()
-            // | run_ldsc_cell_types // matrix_prefix, phen_id, result, log
-            // | collectFile(
-            //     storeDir: params.outdir,
-            //     skip: 1,
-            //     keepHeader: true,
-            //     sort: true,
-            // ) { it -> [ "${it[0]}.ldsc_cell_types_results.tsv", it[2].text ] }
+            | run_ldsc_cell_types // matrix_prefix, phen_id, result, log
+            | collectFile(
+                storeDir: params.outdir,
+                skip: 1,
+                keepHeader: true,
+                sort: true,
+            ) { it -> [ "${it[0]}.ldsc_cell_types_results.tsv", it[2].text ] }
     emit:
         out
 }
