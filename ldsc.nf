@@ -53,7 +53,6 @@ process run_ldsc_cell_types {
     publishDir "${params.outdir}/ldsc/ldsc_logs", pattern: "${phen_id}.log"
     tag "${phen_id}"
     label "ldsc"
-    scratch true
 
     input:
         tuple val(matrix_prefix), path("data_files/*"), val(phen_id), path(sumstats_file), val(baseline_ld)
@@ -261,9 +260,7 @@ workflow fromMatrix {
         matrices
     main:
         out =  matrices
-            | split_matrices
-            | flatten()
-            | map(it -> tuple(it.simpleName, it.baseName, it)) // matrix_name, annotation_name, annotation_bool
+            | splitMatrices // matrix_name, annotation_name, annotation_bool
             | convert_to_bed // matrix_name, group_id, annotation_bed
             | fromAnnotations
     emit:
@@ -295,7 +292,7 @@ process split_matrices {
         tuple val(matrix_name), path(matrix), path(sample_names)
     
     output:
-        path "${matrix_name}.*.txt"
+        path val(matrix_name), "${matrix_name}.*.txt"
     
     script:
     """
@@ -305,6 +302,19 @@ process split_matrices {
         ${matrix_name}
     """
 }
+
+workflow splitMatrices {
+    take:
+        matrices_list
+    main:
+        out = matrices_list
+            | split_matrices
+            | transpose()
+            | map(it -> tuple(it[0], it[1].baseName, it[1]))
+    emit:
+        out
+}
+
 workflow fromMatricesList {
     Channel.fromPath(params.matrices_list)
         | splitCsv(header:true, sep:'\t')

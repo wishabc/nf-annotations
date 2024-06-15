@@ -1,4 +1,4 @@
-include { split_matrices } from './ldsc'
+include { splitMatrices } from './ldsc'
 
 
 
@@ -28,9 +28,7 @@ workflow {
     matrices = Channel.fromPath(params.matrices_list)
        | splitCsv(header:true, sep:'\t')
        | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
-       | split_matrices
-       | flatten()
-       | map(it -> tuple(it.simpleName, it.baseName, it))
+       | splitMatrices // matrix_name, annotation_name, annotation_bool
        | combine(
             Channel.fromPath("${params.finemapped_variants_file}")
        )
