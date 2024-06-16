@@ -2,16 +2,17 @@ import configparser
 import sys
 import pandas as pd
 
+
 def main(metadata, samples_meta_path, outdir):
     for _, row in metadata.iterrows():
         config = configparser.ConfigParser()
         prefix = row['prefix']
-        base_path = f"{outdir}/mixing_annotations/{prefix}/{prefix}"
+        base_path = f"{outdir}/mixing/{prefix}/{prefix}"
         # Add sections and settings
         config['METADATA'] = {
             'SAMPLES_META': samples_meta_path
         }
-        
+
         config['NMF'] = {
             'PREFIX': prefix,
             'N_COMPONENTS': prefix.split('.')[-1],
@@ -27,8 +28,8 @@ def main(metadata, samples_meta_path, outdir):
             'MIXING.80PR_ANNOTATION': f"{base_path}.mixing.80pr.npy",
             'MIXING.80PR_ORDER': f"{base_path}.mixing.80pr.order.txt",
 
-            'TOP_SAMPLES': f"{outdir}/{prefix}.top_samples.tsv",
-            'DENSITY_TRACKS_META': f"{outdir}/{prefix}.density_tracks_meta.tsv"
+            'TOP_SAMPLES': f"{outdir}/top_samples/{prefix}.top_samples.tsv",
+            'DENSITY_TRACKS_META': f"{outdir}/top_samples/{prefix}.density_tracks_meta.tsv"
         }
 
         config['LDSC'] = {
@@ -48,3 +49,5 @@ def main(metadata, samples_meta_path, outdir):
 
 if __name__ == '__main__':
     nmf_meta = pd.read_table(sys.argv[1])
+
+    main(nmf_meta, sys.argv[2], sys.argv[3])

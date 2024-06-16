@@ -5,8 +5,8 @@ process find_top_samples {
 
     conda params.conda
     tag "${prefix}"
-    publishDir "${params.outdir}", pattern: "${name}"
-    publishDir "${params.outdir}", pattern: "${res}"
+    publishDir "${params.outdir}/top_samples", pattern: "${name}"
+    publishDir "${params.outdir}/top_samples", pattern: "${res}"
 
     input:
         tuple val(prefix), path(W_matrix), path(samples_order)
@@ -81,23 +81,19 @@ process prepare_mixings_data {
     """
 }
 
-process craft_config {
+process craft_configs {
     conda params.conda
     publishDir "${params.outdir}"
-    tag "${prefix}"
-
-    input:
-        tuple val(prefix), path(samples_order)
 
     output:
-        tuple val(prefix), path("${prefix}.ini")
+        path "*.config.ini"
 
     script:
     """
-    python3 $moduleDir/bin/craft_config.py \
-        ${samples_order} \
-        ${prefix} \
-        ${params.nmf_metadata}
+    python3 $moduleDir/bin/craft_configs.py \
+        ${params.nmf_metadata} \
+        ${params.samples_file} \
+        ${params.outdir}
     """
 
 }
@@ -105,7 +101,7 @@ process craft_config {
 workflow {
     input_data = Channel.fromPath(params.nmf_metadata)
         | splitCsv(header: true, sep: "\t")
-        | map(row -> tuple(row.prefix, file(row.W), file(row.H), file(row.samples_order)))
+        | map(row -> tuple(row.prefix, file(row.W), file(row.H), file(row.samples_order), file(row.peak_weights), file(row.sample_weights)))
     
     // Top samples tracks
     input_data
@@ -113,7 +109,7 @@ workflow {
         | find_top_samples
         | map(it -> it[0])
         | flatten()
-        | combine(input_data)
+        | combine(input_data.map(it -> it[0]))
         | map(it -> tuple(it[0].simpleName, it[1], it[0]))
         | groupTuple(by: [0, 1])
         | top_samples_track
@@ -131,5 +127,5 @@ workflow {
         | mix(mixing_data.mixing)
         | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version if run from here.
     
-    //craft_config()
+    craft_configs()
 }
