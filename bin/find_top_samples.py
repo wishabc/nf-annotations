@@ -10,7 +10,7 @@ def main(W, densitity_files, samples_order, topX, suffix):
     for i in range(W.shape[0]):
         major_samples = np.where(W[i, :] == np.max(W, axis=0))[0]
         sorted_samples = major_samples[np.argsort(W[i, major_samples])[::-1]]
-        for sample in sorted_samples:
+        for sample in sorted_samples[:topX]:
             data = densitity_files.iloc[sample]
             ag_id = densitity_files.index[sample]
             os.symlink(

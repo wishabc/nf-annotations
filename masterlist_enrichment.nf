@@ -41,7 +41,7 @@ process motif_hits_intersect {
 process motif_enrichment_z_score {
     conda params.conda
     tag "${motif_id}:${matrix_type}"
-    publishDir "${params.outdir}/${matrix_type}"
+    publishDir "${params.outdir}/motif_enrichment/${matrix_type}"
     label "high_mem"
 
     input:
