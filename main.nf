@@ -18,6 +18,7 @@ process find_top_samples {
     name = "${prefix}.top_samples.tsv"
     res = "${prefix}.density_tracks_meta.tsv"
     """
+    echo 1
     python3 $moduleDir/bin/find_top_samples.py \
         ${W_matrix} \
         ${samples_order} \
