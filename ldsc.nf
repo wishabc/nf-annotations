@@ -274,15 +274,7 @@ workflow {
         | fromAnnotations
 }
 
-workflow fromBinaryMatrix {
-    // Doesn't really work just yet
-    Channel.fromPath(params.binary_matrix)
-        | map(it -> tuple("DHS_Binary", it, file(params.sample_names)))
-        | fromMatrix
-}
-
 // Start from matrices list
-
 process split_matrices {
     conda params.conda
     //publishDir "${params.outdir}"
@@ -322,11 +314,16 @@ workflow fromMatricesList {
         | fromMatrix
 }
 
+workflow fromBinaryMatrix {
+    // Doesn't really work just yet
+    Channel.fromPath(params.binary_matrix)
+        | map(it -> tuple("DHS_Binary", it, file(params.sample_names)))
+        | fromMatrix
+}
+
 
 
 // Start from CAV calling pval file
-
-// Make annotation workflows
 process split_cell_specific_aggregation {
     conda params.conda
     publishDir "${params.outdir}/ldsc/annotations", pattern: "*${suffix}"
