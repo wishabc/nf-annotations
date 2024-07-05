@@ -11,7 +11,9 @@ def calculate_zscore(result_array, motif_counts):
     mu = result_array.mean(axis=0)
     sd = result_array.std(axis=0)
     
-    z_score = (motif_counts - mu) / sd
+    # Handle zero std by setting z-score to NaN
+    with np.errstate(divide='ignore', invalid='ignore'):
+        z_score = np.where(sd != 0, (motif_counts - mu) / sd, np.nan)
 
     p_val = norm.sf(z_score)
     
