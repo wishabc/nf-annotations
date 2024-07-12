@@ -24,7 +24,7 @@ def main(metadata, samples_meta_path, outdir):
             'SAMPLES_ORDER': row['samples_order'],
 
             'PURE.50PR_ANNOTATION': f"{base_path}.pure.50pr.npy",
-            'PURE.50PR_ORDER': f"{base_path}.pure.order.txt",
+            'PURE.50PR_ORDER': f"{base_path}.pure.50pr.order.txt",
             'MIXING.80PR_ANNOTATION': f"{base_path}.mixing.80pr.npy",
             'MIXING.80PR_ORDER': f"{base_path}.mixing.80pr.order.txt",
 
