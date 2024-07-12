@@ -270,7 +270,7 @@ workflow fromMatrix {
 // Entry workflows
 workflow {
     custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
-        | map(it -> tuple(it.baseName, it.baseName, it)) // matrix_name, group_id, custom_annotation
+        | map(it -> tuple('custom_annotations', it.baseName, it)) // matrix_name, group_id, custom_annotation
         | fromAnnotations
 }
 
