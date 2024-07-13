@@ -225,7 +225,7 @@ workflow LDSC {
                 storeDir: params.outdir,
                 skip: 1,
                 keepHeader: true
-            ) { it -> [ "${it[0]}.ldsc_enrichments_results.tsv", it[4].text ] }
+            ) { it -> [ "${it[0]}.ldsc_enrichments_results.tsv", it[5].text ] }
     emit:
         out
 }
