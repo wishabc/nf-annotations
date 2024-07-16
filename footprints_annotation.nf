@@ -17,7 +17,7 @@ process annotate_motif_hits {
         -b stdin \
         -F 0.9 -f 0.9 \
         -wa -wb \
-        | cut -f1-4,15- > ${name}
+        | cut -f1-4,11- > ${name}
     """
 }
 
