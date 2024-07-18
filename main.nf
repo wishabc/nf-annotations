@@ -86,7 +86,7 @@ process craft_configs {
     publishDir "${params.outdir}"
 
     output:
-        path "*.config.ini"
+        tuple path("*.config.ini"), path("*.matrix_meta.tsv")
 
     script:
     """
