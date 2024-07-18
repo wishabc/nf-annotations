@@ -52,9 +52,16 @@ def main(metadata, samples_meta_path, outdir):
             ) + '\n')
             f.write('\t'.join(
                 [
-                    config['NMF']['PREFIX'], 
+                    config['NMF']['PREFIX'] + '.pure.50pr', 
                     config['NMF']['PURE.50PR_ANNOTATION'],
                     config['NMF']['PURE.50PR_ORDER']
+                ]
+            ) + '\n')
+            f.write('\t'.join(
+                [
+                    config['NMF']['PREFIX'] + '.mixing.80pr', 
+                    config['NMF']['PURE.80PR_ANNOTATION'],
+                    config['NMF']['PURE.80PR_ORDER']
                 ]
             ) + '\n')
 
