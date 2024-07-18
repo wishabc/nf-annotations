@@ -60,8 +60,8 @@ def main(metadata, samples_meta_path, outdir):
             f.write('\t'.join(
                 [
                     config['NMF']['PREFIX'] + '.mixing.80pr', 
-                    config['NMF']['PURE.80PR_ANNOTATION'],
-                    config['NMF']['PURE.80PR_ORDER']
+                    config['NMF']['MIXING.80PR_ANNOTATION'],
+                    config['NMF']['MIXING.80PR_ORDER']
                 ]
             ) + '\n')
 
