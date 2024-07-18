@@ -42,6 +42,22 @@ def main(metadata, samples_meta_path, outdir):
             'Z_SCORE_SUMMARY.MIXING': f"{outdir}/{prefix}.mixing.z_score_stats.tsv"
         }
 
+        with open(f'{prefix}.matrix_meta.tsv', 'w') as f:
+            f.write('\t'.join(
+                [
+                    'matrix_name',
+                    'matrix',
+                    'sample_names'
+                ]
+            ) + '\n')
+            f.write('\t'.join(
+                [
+                    config['NMF']['PREFIX'], 
+                    config['NMF']['PURE.50PR_ANNOTATION'],
+                    config['NMF']['PURE.50PR_ORDER']
+                ]
+            ) + '\n')
+
         # Write the configuration file
         with open(f'{prefix}.config.ini', 'w') as configfile:
             config.write(configfile)
