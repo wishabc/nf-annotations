@@ -2,7 +2,7 @@
 process download_file {
     tag "${phen_id}"
     publishDir "${params.outdir}/per_phenotype/${phen_id}"
-    maxForks 6
+    maxForks 20
 
     input:
         tuple val(phen_id), val(sumstats_link), val(metadata_link)
