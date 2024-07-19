@@ -14,7 +14,7 @@ process download_file {
     name = "${phen_id}.tsv.gz"
     metadata_name = "${phen_id}.meta.yaml"
     """
-    wget '${link}' -O ${name}
+    wget '${sumstats_link}' -O ${name}
     wget '${metadata_link}' -O ${metadata_name}
     """
 }
