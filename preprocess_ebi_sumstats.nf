@@ -80,6 +80,7 @@ workflow {
     meta = Channel.fromPath(params.phenotypes_meta)
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.phen_id, row.ebi_link, row.ebi_meta_link))
+        | filter { it[1] != "null" }
         | download_file
 }
 
