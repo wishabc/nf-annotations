@@ -10,7 +10,7 @@ def check_column_flag(columns, column_names, flag_value, default_value):
 
 
 def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
-    df = pd.read_csv(sumstats_file, sep='\t', nrows=50000)
+    df = pd.read_csv(sumstats_file, sep='\t')
     if 'beta' in df.columns and df['beta'].dropna().shape[0] > 0:
         sumstats_flag = ['--signed-sumstats', 'beta,0']
         ignore = 'odds_ratio'
@@ -21,7 +21,7 @@ def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
         print('Other allele is not present! Exiting...')
         exit(5)
     
-    if df['p_value'].dropna().shape[0] != len(df):
+    if df['p_value'].notna().sum() != len(df):
         print('P-values are not present for all variants! Exiting...')
         exit(5)
 
