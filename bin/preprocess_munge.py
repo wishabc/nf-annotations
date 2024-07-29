@@ -5,7 +5,7 @@ import sys
 def check_column_flag(columns, column_names, flag_value, default_value):
     for column_name in column_names:
         if column_name in columns:
-            return [flag_value[0], column_name], ','.join([x for x in column_names if x != column_name] + default_value[1])
+            return [flag_value[0], column_name], ','.join([x for x in column_names if x != column_name] + [default_value[1]])
     return default_value, ""
 
 
