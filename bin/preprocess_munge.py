@@ -38,7 +38,7 @@ def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
     # Remove empty strings from cmd list
     cmd = [arg for arg in cmd if arg]
 
-    subprocess.run(cmd)
+    subprocess.call(cmd)
 
 
 if __name__ == "__main__":
