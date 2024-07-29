@@ -2,9 +2,9 @@ import subprocess
 import pandas as pd
 import sys
 
-def check_column_flag(columns, column_names, flag_value, default_value):
+def check_column_flag(dataframe, column_names, flag_value, default_value):
     for column_name in column_names:
-        if column_name in columns:
+        if column_name in dataframe.columns and dataframe[column_name].dropna().shape[0] > 0:
             return [flag_value[0], column_name], ','.join([x for x in column_names if x != column_name] + [default_value[1]])
     return default_value, ""
 
@@ -25,8 +25,8 @@ def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
         print('P-values are not present for all variants! Exiting...')
         exit(5)
 
-    effect_allele_frequency_flag, _ = check_column_flag(df.columns, ["effect_allele_frequency"], ["--frq", "effect_allele_frequency"], ["", ""])
-    snp_flag, to_ignore = check_column_flag(df.columns, ["rs_id", 'rsid'], ["--snp", ""], ["--snp", "variant_id"])
+    effect_allele_frequency_flag, _ = check_column_flag(df, ["effect_allele_frequency"], ["--frq", "effect_allele_frequency"], ["", ""])
+    snp_flag, to_ignore = check_column_flag(df, ["rs_id", 'rsid'], ["--snp", ""], ["--snp", "variant_id"])
 
     ignore = ','.join([ignore, to_ignore])
     cmd = [
