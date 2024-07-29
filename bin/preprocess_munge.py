@@ -18,7 +18,8 @@ def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
         sumstats_flag = ['--signed-sumstats', 'odds_ratio,1']
         ignore = 'beta'
     if not 'other_allele' in df.columns or df['other_allele'].dropna().shape[0] == 0:
-        exit(1)
+        print('Other allele is not present! Exiting...')
+        exit(5)
 
     effect_allele_frequency_flag, _ = check_column_flag(df.columns, "effect_allele_frequency", ["--frq", "effect_allele_frequency"], ["", ""])
     snp_flag, to_ignore = check_column_flag(df.columns, ["rs_id", 'rsid'], ["--snp", ""], ["--snp", "variant_id"])
