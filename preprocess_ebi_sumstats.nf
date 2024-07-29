@@ -96,6 +96,6 @@ workflow tmp {
     meta = Channel.fromPath(params.phenotypes_meta)
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.phen_id, file(row.sumstats_file), row.n_samples, file("/net/seq/data2/projects/sabramov/EBI.Summary_statistics/output/per_phenotype/" + row.phen_id + ".munge.sumstats.gz")))
-        | filter{ it[3].exists() }
+        | filter{ !it[3].exists() }
         | munge_sumstats
 }
