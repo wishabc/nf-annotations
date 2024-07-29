@@ -54,21 +54,33 @@ process munge_sumstats {
     script:
     prefix = "${phen_id}.munge"
     """
-    check_column_presence() {
+    check_column_flag() {
         local column_name=\$1
         local file_name=\$2
+        local flag_value=\$3
+        local default_value=\$4
 
-        awk -v col_name="\$column_name" '
-            BEGIN {FS="\t"}
-            NR==1 {for (i=1; i<=NF; i++) if (\$i == col_name) col=i}
-            NR > 1 && col {print "present"; exit}
-        ' "\$file_name"
+        awk -v col_name="\$column_name" \
+            -v flag="\$flag_value" \
+            -v default="\$default_value" \
+            'BEGIN {FS="\t"; result=default}
+                NR==1 {
+                    for (i=1; i<=NF; i++) {
+                        if (\$i == col_name) {
+                            result=flag
+                            break
+                        }
+                    }
+                }
+                END {print result}
+            ' "\${file_name}"
     }
 
-    effect_allele_frequency_flag=\$(check_column_presence "effect_allele_frequency" "$sumstats_file" && echo " --frq effect_allele_frequency" || echo "")
+    effect_allele_frequency_flag=\$(check_column_flag "effect_allele_frequency" "$sumstats_file" "--frq effect_allele_frequency" "")
 
-    # Check for rs_id column
-    snp_column=\$(check_column_presence "rs_id" "$sumstats_file" && echo "rs_id" || echo "variant_id")
+    # Check for rs_id column and default to variant_id if not present
+    snp_flag=\$(check_column_flag "rs_id" "$sumstats_file" "--snp rs_id" "--snp variant_id")
+
 
 
     
@@ -77,7 +89,7 @@ process munge_sumstats {
         --merge-alleles ${params.tested_snps} \
         --a1 effect_allele \
         --a2 other_allele \
-        --snp \${snp_column} \
+        \${snp_flag} \
         --N ${n_samples} \
         \${effect_allele_frequency_flag} \
         --out ${prefix}
