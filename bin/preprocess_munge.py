@@ -20,6 +20,10 @@ def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
     if not 'other_allele' in df.columns or len(df['other_allele'].dropna()) == 0:
         print('Other allele is not present! Exiting...')
         exit(5)
+    
+    if df['p_value'].dropna().shape[0] != len(df):
+        print('P-values are not present for all variants! Exiting...')
+        exit(5)
 
     effect_allele_frequency_flag, _ = check_column_flag(df.columns, "effect_allele_frequency", ["--frq", "effect_allele_frequency"], ["", ""])
     snp_flag, to_ignore = check_column_flag(df.columns, ["rs_id", 'rsid'], ["--snp", ""], ["--snp", "variant_id"])
