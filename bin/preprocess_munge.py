@@ -25,7 +25,7 @@ def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
         print('P-values are not present for all variants! Exiting...')
         exit(5)
 
-    effect_allele_frequency_flag, _ = check_column_flag(df.columns, "effect_allele_frequency", ["--frq", "effect_allele_frequency"], ["", ""])
+    effect_allele_frequency_flag, _ = check_column_flag(df.columns, ["effect_allele_frequency"], ["--frq", "effect_allele_frequency"], ["", ""])
     snp_flag, to_ignore = check_column_flag(df.columns, ["rs_id", 'rsid'], ["--snp", ""], ["--snp", "variant_id"])
 
     ignore = ','.join([ignore, to_ignore])
