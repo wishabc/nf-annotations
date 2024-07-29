@@ -17,7 +17,7 @@ def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
     else:
         sumstats_flag = ['--signed-sumstats', 'odds_ratio,1']
         ignore = 'beta'
-    if not 'other_allele' in df.columns or df['other_allele'].dropna().shape[0] == 0:
+    if not 'other_allele' in df.columns or len(df['other_allele'].dropna()) == 0:
         print('Other allele is not present! Exiting...')
         exit(5)
 
