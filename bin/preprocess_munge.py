@@ -13,10 +13,10 @@ def check_column_flag(columns, column_name, flag_value, default_value):
 def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
     df = pd.read_csv(sumstats_file, sep='\t', nrows=1)
     if 'beta' in df.columns and df['beta'].dropna().shape[0] > 0:
-        sumstats_flag = ['--signed-sumstats', 'beta']
+        sumstats_flag = ['--signed-sumstats', 'beta,0']
         ignore = 'odds_ratio'
     else:
-        sumstats_flag = ['--signed-sumstats', 'odds_ratio']
+        sumstats_flag = ['--signed-sumstats', 'odds_ratio,1']
         ignore = 'beta'
     effect_allele_frequency_flag = check_column_flag(sumstats_file, "effect_allele_frequency", ["--frq", "effect_allele_frequency"], [""])
     snp_flag = check_column_flag(sumstats_file, "rs_id", ["--snp", "rs_id"], ["--snp", "variant_id"])
