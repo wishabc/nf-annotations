@@ -53,15 +53,22 @@ process munge_sumstats {
     script:
     prefix = "${phen_id}.munge"
     """
-    check_effect_allele_frequency=\$( \
-        awk 'BEGIN {FS="\t"} \
-            NR==1 {for (i=1; i<=NF; i++) \
-                if (\$i == "effect_allele_frequency") col=i} 
-                    NR > 1 && col && \$col != "NA" {found=1} 
-            END {if (found) print "present"}'\
-            "${sumstats_file}")
+    check_column_presence() {
+        local column_name=\$1
+        local file_name=\$2
 
-    effect_allele_frequency_flag=\$([ "\$check_effect_allele_frequency" == "present" ] && echo " --frq effect_allele_frequency" || echo "")
+        awk -v col_name="\$column_name" '
+            BEGIN {FS="\t"}
+            NR==1 {for (i=1; i<=NF; i++) if (\$i == col_name) col=i}
+            NR > 1 && col {print "present"; exit}
+        ' "\$file_name"
+    }
+
+    effect_allele_frequency_flag=\$(check_column_presence "effect_allele_frequency" "$sumstats_file" && echo " --frq effect_allele_frequency" || echo "")
+
+    # Check for rs_id column
+    snp_column=\$(check_column_presence "rs_id" "$sumstats_file" && echo "rs_id" || echo "variant_id")
+
 
     
     python ${params.ldsc_scripts_path}/munge_sumstats.py \
@@ -69,7 +76,7 @@ process munge_sumstats {
         --merge-alleles ${params.tested_snps} \
         --a1 effect_allele \
         --a2 other_allele \
-        --snp variant_id \
+        --snp \${snp_column} \
         --N ${n_samples} \
         \${effect_allele_frequency_flag} \
         --out ${prefix}
