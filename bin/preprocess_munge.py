@@ -45,7 +45,7 @@ if __name__ == "__main__":
     sumstats_file = sys.argv[1]
     script_path = sys.argv[2]
     tested_snps = sys.argv[3]
-    n_samples = int(sys.argv[4])
+    n_samples = sys.argv[4]
     prefix = sys.argv[5]
     
     main(sumstats_file, script_path, tested_snps, n_samples, prefix)
