@@ -62,8 +62,8 @@ process munge_sumstats {
 
         awk -v col_name="\$column_name" \
             -v flag="\$flag_value" \
-            -v default="\$default_value" \
-            'BEGIN {FS="\t"; result=default}
+            -v default_val="\$default_value" \
+            'BEGIN {FS="\t"; result=default_val}
                 NR==1 {
                     for (i=1; i<=NF; i++) {
                         if (\$i == col_name) {
