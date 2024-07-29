@@ -28,12 +28,12 @@ def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
         '--a1', 'effect_allele',
         '--a2', 'other_allele',
         '--N', n_samples,
-        *sumstats_flag,
-        *snp_flag,
-        *effect_allele_frequency_flag,
         '--out', prefix,
         '--ignore', ignore
     ]
+    cmd += sumstats_flag
+    cmd += effect_allele_frequency_flag
+    cmd += snp_flag
 
     # Remove empty strings from cmd list
     cmd = [arg for arg in cmd if arg]
