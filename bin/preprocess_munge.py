@@ -43,7 +43,7 @@ def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
 
     exit_code = subprocess.call(cmd)
     if exit_code != 0:
-        raise ValueError(f"Failed to run command: {cmd}", exit_code)
+        raise ValueError("Failed to run command:", cmd, exit_code)
 
 
 if __name__ == "__main__":
