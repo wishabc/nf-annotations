@@ -43,6 +43,7 @@ process munge_sumstats {
     label "ldsc"
     publishDir "${params.outdir}/per_phenotype/${phen_id}"
     scratch true
+    errorStrategy 'ignore'
 
     input:
         tuple val(phen_id), path(sumstats_file), val(n_samples)
