@@ -5,8 +5,8 @@ import sys
 def check_column_flag(columns, column_names, flag_value, default_value):
     for column_name in column_names:
         if column_name in columns:
-            return flag_value, default_value[1]
-    return default_value, flag_value[1]
+            return [flag_value[0], column_name], ','.join([x for x in column_names if x != column_name] + default_value[1])
+    return default_value, ""
 
 
 def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
@@ -18,7 +18,7 @@ def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
         sumstats_flag = ['--signed-sumstats', 'odds_ratio,1']
         ignore = 'beta'
     effect_allele_frequency_flag, _ = check_column_flag(sumstats_file, "effect_allele_frequency", ["--frq", "effect_allele_frequency"], ["", ""])
-    snp_flag, to_ignore = check_column_flag(sumstats_file, ["rs_id", 'rsid'], ["--snp", "rs_id"], ["--snp", "variant_id"])
+    snp_flag, to_ignore = check_column_flag(sumstats_file, ["rs_id", 'rsid'], ["--snp", ""], ["--snp", "variant_id"])
 
     ignore = ','.join([ignore, to_ignore])
     cmd = [
