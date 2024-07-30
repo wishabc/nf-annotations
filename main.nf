@@ -66,14 +66,14 @@ process prepare_mixings_data {
         tuple val(mixing_prefix), path(mixing_matrix), path(mixing_comp_order), emit: mixing
 
     script:
-    clean_prefix = "${prefix}.pure"
-    clean_comps_matrix = "${clean_prefix}.50pr.npy"
-    clean_comp_order = "${clean_prefix}.50pr.order.txt"
+    clean_prefix = "${prefix}.pure.50pr"
+    clean_comps_matrix = "${clean_prefix}.npy"
+    clean_comp_order = "${clean_prefix}.order.txt"
     
     
-    mixing_prefix = "${prefix}.mixing"
-    mixing_matrix = "${mixing_prefix}.80pr.npy"
-    mixing_comp_order = "${mixing_prefix}.80pr.order.txt"
+    mixing_prefix = "${prefix}.mixing.80pr"
+    mixing_matrix = "${mixing_prefix}.npy"
+    mixing_comp_order = "${mixing_prefix}.order.txt"
     """
     python3 $moduleDir/bin/prepare_mixings_data.py \
         ${H_matrix} \
