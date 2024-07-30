@@ -33,13 +33,13 @@ def main(metadata, samples_meta_path, outdir):
         }
 
         config['LDSC'] = {
-            'Z_SCORE_SUMMARY.PURE': f"{outdir}/{prefix}.pure.ldsc_cell_types_results.tsv",
-            'Z_SCORE_SUMMARY.MIXING': f"{outdir}/{prefix}.mixing.ldsc_cell_types_results.tsv"
+            'Z_SCORE_SUMMARY.PURE.50pr': f"{outdir}/{prefix}.pure.50pr.ldsc_cell_types_results.tsv",
+            'Z_SCORE_SUMMARY.MIXING.80pr': f"{outdir}/{prefix}.mixing.80pr.ldsc_cell_types_results.tsv"
         }
 
         config['MOTIF.ENRICHMENT'] = {
-            'Z_SCORE_SUMMARY.PURE': f"{outdir}/{prefix}.pure.z_score_stats.tsv",
-            'Z_SCORE_SUMMARY.MIXING': f"{outdir}/{prefix}.mixing.z_score_stats.tsv"
+            'Z_SCORE_SUMMARY.PURE.50pr': f"{outdir}/{prefix}.pure.50pr.z_score_stats.tsv",
+            'Z_SCORE_SUMMARY.MIXING.80pr': f"{outdir}/{prefix}.mixing.80pr.z_score_stats.tsv"
         }
 
         with open(f'{prefix}.matrix_meta.tsv', 'w') as f:
