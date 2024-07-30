@@ -269,6 +269,7 @@ workflow fromMatrix {
 
 // Entry workflows
 workflow {
+    println "Looking for bed files in ${params.annotations_dir}/"
     custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
         | map(it -> tuple('custom_annotations', it.baseName, it)) // matrix_name, group_id, custom_annotation
         | fromAnnotations
