@@ -150,7 +150,7 @@ process generate_bed {
     script:
     name = "${motif_id}.${iter}.bed"
     """
-    paste ${params.masterlist_file} ${indicator_file}
+    paste ${params.masterlist_file} ${indicator_file} \
         | awk \
             -v OFS='\t' \
             -F'\t' \
