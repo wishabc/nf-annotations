@@ -133,3 +133,46 @@ workflow fromBinaryMatrix {
 //         ${prefix}
 //     """
 // }
+
+process generate_bed {
+    publishDir "${params.outdir}/matched_bg",
+
+    conda params.conda
+    tag "${motif_id}:${iter}"
+    // scratch true
+
+
+    input:
+        tuple val(motif_id), path(indicator), val(iter)
+
+    output:
+        tuple val(motif_id), val(iter), path(name)
+
+    script:
+    name = "${motif_id}.${iter}.bed"
+    """
+    paste ${params.masterlist_file} ${indicator_file}
+        | awk \
+            -v OFS='\t' \
+            -F'\t' \
+            '\$NF == 1' \
+        | cut -f1-3 > tmp.bed
+    
+    Rscript $moduleDir/bin/genome_background.R \
+        tmp.bed \
+        ${name}
+    """
+}
+
+
+workflow matchBackground {
+    Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
+        | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
+        | filter { it[0] == "M02739_2.00" }
+        | combine(
+            Channel.of(1..100)
+        ) // motif_id, indicator, iter
+        
+        | generate_bed
+
+}
