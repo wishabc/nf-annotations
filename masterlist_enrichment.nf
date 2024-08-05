@@ -142,7 +142,7 @@ process generate_bed {
     conda params.conda
 
     input:
-        tuple val(motif_id), path(indicator), val(iter)
+        tuple val(motif_id), path(indicator_file), val(iter)
 
     output:
         tuple val(motif_id), val(iter), path(name)
@@ -167,7 +167,6 @@ process generate_bed {
 workflow matchBackground {
     Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
-        | view()
         | filter { it[0] == "M02739_2.00" }
         | combine(
             Channel.of(1..100)
