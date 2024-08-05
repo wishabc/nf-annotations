@@ -137,10 +137,9 @@ workflow fromBinaryMatrix {
 process generate_bed {
     publishDir "${params.outdir}/matched_bg",
 
-    conda params.conda
     tag "${motif_id}:${iter}"
     // scratch true
-
+    conda params.conda
 
     input:
         tuple val(motif_id), path(indicator), val(iter)
