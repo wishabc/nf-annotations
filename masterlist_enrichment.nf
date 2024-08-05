@@ -135,7 +135,7 @@ workflow fromBinaryMatrix {
 // }
 
 process generate_bed {
-    publishDir "${params.outdir}/matched_bg",
+    publishDir "${params.outdir}/matched_bg"
 
     tag "${motif_id}:${iter}"
     // scratch true
