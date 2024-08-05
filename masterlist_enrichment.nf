@@ -167,6 +167,7 @@ process generate_bed {
 workflow matchBackground {
     Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
+        | view()
         | filter { it[0] == "M02739_2.00" }
         | combine(
             Channel.of(1..100)
