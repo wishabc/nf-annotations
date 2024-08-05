@@ -225,7 +225,7 @@ workflow LDSC {
                 storeDir: params.outdir,
                 skip: 1,
                 keepHeader: true
-            ) { it -> [ "${it[0]}.ldsc_enrichments_results.tsv", it[4].text ] }
+            ) { it -> [ "${it[0]}.ldsc_enrichments_results.tsv", it[5].text ] }
     emit:
         out
 }
@@ -269,8 +269,9 @@ workflow fromMatrix {
 
 // Entry workflows
 workflow {
+    println "Looking for bed files in ${params.annotations_dir}/"
     custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
-        | map(it -> tuple(it.baseName, it.baseName, it)) // matrix_name, group_id, custom_annotation
+        | map(it -> tuple('custom_annotations', it.baseName, it)) // matrix_name, group_id, custom_annotation
         | fromAnnotations
 }
 

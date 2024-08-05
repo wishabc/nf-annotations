@@ -24,7 +24,7 @@ def main(metadata, samples_meta_path, outdir):
             'SAMPLES_ORDER': row['samples_order'],
 
             'PURE.50PR_ANNOTATION': f"{base_path}.pure.50pr.npy",
-            'PURE.50PR_ORDER': f"{base_path}.pure.order.txt",
+            'PURE.50PR_ORDER': f"{base_path}.pure.50pr.order.txt",
             'MIXING.80PR_ANNOTATION': f"{base_path}.mixing.80pr.npy",
             'MIXING.80PR_ORDER': f"{base_path}.mixing.80pr.order.txt",
 
@@ -33,14 +33,37 @@ def main(metadata, samples_meta_path, outdir):
         }
 
         config['LDSC'] = {
-            'Z_SCORE_SUMMARY.PURE': f"{outdir}/{prefix}.pure.ldsc_cell_types_results.tsv",
-            'Z_SCORE_SUMMARY.MIXING': f"{outdir}/{prefix}.mixing.ldsc_cell_types_results.tsv"
+            'Z_SCORE_SUMMARY.PURE.50pr': f"{outdir}/{prefix}.pure.50pr.ldsc_cell_types_results.tsv",
+            'Z_SCORE_SUMMARY.MIXING.80pr': f"{outdir}/{prefix}.mixing.80pr.ldsc_cell_types_results.tsv"
         }
 
         config['MOTIF.ENRICHMENT'] = {
-            'Z_SCORE_SUMMARY.PURE': f"{outdir}/{prefix}.pure.z_score_stats.tsv",
-            'Z_SCORE_SUMMARY.MIXING': f"{outdir}/{prefix}.mixing.z_score_stats.tsv"
+            'Z_SCORE_SUMMARY.PURE.50pr': f"{outdir}/{prefix}.pure.50pr.z_score_stats.tsv",
+            'Z_SCORE_SUMMARY.MIXING.80pr': f"{outdir}/{prefix}.mixing.80pr.z_score_stats.tsv"
         }
+
+        with open(f'{prefix}.matrix_meta.tsv', 'w') as f:
+            f.write('\t'.join(
+                [
+                    'matrix_name',
+                    'matrix',
+                    'sample_names'
+                ]
+            ) + '\n')
+            f.write('\t'.join(
+                [
+                    config['NMF']['PREFIX'] + '.pure.50pr', 
+                    config['NMF']['PURE.50PR_ANNOTATION'],
+                    config['NMF']['PURE.50PR_ORDER']
+                ]
+            ) + '\n')
+            f.write('\t'.join(
+                [
+                    config['NMF']['PREFIX'] + '.mixing.80pr', 
+                    config['NMF']['MIXING.80PR_ANNOTATION'],
+                    config['NMF']['MIXING.80PR_ORDER']
+                ]
+            ) + '\n')
 
         # Write the configuration file
         with open(f'{prefix}.config.ini', 'w') as configfile:
