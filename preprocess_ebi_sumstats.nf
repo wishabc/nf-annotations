@@ -39,7 +39,7 @@ process download_meta {
 
 process munge_sumstats {
     conda params.ldsc_conda
-    tag "${phen_id}"
+    tag "${phen_id}:${ref_is_effect}"
     label "ldsc"
     scratch true
     errorStrategy 'ignore'
