@@ -9,7 +9,7 @@ def check_column_flag(dataframe, column_names, flag_value, default_value):
     return default_value, ""
 
 
-def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
+def main(sumstats_file, script_path, tested_snps, n_samples, prefix, effect_is_ref):
     df = pd.read_csv(sumstats_file, sep='\t')
     if 'beta' in df.columns and df['beta'].dropna().shape[0] > 0:
         sumstats_flag = ['--signed-sumstats', 'beta,0']
@@ -33,8 +33,8 @@ def main(sumstats_file, script_path, tested_snps, n_samples, prefix):
         'python2', script_path,
         '--sumstats', sumstats_file,
         '--merge-alleles', tested_snps,
-        '--a1', 'effect_allele',
-        '--a2', 'other_allele',
+        '--a1', 'effect_allele' if effect_is_ref else 'other_allele',
+        '--a2', 'other_allele' if effect_is_ref else 'effect_allele',
         '--N', n_samples,
         '--out', prefix,
         '--ignore', ignore
@@ -57,5 +57,6 @@ if __name__ == "__main__":
     tested_snps = sys.argv[3]
     n_samples = sys.argv[4]
     prefix = sys.argv[5]
+    effect_is_ref = int(sys.argv[6]) # which allele treat as reference
     
-    main(sumstats_file, script_path, tested_snps, n_samples, prefix)
+    main(sumstats_file, script_path, tested_snps, n_samples, prefix, effect_is_ref)

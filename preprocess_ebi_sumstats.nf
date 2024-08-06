@@ -41,25 +41,58 @@ process munge_sumstats {
     conda params.ldsc_conda
     tag "${phen_id}"
     label "ldsc"
-    publishDir "${params.outdir}/per_phenotype/${phen_id}"
     scratch true
     errorStrategy 'ignore'
+    publishDir "${params.outdir}/per_phenotype/${phen_id}", pattern: "${prefix}.log"
 
     input:
-        tuple val(phen_id), path(sumstats_file), val(n_samples)
+        tuple val(phen_id), path(sumstats_file), val(n_samples), val(ref_is_effect)
 
     output:
         tuple val(phen_id), path("${prefix}.sumstats.gz"), path("${prefix}.log")
     
     script:
-    prefix = "${phen_id}.munge"
+    prefix = "${phen_id}.${ref_is_effect}.munge"
     """
     python ${moduleDir}/bin/preprocess_munge.py \
         ${sumstats_file} \
         ${params.ldsc_scripts_path}/munge_sumstats.py \
         ${params.tested_snps} \
         ${n_samples} \
-        ${prefix}
+        ${prefix} \
+
+    """
+}
+
+process choose_correct_orientation {
+    conda params.conda
+    tag "${phen_id}"
+    publishDir "${params.outdir}/per_phenotype/${phen_id}"
+    errorStrategy 'ignore'
+
+    input:
+        tuple val(phen_id), path(sumstats_files)
+
+    output:
+        tuple val(phen_id), path(name)
+    
+    script:
+    name = "${phen_id}.munge.sumstats.gz"
+    """
+    max_count=0
+    max_file=""
+
+    for file in ${sumstats_files}; do
+        count=\$(zcat "${file}" \
+            | awk -F'\t' \
+                '\$3 != "" && \$3 != "NA" {count++} END {print count}')
+
+        if (( count > max_count )); then
+            max_count=\$count
+            max_file=\$file
+        fi
+    done
+    cp \$max_file ${name}
     """
 }
 
@@ -78,4 +111,8 @@ workflow tmp {
         | filter{ !it[3].exists() & it[2] > 0 }
         | map(it -> tuple(it[0], it[1], it[2]))
         | munge_sumstats
+        | map(it -> tuple(it[0], it[1]))
+        | groupTuple(by: 0, size: 2, remainder: true)
+        | choose_correct_orientation
+
 }
