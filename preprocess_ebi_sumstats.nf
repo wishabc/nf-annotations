@@ -60,7 +60,7 @@ process munge_sumstats {
         ${params.tested_snps} \
         ${n_samples} \
         ${prefix} \
-
+        ${ref_is_effect}
     """
 }
 
