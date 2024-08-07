@@ -43,10 +43,10 @@ process munge_sumstats {
     label "ldsc"
     scratch true
     errorStrategy 'ignore'
-    publishDir "${params.outdir}/per_phenotype/${phen_id}", pattern: "${prefix}.log"
+    publishDir "${params.outdir}/per_phenotype/${phen_id}"
 
     input:
-        tuple val(phen_id), path(sumstats_file), val(n_samples), val(ref_is_effect)
+        tuple val(phen_id), path(sumstats_file), val(n_samples)
 
     output:
         tuple val(phen_id), path("${prefix}.sumstats.gz"), path("${prefix}.log")
@@ -59,40 +59,7 @@ process munge_sumstats {
         ${params.ldsc_scripts_path}/munge_sumstats.py \
         ${params.tested_snps} \
         ${n_samples} \
-        ${prefix} \
-        ${ref_is_effect}
-    """
-}
-
-process choose_correct_orientation {
-    conda params.conda
-    tag "${phen_id}"
-    publishDir "${params.outdir}/per_phenotype/${phen_id}"
-    errorStrategy 'ignore'
-
-    input:
-        tuple val(phen_id), path(sumstats_files)
-
-    output:
-        tuple val(phen_id), path(name)
-    
-    script:
-    name = "${phen_id}.munge.sumstats.gz"
-    """
-    max_count=0
-    max_file=""
-
-    for file in ${sumstats_files}; do
-        count=\$(zcat "\${file}" \
-            | awk -F'\t' \
-                '\$3 != "" && \$3 != "NA" {count++} END {print count}')
-
-        if (( count > max_count )); then
-            max_count=\$count
-            max_file=\$file
-        fi
-    done
-    cp \$max_file ${name}
+        ${prefix}
     """
 }
 
@@ -105,14 +72,12 @@ workflow {
 }
 
 workflow tmp {
-    ref_is_effect = Channel.of(0, 1)
     meta = Channel.fromPath(params.phenotypes_meta)
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.phen_id, file(row.sumstats_file), row.n_samples.toInteger(), file("/net/seq/data2/projects/sabramov/EBI.Summary_statistics/output/per_phenotype/${row.phen_id}/${row.phen_id}.munge.sumstats.gz")))
         //| filter{ !it[3].exists() }
         | map(it -> tuple(it[0], it[1], it[2]))
         | filter{ it[2] > 0 }
-        | combine(ref_is_effect)
         | munge_sumstats
         | map(it -> tuple(it[0], it[1]))
         | groupTuple(by: 0, size: 2, remainder: true)
