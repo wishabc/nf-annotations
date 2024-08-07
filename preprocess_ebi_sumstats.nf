@@ -83,7 +83,7 @@ process choose_correct_orientation {
     max_file=""
 
     for file in ${sumstats_files}; do
-        count=\$(zcat "${file}" \
+        count=\$(zcat "\${file}" \
             | awk -F'\t' \
                 '\$3 != "" && \$3 != "NA" {count++} END {print count}')
 
