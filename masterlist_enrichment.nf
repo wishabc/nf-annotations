@@ -165,9 +165,9 @@ process generate_bed {
 
 
 workflow matchBackground {
-    Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
+    Channel.fromPath("${params.template_run}/sample_hits/*.hits.bed")
         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
-        | filter { it[0] == "M02739_2.00" }
+        | filter { it[0] == "tcell_sample" }
         | combine(
             Channel.of(1..100)
         ) // motif_id, indicator, iter
