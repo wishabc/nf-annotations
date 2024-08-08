@@ -28,7 +28,7 @@ def main(sumstats_file, script_path, tested_snps, n_samples, prefix, effect_is_r
     effect_allele_frequency_flag, _ = check_column_flag(df, ["effect_allele_frequency"], ["--frq", "effect_allele_frequency"], ["", ""])
     snp_flag, to_ignore = check_column_flag(df, ["rs_id", 'rsid'], ["--snp", ""], ["--snp", "variant_id"])
 
-    ignore = ','.join([ignore, to_ignore])
+    ignore = ','.join([ignore, to_ignore, 'n'])
     cmd = [
         'python2', script_path,
         '--sumstats', sumstats_file,
