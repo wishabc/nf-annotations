@@ -202,10 +202,10 @@ workflow matchBackground {
     Channel.fromPath("${params.template_run}/component_hits.80pr/*.hits.bed")
         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it)) // comp.some_number, indicator
         | filter { it[0] == "comp.9" }
-        | view()
         | combine(
             Channel.of(1..params.n_perm)
         ) // comp.some_numbers, indicator, iter
+        | view()
         | combine(object_test) // comp.some_numbers, indicator, iter, motif_id, moods_file
         | view()
         | generate_bed
