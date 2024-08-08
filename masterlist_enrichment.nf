@@ -142,8 +142,7 @@ process generate_bed {
     conda params.conda
 
     input:
-        tuple val(comp_num), path(indicator_file), val(iter), val(motif_id), path(moods_hits)
-        //tuple val(motif_id), path(indicator_file), val(iter), path(moods_hits) // comp.some_numbers, indicator, iter, motif_id, moods_file
+        tuple val(comp_num), path(indicator_file), val(iter), val(motif_id), path(moods_hits) // comp.some_numbers, indicator, iter, motif_id, moods_file
 
     output:
         tuple val(motif_id), val(iter), path(name), path(indicator)
@@ -205,9 +204,7 @@ workflow matchBackground {
         | combine(
             Channel.of(1..params.n_perm)
         ) // comp.some_numbers, indicator, iter
-        | view()
         | combine(object_test) // comp.some_numbers, indicator, iter, motif_id, moods_file
-        | view()
         | generate_bed
         //| map(it -> tuple(it[0], it[3]))
         //| groupTuple(size=params.n_perm) // tuple(motif_id, [indicator1, indicator2]) motif_id, indica
