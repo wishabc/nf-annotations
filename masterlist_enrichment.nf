@@ -196,6 +196,7 @@ workflow matchBackground {
 
     object_test = Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase-genotypesv3/round2/output/moods_scans_ref/*.hits.bed")
         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
+        | filter { it[0] == "M02739_2.00" }
 
     Channel.fromPath("${params.template_run}/component_hits.80pr/*.hits.bed")
         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it)) // comp.some_number, indicator
@@ -204,6 +205,7 @@ workflow matchBackground {
             Channel.of(1..params.n_perm)
         ) // comp.some_numbers, indicator, iter
         | join(object_test) // comp.some_numbers, indicator, iter, motif_id?
+        | view()
         | generate_bed
         | map(it -> tuple(it[0], it[3]))
         | groupTuple(size=params.n_perm) // tuple(motif_id, [indicator1, indicator2]) motif_id, indica
