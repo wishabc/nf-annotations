@@ -195,8 +195,8 @@ process calculate_stats {
 workflow matchBackground {
     params.n_perm = 100
 
-    object_test = Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase-genotypesv3/round2/output/moods_scans_ref/*.hits.bed")
-        | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
+    object_test = Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase-genotypesv3/round2/output/moods_scans_ref/*.moods.log.bed.gz")
+        | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
         | filter { it[0] == "M02739_2.00" }
 
     Channel.fromPath("${params.template_run}/component_hits.80pr/*.hits.bed")
