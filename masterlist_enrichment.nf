@@ -204,7 +204,7 @@ workflow matchBackground {
         | combine(
             Channel.of(1..params.n_perm)
         ) // comp.some_numbers, indicator, iter
-        | join(object_test) // comp.some_numbers, indicator, iter, motif_id?
+        | combine(object_test) // comp.some_numbers, indicator, iter, motif_id
         | view()
         | generate_bed
         //| map(it -> tuple(it[0], it[3]))
