@@ -54,6 +54,7 @@ process munge_sumstats {
     script:
     prefix = "${phen_id}.munge"
     """
+    export OPENBLAS_NUM_THREADS=1
     python ${moduleDir}/bin/preprocess_munge.py \
         ${sumstats_file} \
         ${params.ldsc_scripts_path}/munge_sumstats.py \
