@@ -206,7 +206,7 @@ workflow matchBackground {
         ) // comp.some_numbers, indicator, iter
         | combine(object_test) // comp.some_numbers, indicator, iter, motif_id
         | view()
-        | generate_bed
+        //| generate_bed
         //| map(it -> tuple(it[0], it[3]))
         //| groupTuple(size=params.n_perm) // tuple(motif_id, [indicator1, indicator2]) motif_id, indica
         //| calculate_stats // 
