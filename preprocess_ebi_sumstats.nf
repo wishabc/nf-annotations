@@ -79,8 +79,5 @@ workflow tmp {
         | map(it -> tuple(it[0], it[1], it[2]))
         | filter{ it[2] > 0 }
         | munge_sumstats
-        | map(it -> tuple(it[0], it[1]))
-        | groupTuple(by: 0, size: 2, remainder: true)
-        | choose_correct_orientation
 
 }
