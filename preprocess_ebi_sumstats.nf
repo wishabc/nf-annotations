@@ -39,7 +39,7 @@ process download_meta {
 
 process munge_sumstats {
     conda params.ldsc_conda
-    tag "${phen_id}:${ref_is_effect}"
+    tag "${phen_id}"
     label "ldsc"
     scratch true
     errorStrategy 'ignore'
@@ -52,7 +52,7 @@ process munge_sumstats {
         tuple val(phen_id), path("${prefix}.sumstats.gz"), path("${prefix}.log")
     
     script:
-    prefix = "${phen_id}.${ref_is_effect}.munge"
+    prefix = "${phen_id}.munge"
     """
     python ${moduleDir}/bin/preprocess_munge.py \
         ${sumstats_file} \
