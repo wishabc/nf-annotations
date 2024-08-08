@@ -142,13 +142,14 @@ process generate_bed {
     conda params.conda
 
     input:
-        tuple val(motif_id), path(indicator_file), val(iter)
+        tuple val(motif_id), path(indicator_file), val(iter), path(moods_hits)
 
     output:
-        tuple val(motif_id), val(iter), path(name)
+        tuple val(motif_id), val(iter), path(name), path(indicator)
 
     script:
     name = "${motif_id}.${iter}.bed"
+    indicator = "${motif_id}.${iter}.indicator"
     """
     paste ${params.masterlist_file} ${indicator_file} \
         | awk \
@@ -160,18 +161,51 @@ process generate_bed {
     Rscript $moduleDir/bin/genome_background.R \
         tmp.bed \
         ${name}
+    
+    zcat ${moods_hits} \
+        | bedmap --indicator <(sort-bed ${name}) - > ${indicator}
     """
 }
 
+process calculate_stats {
+    publishDir "${params.outdir}"
+
+    tag "${motif_id}"
+    // scratch true
+    conda params.conda
+
+    input:
+        tuple val(motif_id), path(indicators) // indicators = indicator1 indicator2 indicator3 ...
+
+    output:
+
+
+    script:
+
+    """
+
+    """
+}
+
+// | view()
+// filter()
+// take(2) take first 2 element
 
 workflow matchBackground {
-    Channel.fromPath("${params.template_run}/sample_hits/*.hits.bed")
-        | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
-        | filter { it[0] == "hudep_sample" }
-        | combine(
-            Channel.of(1..100)
-        ) // motif_id, indicator, iter
-        
-        | generate_bed
+    params.n_perm = 100
 
+    object_test = Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase-genotypesv3/round2/output/moods_scans_ref/*.hits.bed")
+        | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
+
+    Channel.fromPath("${params.template_run}/component_hits.80pr/*.hits.bed")
+        | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it)) // comp.some_number, indicator
+        | filter { it[0] == "comp.9" }
+        | combine(
+            Channel.of(1..params.n_perm)
+        ) // comp.some_numbers, indicator, iter
+        | join(object_test) // comp.some_numbers, indicator, iter, motif_id?
+        | generate_bed
+        | map(it -> tuple(it[0], it[3]))
+        | groupTuple(size=params.n_perm) // tuple(motif_id, [indicator1, indicator2]) motif_id, indica
+        //| calculate_stats // 
 }
