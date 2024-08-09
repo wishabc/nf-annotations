@@ -135,7 +135,8 @@ workflow fromBinaryMatrix {
 // }
 
 process generate_bed {
-    publishDir "${params.outdir}/matched_bg"
+    publishDir "${params.outdir}/indicator", pattern: "*.indicator"
+    publishDir "${params.outdir}/bed", pattern: "*.bed"
 
     tag "${motif_id}:${iter}"
     // scratch true
@@ -200,7 +201,6 @@ workflow matchBackground {
 
     Channel.fromPath("${params.template_run}/component_hits.80pr/*.hits.bed")
         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it)) // comp.some_number, indicator
-        | filter { it[0] == "comp.8" }
         | combine(
             Channel.of(1..params.n_perm)
         ) // comp.some_numbers, indicator, iter
