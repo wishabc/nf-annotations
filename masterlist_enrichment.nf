@@ -168,29 +168,29 @@ process generate_bed {
     """
 }
 
-process calculate_stats {
-    publishDir "${params.outdir}"
+// process calculate_stats {
+//     publishDir "${params.outdir}/something"
 
-    tag "${motif_id}"
-    // scratch true
-    conda params.conda
+//     tag "${motif_id}"
+//     // scratch true
+//     conda params.conda
 
-    input:
-        tuple val(motif_id), val(comp_num), path(indicators),  // indicators = indicator1 indicator2 indicator3 ...
+//     input:
+//         tuple val(motif_id), val(comp_num), path(indicators),  // indicators = indicator1 indicator2 indicator3 ...
 
-    output:
+//     output:
 
 
-    script:
+//     script:
 
-    """
-    python $moduleDir/bin/agg_indicator.py \
-        ${motif_id} \
-        ${comp_num} \
-        ${indicators} \
-        ${out_name}
-    """
-}
+//     """
+//     python $moduleDir/bin/agg_indicator.py \
+//         ${motif_id} \
+//         ${comp_num} \
+//         ${indicators} \
+//         ${out_name}
+//     """
+// }
 
 // | view()
 // filter()
