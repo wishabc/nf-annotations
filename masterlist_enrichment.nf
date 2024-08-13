@@ -176,7 +176,7 @@ process calculate_stats {
     conda params.conda
 
     input:
-        tuple val(motif_id), path(indicators) // indicators = indicator1 indicator2 indicator3 ...
+        tuple val(motif_id), val(comp_num), path(indicators),  // indicators = indicator1 indicator2 indicator3 ...
 
     output:
 
@@ -184,7 +184,11 @@ process calculate_stats {
     script:
 
     """
-
+    python $moduleDir/bin/agg_indicator.py \
+        ${motif_id} \
+        ${comp_num} \
+        ${indicators} \
+        ${out_name}
     """
 }
 
@@ -197,7 +201,7 @@ workflow matchBackground {
 
     object_test = Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase-genotypesv3/round2/output/moods_scans_ref/*.moods.log.bed.gz")
         | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
-        | filter { it[0] == "M02739_2.00" }
+        | filter { it[0] in ["M08871_2.00", "M04203_2.00", "M09247_2.00", "M09168_2.00", "M08938_2.00"] }
 
     Channel.fromPath("${params.template_run}/component_hits.80pr/*.hits.bed")
         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it)) // comp.some_number, indicator
@@ -205,8 +209,8 @@ workflow matchBackground {
             Channel.of(1..params.n_perm)
         ) // comp.some_numbers, indicator, iter
         | combine(object_test) // comp.some_numbers, indicator, iter, motif_id, moods_file
-        | generate_bed
-        //| map(it -> tuple(it[0], it[3]))
-        //| groupTuple(size=params.n_perm) // tuple(motif_id, [indicator1, indicator2]) motif_id, indica
+        | generate_bed // motif_id, comp_num, name, indicator
+        //| map(it -> tuple(it[0], it[1], it[3]))
+        //| groupTuple(size=params.n_perm) // tuple(motif_id, comp.some_numbers, [indicator1, indicator2]) motif_id, indica
         //| calculate_stats // 
 }
