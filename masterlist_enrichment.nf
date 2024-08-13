@@ -197,11 +197,11 @@ process generate_bed {
 // take(2) take first 2 element
 
 workflow matchBackground {
-    params.n_perm = 100
+    params.n_perm = 50
 
     object_test = Channel.fromPath("/net/seq/data2/projects/sabramov/ENCODE4/dnase-genotypesv3/round2/output/moods_scans_ref/*.moods.log.bed.gz")
         | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
-        | filter { it[0] in ["M08871_2.00", "M04203_2.00", "M09247_2.00", "M09168_2.00", "M08938_2.00"] }
+        | filter { it[0] in ["M02739_2.00"] }
 
     Channel.fromPath("${params.template_run}/component_hits.80pr/*.hits.bed")
         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it)) // comp.some_number, indicator
