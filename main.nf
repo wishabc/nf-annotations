@@ -101,7 +101,16 @@ process craft_configs {
 workflow {
     input_data = Channel.fromPath(params.nmf_metadata)
         | splitCsv(header: true, sep: "\t")
-        | map(row -> tuple(row.prefix, file(row.W), file(row.H), file(row.samples_order), file(row.masterlist), file(row.peak_weights), file(row.sample_weights)))
+        | map(row -> tuple(
+            row.prefix,
+            file(row.W),
+            file(row.H),
+            file(row.sample_names),
+            file(row.dhs_meta),
+            file(row.peaks_weights),
+            file(row.samples_weights)
+            )
+        )
     
     // Top samples tracks
     input_data
