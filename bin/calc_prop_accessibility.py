@@ -16,6 +16,7 @@ if __name__ == '__main__':
     dhs_annotations = pd.read_table(args.dhs_annotations).set_index('dhs_id')
     dhs_annotations = dhs_annotations.loc[dhs_ids].reset_index(drop=True)
     binary_matrix = np.load(args.binary_matrix).astype(int)
+    assert binary_matrix.shape[0] == len(dhs_ids)
     assert binary_matrix.shape[0] == dhs_annotations.shape[0]
 
     if args.samples_weights is not None:
