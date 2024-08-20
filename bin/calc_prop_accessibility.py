@@ -13,16 +13,17 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     dhs_ids = pd.read_table(args.dhs_meta, header=None)[3]
-    dhs_annotations = pd.read_table(args.dhs_annotations)
-    dhs_annotations = dhs_annotations[dhs_annotations['dhs_id'].isin(dhs_ids)].reset_index(drop=True)
+    dhs_annotations = pd.read_table(args.dhs_annotations).set_index('dhs_id')
+    dhs_annotations = dhs_annotations.loc[dhs_ids].reset_index(drop=True)
     binary_matrix = np.load(args.binary_matrix).astype(int)
+    assert binary_matrix.shape[0] == dhs_annotations.shape[0]
 
     if args.samples_weights is not None:
         sample_weights = pd.read_table(args.samples_weights)['weight'].to_numpy()
     else:
         sample_weights = np.ones(binary_matrix.shape[1])
 
-    assert binary_matrix.shape[0] == dhs_annotations.shape[0]
+    
     acc_proportions = np.average(binary_matrix, axis=1, weights=sample_weights)
     dhs_annotations['mean_acc'] = acc_proportions
     dhs_annotations.to_csv(args.output, index=False, sep="\t")
