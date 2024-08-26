@@ -20,7 +20,7 @@ def main(metadata, samples_meta_path, outdir):
             'H': row['H'],
             'PEAK_WEIGHTS': row['peaks_weights'],
             'SAMPLE_WEIGHTS': row['samples_weights'],
-            'INDEX': row['masterlist'],
+            'INDEX': row['dhs_meta'],
             'SAMPLES_ORDER': row['samples_order'],
 
             'PURE.50PR_ANNOTATION': f"{base_path}.pure.50pr.npy",
