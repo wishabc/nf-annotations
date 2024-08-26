@@ -225,12 +225,13 @@ process population_extract {
     tag "${pop_name}"
     // scratch true
     conda params.conda
+    errorStrategy 'ignore'
 
     input:
         tuple val(pop_name), path(pop_file) // pop_name, pop path
 
     output:
-        tuple val(pop_name)
+        tuple val(pop_name), path("${name}*")
 
     script:
     name = "greeks.${pop_name}"
