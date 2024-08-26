@@ -18,8 +18,8 @@ def main(metadata, samples_meta_path, outdir):
             'N_COMPONENTS': prefix.split('.')[-1],
             'W': row['W'],
             'H': row['H'],
-            'PEAK_WEIGHTS': row['peak_weights'],
-            'SAMPLE_WEIGHTS': row['sample_weights'],
+            'PEAK_WEIGHTS': row['peaks_weights'],
+            'SAMPLE_WEIGHTS': row['samples_weights'],
             'INDEX': row['masterlist'],
             'SAMPLES_ORDER': row['samples_order'],
 
