@@ -21,7 +21,7 @@ def main(metadata, samples_meta_path, outdir):
             'PEAK_WEIGHTS': row['peaks_weights'],
             'SAMPLE_WEIGHTS': row['samples_weights'],
             'INDEX': row['dhs_meta'],
-            'SAMPLES_ORDER': row['samples_order'],
+            'sample_names': row['sample_names'],
 
             'PURE.50PR_ANNOTATION': f"{base_path}.pure.50pr.npy",
             'PURE.50PR_ORDER': f"{base_path}.pure.50pr.order.txt",
