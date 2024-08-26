@@ -222,7 +222,7 @@ process population_extract {
     publishDir "${params.outdir}/Greeks_population", pattern: "*.fam"
     publishDir "${params.outdir}/Greeks_population", pattern: "*.bim"
 
-    tag "${motif_id}:${iter}"
+    tag "${pop_name}"
     // scratch true
     conda params.conda
 
@@ -240,7 +240,7 @@ process population_extract {
 }
 
 workflow greekPopulation {
-
+    params.greek_cretan = "/home/afathul/data2seq/greek_population/exploration_greek/Greeks12345Cretan34"
     Channel.fromPath("/home/afathul/data2seq/greek_population/exploration_greek/Populations/*")
         | map(it -> tuple(it.name, it)) // pop_name, pop path
         | population_extract
