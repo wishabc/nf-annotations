@@ -214,3 +214,34 @@ workflow matchBackground {
         //| groupTuple(size=params.n_perm) // tuple(motif_id, comp.some_numbers, [indicator1, indicator2]) motif_id, indica
         //| calculate_stats // 
 }
+
+// greek workflow and process
+
+process population_extract {
+    publishDir "${params.outdir}/Greeks_population", pattern: "*.bed"
+    publishDir "${params.outdir}/Greeks_population", pattern: "*.fam"
+    publishDir "${params.outdir}/Greeks_population", pattern: "*.bim"
+
+    tag "${motif_id}:${iter}"
+    // scratch true
+    conda params.conda
+
+    input:
+        tuple val(pop_name), path(pop_file) // pop_name, pop path
+
+    output:
+        tuple val(pop_name)
+
+    script:
+    name = "greeks.${pop_name}"
+    """
+    /home/ehaugen/bin/x86_64/plink2 --bfile ${params.greek_cretan} --keep ${pop_file} --make-bed --out ${name}
+    """
+}
+
+workflow greekPopulation {
+
+    Channel.fromPath("/home/afathul/data2seq/greek_population/exploration_greek/Populations/*")
+        | map(it -> tuple(it.name, it)) // pop_name, pop path
+        | population_extract
+}
