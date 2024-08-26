@@ -15,7 +15,7 @@ def main(metadata, samples_meta_path, outdir):
 
         config['NMF'] = {
             'PREFIX': prefix,
-            'N_COMPONENTS': prefix.split('.')[-1],
+            'N_COMPONENTS': row['n_components'],
             'W': row['W'],
             'H': row['H'],
             'PEAK_WEIGHTS': row['peaks_weights'],
