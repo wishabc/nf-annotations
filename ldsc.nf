@@ -181,12 +181,16 @@ process convert_to_bed {
     script:
     name = "${prefix}.annotation.bed"
     """
-    awk -v OFS='\t' \
-        'NR==FNR {mask[NR]=\$1; next} \
-            mask[FNR] == 1' \
-            ${mask} ${params.masterlist_file} \
-        | cut -f 1-3 > ${name}
-
+    awk -v OFS='\t' '
+        NR==FNR { mask[NR]=\$1; mask_lines=NR; next }
+        FNR in mask && mask[FNR] == 1 { print \$1, \$2, \$3 }
+        END {  \ 
+            if (FNR != NR) { \
+                print "Error: Mask and masterist sizes are different" > "/dev/stderr"; \
+                exit 1; \
+            } \
+        } \
+    ' ${mask} ${params.masterlist_file} > ${name}
     """
 
 }
@@ -259,7 +263,7 @@ workflow fromMatrix {
     take:
         matrices
     main:
-        out =  matrices
+        out = matrices
             | splitMatrices // matrix_name, annotation_name, annotation_bool
             | convert_to_bed // matrix_name, group_id, annotation_bed
             | fromAnnotations
