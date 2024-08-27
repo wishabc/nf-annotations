@@ -181,10 +181,10 @@ process convert_to_bed {
     script:
     name = "${prefix}.annotation.bed"
     """
-    awk -v OFS='\t' '
-        NR==FNR { mask[NR]=\$1; mask_lines=NR; next }
-        FNR in mask && mask[FNR] == 1 { print \$1, \$2, \$3 }
-        END {  \ 
+    awk -v OFS='\t' ' \
+        NR==FNR { mask[NR]=\$1; mask_lines=NR; next } \
+        FNR in mask && mask[FNR] == 1 { print \$1, \$2, \$3 } \
+        END {  \
             if (FNR != NR) { \
                 print "Error: Mask and masterist sizes are different" > "/dev/stderr"; \
                 exit 1; \
