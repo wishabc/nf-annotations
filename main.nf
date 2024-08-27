@@ -58,11 +58,11 @@ process prepare_mixings_data {
     tag "${prefix}"
 
     input:
-        tuple val(prefix), path(H_matrix)
+        tuple val(prefix), path(H_matrix), path(dhs_coordinates)
 
     output:
-        tuple val(clean_prefix), path(clean_comps_matrix), path(clean_comp_order), emit: pure
-        tuple val(mixing_prefix), path(mixing_matrix), path(mixing_comp_order), emit: mixing
+        tuple val(clean_prefix), path(clean_comps_matrix), path(clean_comp_order), path(dhs_coordinates), emit: pure
+        tuple val(mixing_prefix), path(mixing_matrix), path(mixing_comp_order), path(dhs_coordinates), emit: mixing
 
     script:
     clean_prefix = "${prefix}.pure.50pr"
@@ -74,7 +74,6 @@ process prepare_mixings_data {
     mixing_matrix = "${mixing_prefix}.npy"
     mixing_comp_order = "${mixing_prefix}.order.txt"
     """
-    echo 1
     python3 $moduleDir/bin/prepare_mixings_data.py \
         ${H_matrix} \
         ${prefix}
@@ -125,7 +124,7 @@ workflow {
 
     // Mixings
     mixing_data = input_data 
-        | map(it -> tuple(it[0], it[2]))
+        | map(it -> tuple(it[0], it[2], it[4]))
         | prepare_mixings_data
     
     if (!file("${params.template_run}/proportion_accessibility.tsv").exists()) {

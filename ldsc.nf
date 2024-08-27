@@ -173,7 +173,7 @@ process convert_to_bed {
     tag "${prefix}"
 
     input:
-        tuple val(matrix_name), val(prefix), path(mask)
+        tuple val(matrix_name), val(prefix), path(mask), path(dhs_coordinates)
 
     output:
         tuple val(matrix_name), val(prefix), path(name)
@@ -186,11 +186,11 @@ process convert_to_bed {
         FNR in mask && mask[FNR] == 1 { print \$1, \$2, \$3 } \
         END {  \
             if (FNR != NR) { \
-                print "Error: Mask and masterist sizes are different" > "/dev/stderr"; \
+                print "Error: Mask and masterist sizes are different FNR, NR" > "/dev/stderr"; \
                 exit 1; \
             } \
         } \
-    ' ${mask} ${params.masterlist_file} > ${name}
+    ' ${mask} ${dhs_coordinates} > ${name}
     """
 
 }
@@ -286,10 +286,10 @@ process split_matrices {
     tag "${matrix_name}"
     
     input:
-        tuple val(matrix_name), path(matrix), path(sample_names)
+        tuple val(matrix_name), path(matrix), path(sample_names), path(dhs_coordinates)
     
     output:
-        tuple val(matrix_name), path("${matrix_name}.*.txt")
+        tuple val(matrix_name), path(dhs_coordinates), path("${matrix_name}.*.txt")
     
     script:
     """
@@ -307,7 +307,7 @@ workflow splitMatrices {
         out = matrices_list
             | split_matrices
             | transpose()
-            | map(it -> tuple(it[0], it[1].baseName, it[1]))
+            | map(it -> tuple(it[0], it[2].baseName, it[2], it[1]))
     emit:
         out
 }
@@ -315,14 +315,21 @@ workflow splitMatrices {
 workflow fromMatricesList {
     Channel.fromPath(params.matrices_list)
         | splitCsv(header:true, sep:'\t')
-        | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
+        | map(
+            row -> tuple(
+                row.matrix_name, 
+                file(row.matrix), 
+                file(row.sample_names),
+                file(row.dhs_coordinates)
+            )
+        )
         | fromMatrix
 }
 
 workflow fromBinaryMatrix {
     // Doesn't really work just yet
     Channel.fromPath(params.binary_matrix)
-        | map(it -> tuple("DHS_Binary", it, file(params.sample_names)))
+        | map(it -> tuple("DHS_Binary", it, file(params.sample_names), file(params.masterlist_file)))
         | fromMatrix
 }
 

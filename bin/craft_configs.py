@@ -47,21 +47,24 @@ def main(metadata, samples_meta_path, outdir):
                 [
                     'matrix_name',
                     'matrix',
-                    'sample_names'
+                    'sample_names',
+                    'dhs_coordinates'
                 ]
             ) + '\n')
             f.write('\t'.join(
                 [
                     config['NMF']['PREFIX'] + '.pure.50pr', 
                     config['NMF']['PURE.50PR_ANNOTATION'],
-                    config['NMF']['PURE.50PR_ORDER']
+                    config['NMF']['PURE.50PR_ORDER'],
+                    config['NMF']['INDEX']
                 ]
             ) + '\n')
             f.write('\t'.join(
                 [
                     config['NMF']['PREFIX'] + '.mixing.80pr', 
                     config['NMF']['MIXING.80PR_ANNOTATION'],
-                    config['NMF']['MIXING.80PR_ORDER']
+                    config['NMF']['MIXING.80PR_ORDER'],
+                    config['NMF']['INDEX']
                 ]
             ) + '\n')
 
