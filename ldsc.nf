@@ -185,8 +185,8 @@ process convert_to_bed {
         NR==FNR { mask[NR]=\$1; mask_lines=NR; next } \
         FNR in mask && mask[FNR] == 1 { print \$1, \$2, \$3 } \
         END {  \
-            if (FNR != NR) { \
-                print "Error: Mask and masterist sizes are different FNR, NR" > "/dev/stderr"; \
+            if (mask_lines != FNR) { 
+                print "Error: Mask and masterlist sizes are different. Mask lines: " mask_lines ", Masterlist lines: " FNR > "/dev/stderr"; \
                 exit 1; \
             } \
         } \
