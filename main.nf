@@ -74,6 +74,7 @@ process prepare_mixings_data {
     mixing_matrix = "${mixing_prefix}.npy"
     mixing_comp_order = "${mixing_prefix}.order.txt"
     """
+    echo 1
     python3 $moduleDir/bin/prepare_mixings_data.py \
         ${H_matrix} \
         ${prefix}
@@ -101,7 +102,7 @@ workflow {
     input_data = Channel.fromPath(params.nmf_metadata)
         | splitCsv(header: true, sep: "\t")
         | map(row -> tuple(
-            row.prefix,
+            "${row.prefix}.${row.n_components}",
             file(row.W),
             file(row.H),
             file(row.sample_names),
