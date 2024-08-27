@@ -236,13 +236,23 @@ process population_extract {
     script:
     name = "greeks.${pop_name}"
     """
-    /home/ehaugen/bin/x86_64/plink2 --bfile ${params.greek_cretan} --keep ${pop_file} --make-bed --out ${name}
+    plink2 --bfile ${params.greek_cretan} --keep ${pop_file} --make-bed --out ${name}
+    """
+}
+
+process one_script {
+    conda params.conda
+
+    script:
+    """
+    /home/afathul/data2seq/greek_population/king -b /home/afathul/data2seq/greek_population/exploration_greek/test1/greeks.GREECE.bed,/home/afathul/data2seq/greek_population/exploration_greek/test1/greeks.PELOP.bed --duplicate --kinship
     """
 }
 
 workflow greekPopulation {
-    params.greek_cretan = "/home/afathul/data2seq/greek_population/exploration_greek/Greeks12345Cretan34"
-    Channel.fromPath("/home/afathul/data2seq/greek_population/exploration_greek/Populations/*")
-        | map(it -> tuple(it.name, it)) // pop_name, pop path
-        | population_extract
+    one_script
+    // params.greek_cretan = "/home/afathul/data2seq/greek_population/exploration_greek/Greeks12345Cretan34"
+    // Channel.fromPath("/home/afathul/data2seq/greek_population/exploration_greek/Populations/*")
+    //     | map(it -> tuple(it.name, it)) // pop_name, pop path
+    //     | population_extract
 }
