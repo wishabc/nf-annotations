@@ -243,6 +243,12 @@ process population_extract {
 process one_script {
     conda params.conda
 
+    input:
+
+    output:
+        path("*")
+
+
     script:
     """
     /home/afathul/data2seq/greek_population/king -b /home/afathul/data2seq/greek_population/exploration_greek/test1/greeks.GREECE.bed,/home/afathul/data2seq/greek_population/exploration_greek/test1/greeks.PELOP.bed --duplicate --kinship
