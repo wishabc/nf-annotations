@@ -362,7 +362,7 @@ workflow fromAggregatedCavs {
         | split_cell_specific_aggregation
         | flatten()
         | filter { it.countLines() >= params.min_snps }
-        | map(it -> tuple(it.baseName, it.baseName, it)) // matrix_name, group_id, aggregated_pval_file
+        | map(it -> tuple(params.aggregation_key, it.baseName, it)) // matrix_name, group_id, aggregated_pval_file
         | fromAnnotations
    
 }
