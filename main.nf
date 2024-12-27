@@ -1,5 +1,6 @@
 include { fromMatrix as ldscFromMatrix } from './ldsc' addParams(by_cell_type: true)
-include { fromMatrix as motifEnrichmentFromMatrix } from './masterlist_enrichment'
+include { fromMatrix as motifEnrichmentFromMatrix; extract_from_anndata } from './masterlist_enrichment'
+
 
 process find_top_samples {
 
@@ -21,7 +22,7 @@ process find_top_samples {
     python3 $moduleDir/bin/find_top_samples.py \
         ${W_matrix} \
         ${samples_order} \
-        ${params.samples_file} \
+        ${params.index_anndata} \
         ${prefix} \
         ${params.top_count} \
         ${params.outdir}/top_samples/${prefix} \
@@ -101,18 +102,23 @@ workflow {
     input_data = Channel.fromPath(params.nmf_metadata)
         | splitCsv(header: true, sep: "\t")
         | map(row -> tuple(
-            "${row.prefix}.${row.n_components}",
+            file(row.anndata_path),
+            row.prefix,
             file(row.W),
             file(row.H),
-            file(row.sample_names),
-            file(row.dhs_meta),
-            file(row.peaks_weights),
-            file(row.samples_weights)
+            file(row?.peaks_weights),
+            file(row?.samples_weights)
             )
         )
+
+    nmf_data = input_data
+        | map(it -> it[0])
+        | extract_from_anndata // id, binary, samples_order, masterlist
+        | combine(input_data) // anndata, prefix, W, H, peaks_weights, samples_weights, id, binary, samples_order, masterlist
+        | map(it -> tuple(it[1], it[2], it[3], it[8], it[9], it[4], it[5]))  // prefix, W, H,  samples_order, masterlist, peaks_weights, samples_weights
     
     // Top samples tracks
-    input_data
+    nmf_data
         | map(it -> tuple(it[0], it[1], it[3]))
         | find_top_samples
         | map(it -> it[0])
@@ -123,7 +129,7 @@ workflow {
         | top_samples_track
 
     // Mixings
-    mixing_data = input_data 
+    mixing_data = nmf_data 
         | map(it -> tuple(it[0], it[2], it[4]))
         | prepare_mixings_data
     

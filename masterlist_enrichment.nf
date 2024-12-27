@@ -1,18 +1,45 @@
+
+process extract_from_anndata {
+    conda params.conda
+    label "high_mem"
+
+    input:
+        path(index_anndata)
+    
+    output:
+        tuple val('DHS_binary'), path(name), path(sample_names), path(masterlist_file)
+    
+    script:
+    name = "binary_matrix.npy"
+    sample_names = "sample_names.txt"
+    masterlist_file = "masterlist.bed"
+    """
+    python $moduleDir/bin/extract_from_anndata.py \
+        ${index_anndata} \
+        ${name} \
+        ${sample_names} \
+        ${masterlist_file}
+    """
+}
+
+
 process calc_prop_accessibility {
     conda params.conda
     publishDir "${params.outdir}"
     label "high_mem"
     
+    input:
+        tuple val(id), path(binary_matrix), path(sample_names), path(masterlist_file)
+
     output:
-        path name
+        tuple val(id), path(binary_matrix), path(sample_names), path(name)
     
     script:
     name = "proportion_accessibility.tsv"
     """
     python $moduleDir/bin/calc_prop_accessibility.py \
-        ${params.binary_matrix} \
-        ${params.masterlist_file} \
-        ${params.dhs_annotations} \
+        ${binary_matrix} \
+        ${masterlist_file} \
         ${name} \
         --samples_weights ${params.sample_weights}
     """
@@ -101,9 +128,9 @@ workflow categoryEnrichment {
 
 
 workflow fromBinaryMatrix {
-    matrices = Channel.fromPath(params.binary_matrix)
-        | map(it -> tuple("DHS_Binary", it, file(params.sample_names)))
-        | combine(calc_prop_accessibility())
+    matrices = Channel.fromPath(params.index_anndata)
+        | extract_from_anndata
+        | calc_prop_accessibility
     
     Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
         | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
@@ -113,27 +140,8 @@ workflow fromBinaryMatrix {
 }
 
 
-// DEFUNC
-// process tf_by_components {
-//     conda params.conda
-//     publishDir "${params.outdir}/plot"
 
-//     input:
-//         path(all_coefs)
-    
-//     output:
-//         path("${prefix}*.pdf")
-    
-//     script:
-//     prefix = "components"
-//     """
-//     python $moduleDir/bin/plot_tf_by_components.py \
-//         ${all_coefs} \
-//         ${params.metadf} \
-//         ${prefix}
-//     """
-// }
-
+// TESTING //
 process generate_bed {
     publishDir "${params.outdir}/matched_bg"
 

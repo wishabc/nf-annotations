@@ -3,6 +3,8 @@ import numpy as np
 import sys
 import os
 
+from genome_tools.data.anndata import read_zarr_backed
+
 
 def main(W, densitity_files, samples_order, topX, suffix):
     assert W.shape[1] == densitity_files.shape[0] == samples_order.shape[0]
@@ -23,11 +25,9 @@ def main(W, densitity_files, samples_order, topX, suffix):
 if __name__ == "__main__":
     W = np.load(sys.argv[1]).T
     samples_order = np.loadtxt(sys.argv[2], dtype=str)
-    density_tracks = pd.read_table(
+    density_tracks = read_zarr_backed(
         sys.argv[3]
-    ).set_index(
-        'ag_id'
-    )['normalized_density_bw'].loc[samples_order]
+    ).obs.loc[samples_order]['normalized_density_bw']
 
     unique_suffix = sys.argv[4] 
     top = int(sys.argv[5])
