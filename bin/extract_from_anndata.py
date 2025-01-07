@@ -7,3 +7,4 @@ if __name__ == "__main__":
     binary_matrix = anndata.layers['binary'][:, :].todense().T
     np.save(sys.argv[2], binary_matrix)
     np.savetxt(sys.argv[3], anndata.obs_names, fmt='%s')
+    anndata.var.to_csv(sys.argv[4])
