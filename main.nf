@@ -114,7 +114,7 @@ workflow {
 
     nmf_data = input_data
         | map(it -> tuple(it[0], it[1]))
-        | unique { "${it[0].name}@${it[1].name}" }
+        | unique { it -> "${it[0].name}@${it[1].name}" }
         | view()
         | extract_from_anndata // id, binary, samples_order, masterlist
         | combine(input_data) // id, binary, samples_order, masterlist, anndata, peaks_mask, prefix, W, H, peaks_weights, samples_weights
