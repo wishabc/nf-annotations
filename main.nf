@@ -127,6 +127,7 @@ workflow {
         | map(it -> it[0])
         | flatten()
         | combine(input_data.map(it -> it[0]))
+        | view()
         | map(it -> tuple(it[0].simpleName, it[1], it[0]))
         | groupTuple(by: [0, 1])
         | top_samples_track
