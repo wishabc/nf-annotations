@@ -51,7 +51,7 @@ process motif_hits_intersect {
     publishDir "${params.outdir}/motif_hits", pattern: "${motif_id}.hits.bed"
 
     input:
-        tuple val(motif_id), path(moods_file)
+        tuple val(motif_id), path(moods_file), path(masterlist_file)
 
     output:
         tuple val(motif_id), path(indicator_file)
@@ -61,7 +61,7 @@ process motif_hits_intersect {
     """
     zcat ${moods_file} \
         | bedmap --indicator --sweep-all \
-        --fraction-map 1 ${params.masterlist_file} - > ${indicator_file}
+        --fraction-map 1 ${masterlist_file} - > ${indicator_file}
     """
 }
 
@@ -130,12 +130,15 @@ workflow categoryEnrichment {
 workflow fromBinaryMatrix {
     matrices = Channel.fromPath(params.index_anndata)
         | extract_from_anndata
+    
+    prop_accessibility = matrices
         | calc_prop_accessibility
     
     Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
         | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
+        | combine(matrices.map(it -> it[3]))
         | motif_hits_intersect // motif_id, indicator
-        | combine(matrices)
+        | combine(prop_accessibility)
         | motifEnrichment
 }
 
