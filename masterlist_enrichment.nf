@@ -110,13 +110,13 @@ workflow motifEnrichment {
 
 workflow fromMatrix {
     take:
-        matrices // prefix, matrix, names
+        matrices // prefix, matrix, names, dhs_names
     main:
         accessibility = Channel.fromPath("${params.template_run}/proportion_accessibility.tsv", checkIfExists: true)
         Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
             | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it)) // motif_id, motif_hits
-            | combine(matrices) // motif_id, motif_hits, prefix, matrix, names
-            | combine(accessibility) // motif_id, motif_hits, prefix, matrix, names, accessibility
+            | combine(matrices) // motif_id, motif_hits, prefix, matrix, names,         matrices // prefix, matrix, names, dhs_names
+            | combine(accessibility) // motif_id, motif_hits, prefix, matrix, names, dhs_names, accessibility
             | motifEnrichment
 }
 
