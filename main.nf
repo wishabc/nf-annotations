@@ -92,7 +92,7 @@ process craft_configs {
     """
     python3 $moduleDir/bin/craft_configs.py \
         ${params.nmf_metadata} \
-        ${params.samples_file} \
+        ${params.index_anndata} \
         ${params.outdir}
     """
 
@@ -114,9 +114,11 @@ workflow {
 
     nmf_data = input_data
         | map(it -> tuple(it[0], it[1]))
+        | distinct()
         | extract_from_anndata // id, binary, samples_order, masterlist
-        | combine(input_data) // anndata, prefix, W, H, peaks_weights, samples_weights, id, binary, samples_order, masterlist
-        | map(it -> tuple(it[2], it[3], it[4], it[9], it[10], it[5], it[6]))  // prefix, W, H,  samples_order, masterlist, peaks_weights, samples_weights
+        | combine(input_data) // id, binary, samples_order, masterlist, anndata, peaks_mask, prefix, W, H, peaks_weights, samples_weights, 
+        | map(it -> tuple(it[6], it[7], it[8], it[2], it[3], it[4], it[9], it[10]))  // prefix, W, H,  samples_order, masterlist, peaks_weights, samples_weights
+        | view()
     
     // Top samples tracks
     nmf_data
