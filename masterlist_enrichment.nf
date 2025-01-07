@@ -4,10 +4,10 @@ process extract_from_anndata {
     label "high_mem"
 
     input:
-        tuple path(index_anndata), path(peaks_mask)
+        tuple val(prefix), path(index_anndata), path(peaks_mask)
     
     output:
-        tuple val('DHS_binary'), path(name), path(sample_names), path(masterlist_file)
+        tuple val(prefix), path(name), path(sample_names), path(masterlist_file)
     
     script:
     name = "binary_matrix.npy"
@@ -129,7 +129,7 @@ workflow categoryEnrichment {
 
 
 workflow fromBinaryMatrix {
-    matrices = Channel.of(tuple(file(params.index_anndata), file(params.peaks_mask))) // kinda hotfixes
+    matrices = Channel.of(tuple("DHS_binary", file(params.index_anndata), file(params.peaks_mask))) // kinda hotfixes
         | extract_from_anndata
     
     prop_accessibility = matrices
