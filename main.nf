@@ -102,9 +102,9 @@ workflow {
     input_data = Channel.fromPath(params.nmf_metadata)
         | splitCsv(header: true, sep: "\t")
         | map(row -> tuple(
+            row.prefix,
             file(row.anndata_path),
             file(row.peaks_mask),
-            row.prefix,
             file(row.W),
             file(row.H),
             row?.peaks_weights,
@@ -113,11 +113,11 @@ workflow {
         )
 
     nmf_data = input_data
-        | map(it -> tuple(it[3], it[0], it[1]))
-        | unique { it[0] }
+        | map(it -> tuple(it[0], it[1], it[2]))
+        | unique { it[1] }
         | extract_from_anndata // id, binary, samples_order, masterlist
-        | combine(input_data, by: 0) // id, binary, samples_order, masterlist, anndata, peaks_mask, prefix, W, H, peaks_weights, samples_weights
-        | map(it -> tuple(it[6], it[7], it[8], it[2], it[3], it[9], it[10]))  // prefix, W, H,  samples_order, masterlist, peaks_weights, samples_weights
+        | combine(input_data, by: 0) // prefix, binary, samples_order, masterlist, anndata, peaks_mask, W, H, peaks_weights, samples_weights
+        | map(it -> tuple(it[0], it[6], it[7], it[2], it[3], it[8], it[9]))  // prefix, W, H,  samples_order, masterlist, peaks_weights, samples_weights
         | view()
     
     // Top samples tracks
