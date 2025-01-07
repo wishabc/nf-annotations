@@ -114,11 +114,10 @@ workflow {
 
     nmf_data = input_data
         | map(it -> tuple(it[0], it[1], it[2]))
-        | unique { it[1] }
+        | unique { it[0] }
         | extract_from_anndata // id, binary, samples_order, masterlist
         | combine(input_data, by: 0) // prefix, binary, samples_order, masterlist, anndata, peaks_mask, W, H, peaks_weights, samples_weights
         | map(it -> tuple(it[0], it[6], it[7], it[2], it[3], it[8], it[9]))  // prefix, W, H,  samples_order, masterlist, peaks_weights, samples_weights
-        | view()
     
     // Top samples tracks
     nmf_data
