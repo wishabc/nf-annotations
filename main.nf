@@ -107,8 +107,8 @@ workflow {
             row.prefix,
             file(row.W),
             file(row.H),
-            file(row?.peaks_weights),
-            file(row?.samples_weights),
+            row?.peaks_weights,
+            row?.samples_weights,
             )
         )
 
