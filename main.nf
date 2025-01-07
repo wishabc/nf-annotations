@@ -126,7 +126,7 @@ workflow {
         | find_top_samples
         | map(it -> it[0])
         | flatten()
-        | combine(input_data.map(it -> it[0]))
+        | combine(nmf_data.map(it -> it[0]))
         | view()
         | map(it -> tuple(it[0].simpleName, it[1], it[0]))
         | groupTuple(by: [0, 1])
