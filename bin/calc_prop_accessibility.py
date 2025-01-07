@@ -7,16 +7,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser('Calculate proportion of accessibility')
     parser.add_argument('binary_matrix', help='Path to binary matrix to calculate proportion of accessibility')
     parser.add_argument('dhs_meta', help='Path to DHS metadata (index file)')
-    parser.add_argument('dhs_annotations', help='DHS annotations file (BED format)')
     parser.add_argument('output', help='Path to the output file')
     parser.add_argument('--samples_weights', help='Path to samples weights (to avoid class imbalanced)', default=None)
     args = parser.parse_args()
 
-    dhs_ids = pd.read_table(args.dhs_meta, header=None)[3]
-    dhs_annotations = pd.read_table(args.dhs_annotations).set_index('dhs_id')
-    dhs_annotations = dhs_annotations.loc[dhs_ids].reset_index(drop=True)
-    binary_matrix = np.load(args.binary_matrix).astype(int)
-    assert binary_matrix.shape[0] == len(dhs_ids)
+    dhs_annotations = pd.read_table(args.dhs_meta)
+    binary_matrix = np.load(args.binary_matrix).astype(np.float16)
+    assert binary_matrix.shape[0] == len(dhs_annotations)
     assert binary_matrix.shape[0] == dhs_annotations.shape[0]
 
     if args.samples_weights is not None:
