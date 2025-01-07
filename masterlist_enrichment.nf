@@ -73,7 +73,7 @@ process motif_enrichment_z_score {
     label "high_mem"
 
     input:
-        tuple val(motif_id), path(indicator_file), val(matrix_type), path(binary_matrix), path(sample_names), path(accessibility_proportion)
+        tuple val(motif_id), path(indicator_file), val(matrix_type), path(binary_matrix), path(sample_names), path(dhs_masterlist), path(accessibility_proportion)
     
     output:
         tuple val(matrix_type), val(motif_id), path(name)
@@ -110,13 +110,13 @@ workflow motifEnrichment {
 
 workflow fromMatrix {
     take:
-        matrices
+        matrices // prefix, matrix, names
     main:
         accessibility = Channel.fromPath("${params.template_run}/proportion_accessibility.tsv", checkIfExists: true)
         Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
-            | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
-            | combine(matrices)
-            | combine(accessibility)
+            | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it)) // motif_id, motif_hits
+            | combine(matrices) // motif_id, motif_hits, prefix, matrix, names
+            | combine(accessibility) // motif_id, motif_hits, prefix, matrix, names, accessibility
             | motifEnrichment
 }
 

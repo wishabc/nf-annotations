@@ -133,7 +133,7 @@ workflow {
     // Mixings
     mixing_data = nmf_data 
         | map(it -> tuple(it[0], it[2], it[4]))
-        | prepare_mixings_data
+        | prepare_mixings_data // prefix, matrix, names, dhs
     
     if (!file("${params.template_run}/proportion_accessibility.tsv").exists()) {
         error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first or specify template_run folder. Once per binary matrix."
