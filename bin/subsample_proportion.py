@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import pandas as pd
 import numpy as np
-from scipy import sparse
+import scipy.sparse as sp
 from scipy.stats import norm
 import argparse
 from genome_tools.utils.sampling import stratified_sampling
@@ -21,8 +21,8 @@ def calculate_zscore(result_array, motif_counts):
 
 def sparse_dot_product(sample_arr, binary_mat, motif_indicator):
     # sparse the matrix
-    X_sparse = sparse.csr_matrix(sample_arr.T) # 1000 x dhs
-    Y_sparse = sparse.csc_matrix(binary_mat) # dhs x sample
+    X_sparse = sp.csr_matrix(sample_arr.T) # 1000 x dhs
+    Y_sparse = binary_mat # dhs x sample
 
     # dot product
     result_arr = X_sparse.dot(Y_sparse) # 1000 x sample
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     indicator_file = pd.read_table(args.indicator, header=None)
-    binary_matrix = np.load(args.matrix_file).astype(int)
+    binary_matrix = sp.csc_matrix(np.load(args.matrix_file)).astype(np.float16)
 
     combined_masterlist = pd.read_table(args.dhs_meta)
     combined_masterlist['overlaps_motif'] = indicator_file
