@@ -33,7 +33,7 @@ process calc_prop_accessibility {
         tuple val(id), path(binary_matrix), path(sample_names), path(masterlist_file)
 
     output:
-        tuple val(id), path(binary_matrix), path(sample_names), path(name)
+        path name
     
     script:
     name = "proportion_accessibility.tsv"
@@ -130,7 +130,7 @@ workflow categoryEnrichment {
 
 workflow fromBinaryMatrix {
     matrices = Channel.of(tuple("DHS_binary", file(params.index_anndata), file(params.peaks_mask))) // kinda hotfixes
-        | extract_from_anndata
+        | extract_from_anndata // prefix, matrix, sample_names, dhs_names
     
     prop_accessibility = matrices
         | calc_prop_accessibility
@@ -139,6 +139,7 @@ workflow fromBinaryMatrix {
         | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
         | combine(matrices.map(it -> it[3]))
         | motif_hits_intersect // motif_id, indicator
+        | combine(matrices)
         | combine(prop_accessibility)
         | motifEnrichment
 }
