@@ -14,6 +14,7 @@ process extract_from_anndata {
     sample_names = "sample_names.txt"
     masterlist_file = "masterlist.bed"
     """
+    echo 1
     python $moduleDir/bin/extract_from_anndata.py \
         ${index_anndata} \
         ${peaks_mask} \
