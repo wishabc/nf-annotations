@@ -218,7 +218,7 @@ workflow matchBackground {
 // greek workflow and process
 
 process population_extract {
-    publishDir "${params.outdir}/Greeks_population", pattern: "*.bed"
+    publishDir "${params.outdir}/${pop_name}", pattern: "*.bed"
     publishDir "${params.outdir}/Greeks_population", pattern: "*.fam"
     publishDir "${params.outdir}/Greeks_population", pattern: "*.bim"
 
@@ -240,25 +240,32 @@ process population_extract {
     """
 }
 
-process one_script {
+process king_cross_population {
+    publishDir "${params.outdir}/Greeks_population", pattern: "*.bed"
+    publishDir "${params.outdir}/Greeks_population", pattern: "*.fam"
+    publishDir "${params.outdir}/Greeks_population", pattern: "*.bim"
+
+    tag "${pop_name}"
+    // scratch true
     conda params.conda
+    errorStrategy 'ignore'
 
     input:
+        tuple val(pop_name), path(pop_file) // pop_name, pop path
 
     output:
-        path("*")
-
+        tuple val(pop_name), path("${name}*") // it will produce 4 files (between fam)
 
     script:
+    name = "greeks.${pop_name}"
     """
-    /home/afathul/data2seq/greek_population/king -b /home/afathul/data2seq/greek_population/exploration_greek/test1/greeks.GREECE.bed,/home/afathul/data2seq/greek_population/exploration_greek/test1/greeks.PELOP.bed --duplicate --kinship
+    king -b ${pop_file1} --duplicate --kinship --prefix ${pop_name}
     """
 }
 
 workflow greekPopulation {
-    one_script
-    // params.greek_cretan = "/home/afathul/data2seq/greek_population/exploration_greek/Greeks12345Cretan34"
-    // Channel.fromPath("/home/afathul/data2seq/greek_population/exploration_greek/Populations/*")
-    //     | map(it -> tuple(it.name, it)) // pop_name, pop path
-    //     | population_extract
+    params.greek_cretan = "/home/afathul/data2seq/greek_population/exploration_greek/Greeks12345Cretan34"
+    Channel.fromPath("/home/afathul/data2seq/greek_population/exploration_greek/Populations/*")
+        | map(it -> tuple(it.name, it)) // pop_name, pop path
+        | population_extract
 }
