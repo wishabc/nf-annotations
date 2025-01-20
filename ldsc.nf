@@ -55,7 +55,7 @@ process run_ldsc_cell_types {
     label "ldsc"
 
     input:
-        tuple val(matrix_prefix), path("data_files/*"), val(phen_id), path(sumstats_file), val(baseline_ld)
+        tuple val(matrix_prefix), path("data_files/*", checkIfExists: false), val(phen_id), path(sumstats_file), val(baseline_ld)
     
     output:
         tuple val(matrix_prefix), val(phen_id), path(name), path("${phen_id}.log")
