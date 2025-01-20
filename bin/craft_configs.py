@@ -21,9 +21,7 @@ def main(metadata, samples_meta_path, outdir):
             'N_COMPONENTS': row['n_components'],
             'W': row['W'],
             'H': row['H'],
-            'INDEX': row['dhs_meta'],
-            'SAMPLES_ORDER': row['sample_names'],
-
+            'ANNDATA': row['anndata_path'],
             'PURE.50PR_ANNOTATION': f"{base_path}.pure.50pr.npy",
             'PURE.50PR_ORDER': f"{base_path}.pure.50pr.order.txt",
             'MIXING.80PR_ANNOTATION': f"{base_path}.mixing.80pr.npy",
