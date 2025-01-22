@@ -14,13 +14,12 @@ process extract_from_anndata {
     sample_names = "sample_names.txt"
     masterlist_file = "masterlist.bed"
     """
-    echo 1
     python $moduleDir/bin/extract_from_anndata.py \
         ${index_anndata} \
         ${peaks_mask} \
         ${name} \
         ${sample_names} \
-        ${masterlist_file} \
+        ${masterlist_file}
     """
 }
 
@@ -63,7 +62,7 @@ process motif_hits_intersect {
     """
     zcat ${moods_file} \
         | bedmap --indicator --sweep-all \
-        --fraction-map 1 ${masterlist_file} - > ${indicator_file}
+        --fraction-map 1 <(grep -v '#' ${masterlist_file}) - > ${indicator_file}
     """
 }
 
