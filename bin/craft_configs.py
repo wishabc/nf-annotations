@@ -2,9 +2,13 @@ import configparser
 import sys
 import pandas as pd
 
-def add_field(config, config_name, row: pd.Series, column_name):
+
+def get_field(row: pd.Series, column_name):
     if column_name in row.index:
-        config[config_name] = row[column_name]
+        return row[column_name]
+    else:
+        return ""
+
 
 def main(metadata, samples_meta_path, outdir):
     for _, row in metadata.iterrows():
@@ -16,12 +20,16 @@ def main(metadata, samples_meta_path, outdir):
             'SAMPLES_META': samples_meta_path
         }
 
+        peak_weights = row['peaks_weights']
         config['NMF'] = {
             'PREFIX': prefix,
             'N_COMPONENTS': row['n_components'],
             'W': row['W'],
             'H': row['H'],
             'ANNDATA': row['anndata_path'],
+            'PEAK_WEIGHTS': get_field(row, 'peaks_weights'),
+            'SAMPLE_WEIGHTS': get_field(row, 'samples_weights'),
+
             'PURE.50PR_ANNOTATION': f"{base_path}.pure.50pr.npy",
             'PURE.50PR_ORDER': f"{base_path}.pure.50pr.order.txt",
             'MIXING.80PR_ANNOTATION': f"{base_path}.mixing.80pr.npy",
@@ -31,8 +39,6 @@ def main(metadata, samples_meta_path, outdir):
             'DENSITY_TRACKS_META': f"{outdir}/top_samples/{prefix}.density_tracks_meta.tsv"
         }
 
-        add_field(config, 'PEAK_WEIGHTS', row, 'peaks_weights')
-        add_field(config, 'SAMPLE_WEIGHTS', row, 'samples_weights')
 
         config['LDSC'] = {
             'Z_SCORE_SUMMARY.PURE.50pr': f"{outdir}/{prefix}.pure.50pr.ldsc_cell_types_results.tsv",
