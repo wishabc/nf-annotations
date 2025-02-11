@@ -48,7 +48,7 @@ def main(metadata, outdir):
                     'matrix_name',
                     'matrix',
                     'sample_names',
-                    'dhs_coordinates'
+                    'anndata_path'
                 ]
             ) + '\n')
             f.write('\t'.join(
@@ -56,7 +56,7 @@ def main(metadata, outdir):
                     config['NMF']['PREFIX'] + '.pure.50pr', 
                     config['NMF']['PURE.50PR_ANNOTATION'],
                     config['NMF']['PURE.50PR_ORDER'],
-                    config['NMF']['INDEX']
+                    config['NMF']['ANNDATA']
                 ]
             ) + '\n')
             f.write('\t'.join(
@@ -64,7 +64,7 @@ def main(metadata, outdir):
                     config['NMF']['PREFIX'] + '.mixing.80pr', 
                     config['NMF']['MIXING.80PR_ANNOTATION'],
                     config['NMF']['MIXING.80PR_ORDER'],
-                    config['NMF']['INDEX']
+                    config['NMF']['ANNDATA']
                 ]
             ) + '\n')
 
