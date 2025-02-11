@@ -140,7 +140,8 @@ workflow {
     }
     
     mixing_data.pure
-        | mix(mixing_data.mixing)  | ldscFromMatrix
+        | mix(mixing_data.mixing)
+        | ldscFromMatrix
        // | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version if run from here.
     
     craft_configs()

@@ -181,16 +181,18 @@ process convert_to_bed {
     script:
     name = "${prefix}.annotation.bed"
     """
-    awk -v OFS='\t' ' \
-        NR==FNR { mask[NR]=\$1; mask_lines=NR; next } \
-        FNR in mask && mask[FNR] == 1 { print \$1, \$2, \$3 } \
-        END {  \
-            if (mask_lines != FNR) { 
-                print "Error: Mask and masterlist sizes are different. Mask lines: " mask_lines ", Masterlist lines: " FNR > "/dev/stderr"; \
-                exit 1; \
+    grep -v '#' ${dhs_coordinates} \
+        | cut -f1-3 \
+        | awk -v OFS='\t' ' \
+            NR==FNR { mask[NR]=\$1; mask_lines=NR; next } \
+            FNR in mask && mask[FNR] == 1 { print } \
+            END {  \
+                if (mask_lines != FNR) { 
+                    print "Error: Mask and masterlist sizes are different. Mask lines: " mask_lines ", Masterlist lines: " FNR > "/dev/stderr"; \
+                    exit 1; \
+                } \
             } \
-        } \
-    ' ${mask} ${dhs_coordinates} > ${name}
+        ' ${mask} - > ${name}
     """
 
 }
