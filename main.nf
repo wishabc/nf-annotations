@@ -10,7 +10,7 @@ process find_top_samples {
     publishDir "${params.outdir}/top_samples", pattern: "${res}"
 
     input:
-        tuple val(prefix), path(W_matrix), path(samples_order)
+        tuple val(prefix), path(W_matrix), path(samples_order), path(anndata)
 
     output:
         tuple path("*.*.component_${prefix}.bw"), path(name), path(res)
@@ -22,7 +22,7 @@ process find_top_samples {
     python3 $moduleDir/bin/find_top_samples.py \
         ${W_matrix} \
         ${samples_order} \
-        ${params.index_anndata} \
+        ${anndata} \
         ${prefix} \
         ${params.top_count} \
         ${params.outdir}/top_samples/${prefix} \
@@ -92,7 +92,6 @@ process craft_configs {
     """
     python3 $moduleDir/bin/craft_configs.py \
         ${params.nmf_metadata} \
-        ${params.index_anndata} \
         ${params.outdir}
     """
 
@@ -115,13 +114,14 @@ workflow {
     nmf_data = input_data
         | map(it -> tuple(it[0], it[1], it[2]))
         | unique { it[0] }
-        | extract_from_anndata // id, binary, samples_order, masterlist
+        | extract_from_anndata // prefix, binary, samples_order, masterlist
         | combine(input_data, by: 0) // prefix, binary, samples_order, masterlist, anndata, peaks_mask, W, H, peaks_weights, samples_weights
         | map(it -> tuple(it[0], it[6], it[7], it[2], it[3], it[8], it[9]))  // prefix, W, H,  samples_order, masterlist, peaks_weights, samples_weights
     
     // Top samples tracks
     nmf_data
         | map(it -> tuple(it[0], it[1], it[3]))
+        | join(input_data.map(it -> tuple(it[0], it[1])))
         | find_top_samples
         | map(it -> it[0])
         | flatten()

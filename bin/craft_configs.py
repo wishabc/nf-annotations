@@ -3,32 +3,24 @@ import sys
 import pandas as pd
 
 
-def get_field(row: pd.Series, column_name):
-    if column_name in row.index:
-        return row[column_name]
-    else:
-        return ""
-
-
-def main(metadata, samples_meta_path, outdir):
+def main(metadata, outdir):
     for _, row in metadata.iterrows():
         config = configparser.ConfigParser()
         prefix = f"{row['prefix']}.{row['n_components']}"
         base_path = f"{outdir}/mixing/{prefix}/{prefix}"
         # Add sections and settings
         config['METADATA'] = {
-            'SAMPLES_META': samples_meta_path
+            'INDEX_ANNDATA': row['anndata_path']
         }
 
-        peak_weights = row['peaks_weights']
         config['NMF'] = {
             'PREFIX': prefix,
             'N_COMPONENTS': row['n_components'],
             'W': row['W'],
             'H': row['H'],
             'ANNDATA': row['anndata_path'],
-            'PEAK_WEIGHTS': get_field(row, 'peaks_weights'),
-            'SAMPLE_WEIGHTS': get_field(row, 'samples_weights'),
+            'PEAK_WEIGHTS': row.get("peaks_weights", ""),
+            'SAMPLE_WEIGHTS': row.get("samples_weights", ""),
 
             'PURE.50PR_ANNOTATION': f"{base_path}.pure.50pr.npy",
             'PURE.50PR_ORDER': f"{base_path}.pure.50pr.order.txt",
@@ -84,4 +76,4 @@ def main(metadata, samples_meta_path, outdir):
 if __name__ == '__main__':
     nmf_meta = pd.read_table(sys.argv[1])
 
-    main(nmf_meta, sys.argv[2], sys.argv[3])
+    main(nmf_meta, sys.argv[2])
