@@ -249,7 +249,7 @@ workflow fromAnnotations {
             | make_ldsc_annotation // matrix_prefix, annotation_name, chrom, annotation
             | calc_ld //  matrix_prefix, annotation_name, chrom, ld, ld_log, annotation
             | map(it -> tuple(it[0], it[1], [it[3], it[5]].flatten())) // matrix_prefix, group_id, ld_files
-            | groupTuple(size: 22, by: [0, 1])
+            | groupTuple(size: 22, by: [0, 1]) // also count # of lines in the file
             | map(it -> tuple(it[0], it[1], it[2].flatten())) // matrix_prefix, group_id, ld_files_flatten
 
         if (params.by_cell_type) {
