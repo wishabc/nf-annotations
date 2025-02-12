@@ -6,7 +6,7 @@ import pandas as pd
 def main(metadata, outdir):
     for _, row in metadata.iterrows():
         config = configparser.ConfigParser()
-        prefix = f"{row['prefix']}.{row['n_components']}"
+        prefix = row['prefix']
         base_path = f"{outdir}/mixing/{prefix}/{prefix}"
         # Add sections and settings
         config['METADATA'] = {
