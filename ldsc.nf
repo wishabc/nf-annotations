@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-
+include { extract_from_anndata } from './masterlist_enrichment'
 params.conda = "$moduleDir/environment.yml"
 
 // TODO wrap in apptainer
@@ -322,7 +322,7 @@ workflow fromMatricesList {
                 row.matrix_name, 
                 file(row.matrix), 
                 file(row.sample_names),
-                file(row.dhs_coordinates)
+                file(row.anndata_file)
             )
         )
         | fromMatrix

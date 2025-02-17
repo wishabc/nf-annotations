@@ -19,6 +19,7 @@ def main(metadata, outdir):
             'W': row['W'],
             'H': row['H'],
             'ANNDATA': row['anndata_path'],
+            'PEAKS_MASK': row['peaks_mask'],
             'PEAK_WEIGHTS': row.get("peaks_weights", ""),
             'SAMPLE_WEIGHTS': row.get("samples_weights", ""),
 
@@ -56,7 +57,8 @@ def main(metadata, outdir):
                     config['NMF']['PREFIX'] + '.pure.50pr', 
                     config['NMF']['PURE.50PR_ANNOTATION'],
                     config['NMF']['PURE.50PR_ORDER'],
-                    config['NMF']['ANNDATA']
+                    config['NMF']['ANNDATA'],
+                    config['NMF']['PEAKS_MASK']
                 ]
             ) + '\n')
             f.write('\t'.join(
@@ -64,7 +66,8 @@ def main(metadata, outdir):
                     config['NMF']['PREFIX'] + '.mixing.80pr', 
                     config['NMF']['MIXING.80PR_ANNOTATION'],
                     config['NMF']['MIXING.80PR_ORDER'],
-                    config['NMF']['ANNDATA']
+                    config['NMF']['ANNDATA'],
+                    config['NMF']['PEAKS_MASK']
                 ]
             ) + '\n')
 
