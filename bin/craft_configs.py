@@ -49,7 +49,8 @@ def main(metadata, outdir):
                     'matrix_name',
                     'matrix',
                     'sample_names',
-                    'anndata_path'
+                    'anndata_path',
+                    'peaks_mask'
                 ]
             ) + '\n')
             f.write('\t'.join(
