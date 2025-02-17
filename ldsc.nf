@@ -320,7 +320,7 @@ workflow fromMatricesList {
         | map(
             row -> tuple(
                 row.matrix_name, 
-                file(row.anndata_file),
+                file(row.anndata_path),
                 file(row.peaks_mask),
                 file(row.matrix), 
                 file(row.sample_names),
