@@ -49,7 +49,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     indicator_file = pd.read_table(args.indicator, header=None)
-    binary_matrix = sp.csc_matrix(np.load(args.matrix_file)).astype(np.float16)
+    binary_matrix = sp.load_npz(args.matrix_file).astype(np.float16)
 
     combined_masterlist = pd.read_table(args.dhs_meta)
     combined_masterlist['overlaps_motif'] = indicator_file
