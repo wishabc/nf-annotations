@@ -70,7 +70,7 @@ process motif_enrichment_z_score {
     conda params.conda
     tag "${motif_id}:${matrix_type}"
     publishDir "${params.outdir}/motif_enrichment/${matrix_type}"
-    label "high_mem"
+    label "med_mem"
 
     input:
         tuple val(motif_id), path(indicator_file), val(matrix_type), path(binary_matrix), path(sample_names), path(accessibility_proportion)
