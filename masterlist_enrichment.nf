@@ -110,7 +110,7 @@ workflow motifEnrichment {
 
 workflow fromMatrix {
     take:
-        matrices // prefix, matrix, names, dhs_names
+        matrices // prefix, matrix, names
     main:
         accessibility = Channel.fromPath("${params.template_run}/proportion_accessibility.tsv", checkIfExists: true)
         Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")

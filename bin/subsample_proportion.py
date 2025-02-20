@@ -37,7 +37,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     motif_indicator = np.loadtxt(args.indicator, dtype=bool)
-    binary_matrix = sp.load_npz(args.matrix_file).astype(np.float16)
+
+    if args.matrix_file.endswith('.npy'):
+        binary_matrix = sp.csr_matrix(np.load(args.matrix_file))
+    else:
+        binary_matrix = sp.load_npz(args.matrix_file)
+        
+    binary_matrix = binary_matrix.astype(np.float16)
 
     combined_masterlist = pd.read_table(args.dhs_meta)
     combined_masterlist['gc_bin'] = transform_to_bins(combined_masterlist['percent_gc'], n_quantiles=args.n_bins)
