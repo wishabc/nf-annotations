@@ -19,18 +19,6 @@ def calculate_zscore(result_array, motif_counts):
     
     return mu, sd, z_score, p_val
 
-def sparse_dot_product(sample_arr, binary_mat, motif_indicator):
-    # sparse the matrix
-    X_sparse = sp.csr_matrix(sample_arr.T) # 1000 x dhs
-    Y_sparse = binary_mat # dhs x sample
-
-    # dot product
-    result_arr = X_sparse.dot(Y_sparse) # 1000 x sample
-
-    motifs_per_sample = np.dot(motif_indicator.T, binary_mat).squeeze() # sample
-
-    return result_arr.toarray(), motifs_per_sample
-
 
 def transform_to_bins(data, n_quantiles=100):
     bins = np.quantile(data, np.linspace(0, 1, n_quantiles + 1))
@@ -48,25 +36,29 @@ if __name__ == '__main__':
     parser.add_argument('--n_bins', type=int, help='File with sample names in the same order as the matrix', default=100)
     args = parser.parse_args()
 
-    indicator_file = pd.read_table(args.indicator, header=None)
+    motif_indicator = np.loadtxt(args.indicator, dtype=bool)
     binary_matrix = sp.load_npz(args.matrix_file).astype(np.float16)
 
     combined_masterlist = pd.read_table(args.dhs_meta)
-    combined_masterlist['overlaps_motif'] = indicator_file
     combined_masterlist['gc_bin'] = transform_to_bins(combined_masterlist['percent_gc'], n_quantiles=args.n_bins)
     combined_masterlist['acc_bin'] = transform_to_bins(combined_masterlist['mean_acc'], n_quantiles=args.n_bins)
+    combined_masterlist['overlaps_motif'] = motif_indicator
 
 
     sampled_indices = stratified_sampling(
         combined_masterlist,
-        combined_masterlist.query('overlaps_motif == 1'),
+        combined_masterlist.query('overlaps_motif'),
         matching_fields=['gc_bin', 'acc_bin'],
         num_samples=1000,
         starting_seed=0,
         return_indicators=True
     )
-    
-    sampled_peaks, motif_hits_per_sample = sparse_dot_product(sampled_indices, binary_matrix, combined_masterlist['overlaps_motif'])
+    sampled_indices = sp.csr_matrix(sampled_indices.T)
+
+    sampled_peaks = sampled_indices.dot(binary_matrix).toarray()
+
+    motif_indicator_matrix = sp.csr_matrix(motif_indicator[None, :])
+    motif_hits_per_sample = motif_indicator_matrix.dot(binary_matrix).A.squeeze()
     
     mu_np, sd_np, z_score_np, pvalue = calculate_zscore(sampled_peaks, motif_hits_per_sample)
 
