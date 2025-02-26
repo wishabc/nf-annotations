@@ -273,15 +273,6 @@ workflow fromMatrix {
         out
 }
 
-// Entry workflows
-workflow {
-    println "Looking for bed files in ${params.annotations_dir}/"
-    custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
-        | map(it -> tuple('custom_annotations', it.baseName, it)) // matrix_name, group_id, custom_annotation
-        | fromAnnotations
-}
-
-// Start from matrices list
 process split_matrices {
     conda params.conda
     //publishDir "${params.outdir}"
@@ -314,6 +305,15 @@ workflow splitMatrices {
         out
 }
 
+// Entry workflows
+workflow {
+    println "Looking for bed files in ${params.annotations_dir}/"
+    custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
+        | map(it -> tuple('custom_annotations', it.baseName, it)) // matrix_name, group_id, custom_annotation
+        | fromAnnotations
+}
+
+// Start from matrices list
 workflow fromMatricesList {
     meta = Channel.fromPath(params.matrices_list)
         | splitCsv(header:true, sep:'\t')

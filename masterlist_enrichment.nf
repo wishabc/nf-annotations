@@ -10,7 +10,7 @@ process extract_from_anndata {
         tuple val(prefix), path(name), path(sample_names), path(masterlist_file)
     
     script:
-    name = "binary_matrix.npy"
+    name = "binary_matrix.npz"
     sample_names = "sample_names.txt"
     masterlist_file = "masterlist.bed"
     """
