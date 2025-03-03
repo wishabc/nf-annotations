@@ -60,5 +60,7 @@ workflow {
     data
         | collectFile(
             storeDir: "${params.outdir}/finemapping/",
-        ) { it -> [ "${it[0]}.finemapping_metadata.bed", "${it[1]}\t${params.outdir}/finemapping/${it[0]}/${it[1]}.overlap.bed\n"] } // metadata
+            skip: 1,
+            keepHeader: true
+        ) { it -> [ "${it[0]}.finemapping_metadata.bed", "prefix\tindicator\n${it[1]}\t${params.outdir}/finemapping/${it[0]}/${it[1]}.overlap.bed\n"] } // metadata
 }
