@@ -3,7 +3,7 @@ include { splitMatrices; matricesListFromMeta } from './helpers'
 
 process overlap_annotation {
     conda params.conda
-    publishDir "${params.outdir}/${matrix_name}"
+    publishDir "${params.outdir}/finemapping/${matrix_name}"
     tag "${prefix}"
     
     input:
@@ -59,6 +59,6 @@ workflow {
 
     data
         | collectFile(
-            storeDir: params.outdir
-        ) { it -> [ "${it[0]}.metadata.bed", "${it[1]}\t${params.outdir}/${it[0]}/${it[1]}.overlap.bed"] } // metadata
+            storeDir: "${params.outdir}/finemapping/",
+        ) { it -> [ "${it[0]}.finemapping_metadata.bed", "${it[1]}\t${params.outdir}/finemapping/${it[0]}/${it[1]}.overlap.bed\n"] } // metadata
 }
