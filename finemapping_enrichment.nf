@@ -23,15 +23,40 @@ process overlap_annotation {
     """
 }
 
+process mock_indicator {
+    conda params.conda
+    
+    input:
+        path dhs_coordinates
+    
+    output:
+        tuple path(name), path(dhs_coordinates)
+    
+    script:
+    name = "masterlist.all_ones.indicator.bed"
+    """
+    grep -v '#' ${dhs_coordinates} \
+        | awk '{print 1}'
+        > ${name}
+    """
+}
+
+
 workflow {
     data = matricesListFromMeta()
        | splitMatrices // matrix_name, prefix, annotation_bool, dhs_coordinates
-       | combine(
+
+
+    data.first()
+        | map(it -> it[3])
+        | mock_indicator // mock_indicator, dhs_coordinates
+        | map(it -> tuple("", "all_dhs", it[0], it[1])) // matrix_name, prefix, annotation_bool, dhs_coordinates
+        | mix(data)
+        | combine(
             Channel.fromPath(params.finemapped_variants_file)
-       ) // matrix_name, prefix, annotation_bool, dhs_coordinates, variants
-    data // 
-       | overlap_annotation
-    
+        ) // matrix_name, prefix, annotation_bool, dhs_coordinates, variants
+        | overlap_annotation
+
     data
         | collectFile(
             storeDir: params.outdir
