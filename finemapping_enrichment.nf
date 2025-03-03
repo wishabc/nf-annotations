@@ -37,7 +37,7 @@ process mock_indicator {
     name = "masterlist.all_ones.indicator.bed"
     """
     grep -v '#' ${dhs_coordinates} \
-        | awk '{print 1}'
+        | awk '{print 1}' \
         > ${name}
     """
 }
