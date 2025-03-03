@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-include { extract_from_anndata } from './masterlist_enrichment'
+include { splitMatrices; matricesListFromMeta } from './helpers'
 params.conda = "$moduleDir/environment.yml"
 
 // TODO wrap in apptainer
@@ -266,44 +266,13 @@ workflow fromMatrix {
         matrices // matrix_name, matrix, names, dhs_names
     main:
         out = matrices
-            | splitMatrices // matrix_name, annotation_name, annotation_bool
+            | splitMatrices // matrix_name, dhs_names, annotation_bool
             | convert_to_bed // matrix_name, group_id, annotation_bed
             | fromAnnotations
     emit:
         out
 }
 
-process split_matrices {
-    conda params.conda
-    //publishDir "${params.outdir}"
-    tag "${matrix_name}"
-    
-    input:
-        tuple val(matrix_name), path(matrix), path(sample_names), path(dhs_coordinates)
-    
-    output:
-        tuple val(matrix_name), path(dhs_coordinates), path("${matrix_name}.*.txt")
-    
-    script:
-    """
-    python3 $moduleDir/bin/split_matrix.py \
-        ${matrix} \
-        ${sample_names} \
-        ${matrix_name}
-    """
-}
-
-workflow splitMatrices {
-    take:
-        matrices_list
-    main:
-        out = matrices_list
-            | split_matrices
-            | transpose()
-            | map(it -> tuple(it[0], it[2].baseName, it[2], it[1]))
-    emit:
-        out
-}
 
 // Entry workflows
 workflow {
@@ -315,27 +284,12 @@ workflow {
 
 // Start from matrices list
 workflow fromMatricesList {
-    meta = Channel.fromPath(params.matrices_list)
-        | splitCsv(header:true, sep:'\t')
-        | map(
-            row -> tuple(
-                row.matrix_name, 
-                file(row.anndata_path),
-                file(row.peaks_mask),
-                file(row.matrix), 
-                file(row.sample_names),
-            )
-        )
-    meta 
-        | map(it -> tuple(it[0], it[1], it[2])) // matrix_name, anndata, peaks_mask
-        | extract_from_anndata // matrix_name, matrix, names, dhs_names
-        | join(meta) // matrix_name, matrix, names, dhs_names, anndata, peaks_mask, matrix, sample_names
-        | map(it -> tuple(it[0], it[6], it[7], it[3])) // matrix_name, matrix, names, dhs_names
+    matricesListFromMeta()
         | fromMatrix
 }
 
 workflow fromBinaryMatrix {
-    // Doesn't really work just yet
+    // Doesn't work just yet
     Channel.fromPath(params.binary_matrix)
         | map(it -> tuple("DHS_Binary", it, file(params.sample_names), file(params.masterlist_file)))
         | fromMatrix

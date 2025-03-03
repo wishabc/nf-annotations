@@ -1,5 +1,4 @@
-include { splitMatrices } from './ldsc'
-
+include { splitMatrices; matricesListFromMeta } from './helpers'
 
 
 process overlap_annotation {
@@ -8,7 +7,7 @@ process overlap_annotation {
     tag "${prefix}"
     
     input:
-        tuple val(matrix_name), val(prefix), path(dhs_mask), path(variants)
+        tuple val(matrix_name), val(prefix), path(dhs_mask), path(dhs_coordinates), path(variants)
     
     output:
         tuple val(matrix_name), path(name)
@@ -18,19 +17,23 @@ process overlap_annotation {
     """
     awk 'NR==FNR { mask[FNR]=\$1; next } mask[FNR]==1' \
         ${dhs_mask} \
-        ${params.masterlist_file} \
+        <(grep -v '#' ${dhs_coordinates}) \
         | bedmap --indicator \
             <(zcat ${variants}) - > ${name}
     """
 }
 
 workflow {
-    matrices = Channel.fromPath(params.matrices_list)
-       | splitCsv(header:true, sep:'\t')
-       | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
-       | splitMatrices // matrix_name, annotation_name, annotation_bool
+    data = matricesListFromMeta()
+       | splitMatrices // matrix_name, prefix, annotation_bool, dhs_coordinates
        | combine(
-            Channel.fromPath("${params.finemapped_variants_file}")
-       )
+            Channel.fromPath(params.finemapped_variants_file)
+       ) // matrix_name, prefix, annotation_bool, dhs_coordinates, variants
+    data // 
        | overlap_annotation
+    
+    data
+        | collectFile(
+            storeDir: params.outdir
+        ) { it -> [ "${it[0]}.metadata.bed", "${it[1]}\t${params.outdir}/${it[0]}/${it[1]}.overlap.bed"] } // metadata
 }

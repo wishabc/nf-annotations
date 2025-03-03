@@ -1,5 +1,6 @@
 include { fromMatrix as ldscFromMatrix } from './ldsc' addParams(by_cell_type: true)
-include { fromMatrix as motifEnrichmentFromMatrix; extract_from_anndata } from './masterlist_enrichment'
+include { fromMatrix as motifEnrichmentFromMatrix } from './masterlist_enrichment'
+include { extract_from_anndata } from './helpers'
 
 
 process find_top_samples {
@@ -141,9 +142,8 @@ workflow {
     
     data = mixing_data.pure
         | mix(mixing_data.mixing) // prefix, matrix, names, dhs
-    
-    data | ldscFromMatrix
-       // | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version if run from here.
+        | ldscFromMatrix
+       // | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version (z-score) if run from here.
     
     craft_configs()
 }

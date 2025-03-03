@@ -55,31 +55,3 @@ workflow {
         )
         | sort_and_index
 }
-
-
-// DEFUNC
-process tmp_reformat {
-    conda params.conda
-    tag "${prefix}"
-    publishDir params.outdir 
-
-    input:
-        tuple val(prefix), path(wrong_format_files)
-    
-    output:
-        tuple val(prefix), path(name)
-
-    script:
-    name = "${prefix}.hg38_converted.bed.gz"
-    """
-    zcat "${wrong_format_files}" \
-        | sed 's/chrchr/chr/g' \
-        | bgzip > ${name}
-    """
-}
-
-workflow tmp {
-    Channel.fromPath("/net/seq/data2/projects/sabramov/UKBB_2023/harmonized_n_samples/output/per_phenotype/**/*.hg38.bed.gz")
-        | map(it -> tuple(it.name.replaceAll('.hg38.bed.gz', ''), it))
-        | tmp_reformat
-}

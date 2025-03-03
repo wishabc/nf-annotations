@@ -1,27 +1,6 @@
-
-process extract_from_anndata {
-    conda params.conda
-    label "high_mem"
-
-    input:
-        tuple val(prefix), path(index_anndata), path(peaks_mask)
-    
-    output:
-        tuple val(prefix), path(name), path(sample_names), path(masterlist_file)
-    
-    script:
-    name = "binary_matrix.npz"
-    sample_names = "sample_names.txt"
-    masterlist_file = "masterlist.bed"
-    """
-    python $moduleDir/bin/extract_from_anndata.py \
-        ${index_anndata} \
-        ${peaks_mask} \
-        ${name} \
-        ${sample_names} \
-        ${masterlist_file}
-    """
-}
+#!/usr/bin/env nextflow
+include { extract_from_anndata } from './helpers'
+params.conda = "$moduleDir/environment.yml"
 
 
 process calc_prop_accessibility {
@@ -120,7 +99,7 @@ workflow fromMatrix {
             | motifEnrichment
 }
 
-workflow categoryEnrichment {
+workflow fromMatricesList {
     Channel.fromPath(params.matrices_list)
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
@@ -143,6 +122,7 @@ workflow fromBinaryMatrix {
         | combine(prop_accessibility)
         | motifEnrichment
 }
+
 
 
 
