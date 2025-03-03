@@ -15,9 +15,10 @@ process overlap_annotation {
     script:
     name = "${prefix}.overlap.txt"
     """
-    awk 'NR==FNR { mask[FNR]=\$1; next } mask[FNR]==1' \
-        ${dhs_mask} \
-        <(grep -v '#' ${dhs_coordinates}) \
+    grep -v '#' ${dhs_coordinates} \
+        | awk 'NR==FNR { mask[FNR]=\$1; next } mask[FNR]==1' \
+            ${dhs_mask} \
+            - \
         | bedmap --indicator \
             <(zcat ${variants}) - > ${name}
     """
