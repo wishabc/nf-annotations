@@ -58,7 +58,7 @@ workflow splitMatrices {
 
 workflow matricesListFromMeta {
     main:
-        meta = Channel.fromPath(params.matrices_list)
+        anndata_meta = Channel.fromPath(params.matrices_list)
             | splitCsv(header:true, sep:'\t')
             | map(
                 row -> tuple(
@@ -69,12 +69,12 @@ workflow matricesListFromMeta {
                     file(row.sample_names),
                 )
             )
-        out = meta 
+        matrices_data = anndata_meta 
             | map(it -> tuple(it[0], it[1], it[2])) // matrix_name, anndata, peaks_mask
             | extract_from_anndata // matrix_name, matrix, names, dhs_names
-            | join(meta) // matrix_name, matrix, names, dhs_names, anndata, peaks_mask, matrix, sample_names
+            | join(anndata_meta) // matrix_name, matrix, names, dhs_names, anndata, peaks_mask, matrix, sample_names
             | map(it -> tuple(it[0], it[6], it[7], it[3])) // matrix_name, matrix, names, dhs_names
     emit:
-        out
+        matrices_data
 }
 
