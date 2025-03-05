@@ -63,5 +63,5 @@ workflow {
             storeDir: "${params.outdir}/finemapping/",
             skip: 1,
             keepHeader: true
-        ) { it -> [ "${it[0]}.finemapping_metadata.tsv", "prefix\tindicator\n${it[1]}\t${params.outdir}/finemapping/${it[0]}/${it[1]}.overlap.bed\n"] } // metadata
+        ) { it -> [ "${it[0]}.finemapping_metadata.tsv", "prefix\tindicator\n${it[1]}\t${params.outdir}/finemapping/${it[0]}/${it[1]}.overlap.txt\n"] } // metadata
 }
