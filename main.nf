@@ -140,10 +140,13 @@ workflow {
         error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first or specify template_run folder. Once per binary matrix."
     }
     
-    data = mixing_data.pure
+    mixing_data.pure
         // | mix(mixing_data.mixing) // prefix, matrix, names, dhs
         // | ldscFromMatrix
-        | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version (z-score) if run from here.
+        | ldscFromMatrix // ldsc. ALWAYS uses by_cell_type version (z-score) if run from here.
     
+    mixing_data.pure
+        | map(it -> tuple(it[0], it[1], it[2]))
+        | motifEnrichmentFromMatrix
     craft_configs()
 }
