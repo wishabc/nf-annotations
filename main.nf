@@ -141,9 +141,9 @@ workflow {
     }
     
     data = mixing_data.pure
-        | mix(mixing_data.mixing) // prefix, matrix, names, dhs
+        //| mix(mixing_data.mixing) // prefix, matrix, names, dhs
         | ldscFromMatrix
-       // | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version (z-score) if run from here.
+        | (motifEnrichmentFromMatrix & ldscFromMatrix) // ldsc. ALWAYS uses by_cell_type version (z-score) if run from here.
     
     craft_configs()
 }
