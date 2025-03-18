@@ -63,22 +63,17 @@ process prepare_mixings_data {
         tuple val(prefix), path(H_matrix), path(dhs_coordinates)
 
     output:
-        tuple val(clean_prefix), path(clean_comps_matrix), path(clean_comp_order), path(dhs_coordinates), emit: pure
-        tuple val(mixing_prefix), path(mixing_matrix), path(mixing_comp_order), path(dhs_coordinates), emit: mixing
+        tuple val(prefix), path(dhs_matrix), path(component_order), path(dhs_coordinates)
 
     script:
-    clean_prefix = "${prefix}.pure.50pr"
-    clean_comps_matrix = "${clean_prefix}.npy"
-    clean_comp_order = "${clean_prefix}.order.txt"
-    
-    
-    mixing_prefix = "${prefix}.mixing.80pr"
-    mixing_matrix = "${mixing_prefix}.npy"
-    mixing_comp_order = "${mixing_prefix}.order.txt"
+    mixing_prefix = "${prefix}.mixing.50pure.0.05abs"
+    dhs_matrix = "${mixing_prefix}.npy"
+    component_order = "${mixing_prefix}.order.txt"
     """
     python3 $moduleDir/bin/prepare_mixings_data.py \
         ${H_matrix} \
-        ${prefix}
+        ${dhs_matrix} \
+        ${component_order}
     """
 }
 
@@ -140,13 +135,12 @@ workflow {
         error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first or specify template_run folder. Once per binary matrix."
     }
     
-    mixing_data.pure
-        // | mix(mixing_data.mixing) // prefix, matrix, names, dhs
-        // | ldscFromMatrix
+    mixing_data
         | ldscFromMatrix // ldsc. ALWAYS uses by_cell_type version (z-score) if run from here.
     
-    mixing_data.pure
+    mixing_data
         | map(it -> tuple(it[0], it[1], it[2]))
         | motifEnrichmentFromMatrix
+
     craft_configs()
 }
