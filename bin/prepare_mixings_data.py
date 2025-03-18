@@ -10,15 +10,15 @@ def main(H):
 
     matrix_for_enrichment, uq_labels = create_label_matrix(H_labels)
     uq_labels, counts = np.unique(H_labels, return_counts=True)
-    abundant_uq_labels = [x for x in uq_labels[counts >= 2000] if x != '']
-    
-    matrix_for_enrichment = matrix_for_enrichment[np.isin(uq_labels, abundant_uq_labels), :].todense().T
-    return matrix_for_enrichment, uq_labels
+
+    abundant_labels_mask = (counts >= 2000) & (uq_labels != '')
+
+    matrix_for_enrichment = matrix_for_enrichment[abundant_labels_mask, :].todense().T
+    return matrix_for_enrichment, uq_labels[abundant_labels_mask]
 
 
 if __name__ == "__main__":
     H = np.load(sys.argv[1]).T # comp x DHSs
-    H =  H / H.sum(axis=0, keepdims=True) # normalize per DHS
     matrix_name = sys.argv[2]
     order_name = sys.argv[3]
     annotation, names = main(H)
