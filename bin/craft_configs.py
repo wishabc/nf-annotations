@@ -23,10 +23,8 @@ def main(metadata, outdir):
             'PEAK_WEIGHTS': row.get("peaks_weights", ""),
             'SAMPLE_WEIGHTS': row.get("samples_weights", ""),
 
-            'PURE.50PR_ANNOTATION': f"{base_path}.pure.50pr.npy",
-            'PURE.50PR_ORDER': f"{base_path}.pure.50pr.order.txt",
-            'MIXING.80PR_ANNOTATION': f"{base_path}.mixing.80pr.npy",
-            'MIXING.80PR_ORDER': f"{base_path}.mixing.80pr.order.txt",
+            'ANNOTATION': f"{base_path}.mixing.50pure.0.05abs.npy",
+            'ORDER': f"{base_path}.mixing.50pure.0.05abs.order.txt",
 
             'TOP_SAMPLES': f"{outdir}/top_samples/{prefix}.top_samples.tsv",
             'DENSITY_TRACKS_META': f"{outdir}/top_samples/{prefix}.density_tracks_meta.tsv"
@@ -34,13 +32,11 @@ def main(metadata, outdir):
 
 
         config['LDSC'] = {
-            'Z_SCORE_SUMMARY.PURE.50pr': f"{outdir}/{prefix}.pure.50pr.ldsc_cell_types_results.tsv",
-            'Z_SCORE_SUMMARY.MIXING.80pr': f"{outdir}/{prefix}.mixing.80pr.ldsc_cell_types_results.tsv"
+            'Z_SCORE_SUMMARY': f"{outdir}/{prefix}.mixing.50pure.0.05abs.ldsc_cell_types_results.tsv",
         }
 
         config['MOTIF.ENRICHMENT'] = {
-            'Z_SCORE_SUMMARY.PURE.50pr': f"{outdir}/{prefix}.pure.50pr.z_score_stats.tsv",
-            'Z_SCORE_SUMMARY.MIXING.80pr': f"{outdir}/{prefix}.mixing.80pr.z_score_stats.tsv"
+            'Z_SCORE_SUMMARY': f"{outdir}/{prefix}.mixing.50pure.0.05abs.z_score_stats.tsv",
         }
 
         with open(f'{prefix}.matrix_meta.tsv', 'w') as f:
@@ -55,18 +51,9 @@ def main(metadata, outdir):
             ) + '\n')
             f.write('\t'.join(
                 [
-                    config['NMF']['PREFIX'] + '.pure.50pr', 
-                    config['NMF']['PURE.50PR_ANNOTATION'],
-                    config['NMF']['PURE.50PR_ORDER'],
-                    config['NMF']['ANNDATA'],
-                    config['NMF']['PEAKS_MASK']
-                ]
-            ) + '\n')
-            f.write('\t'.join(
-                [
-                    config['NMF']['PREFIX'] + '.mixing.80pr', 
-                    config['NMF']['MIXING.80PR_ANNOTATION'],
-                    config['NMF']['MIXING.80PR_ORDER'],
+                    config['NMF']['PREFIX'] + '.mixing.50pure.0.05abs', 
+                    config['NMF']['ANNOTATION'],
+                    config['NMF']['ORDER'],
                     config['NMF']['ANNDATA'],
                     config['NMF']['PEAKS_MASK']
                 ]
