@@ -32,11 +32,11 @@ def main(metadata, outdir):
 
 
         config['LDSC'] = {
-            'Z_SCORE_SUMMARY': f"{outdir}/{prefix}.mixing.50pure.0.05abs.ldsc_cell_types_results.tsv",
+            'Z_SCORE_SUMMARY': f"{outdir}/{prefix}.ldsc_cell_types_results.tsv",
         }
 
         config['MOTIF.ENRICHMENT'] = {
-            'Z_SCORE_SUMMARY': f"{outdir}/{prefix}.mixing.50pure.0.05abs.z_score_stats.tsv",
+            'Z_SCORE_SUMMARY': f"{outdir}/{prefix}.z_score_stats.tsv",
         }
 
         with open(f'{prefix}.matrix_meta.tsv', 'w') as f:
