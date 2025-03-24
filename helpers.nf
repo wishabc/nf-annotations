@@ -22,6 +22,7 @@ process extract_from_anndata {
     """
 }
 
+
 process split_matrices {
     conda params.conda
     //publishDir "${params.outdir}"
@@ -40,6 +41,37 @@ process split_matrices {
         ${sample_names} \
         ${matrix_name}
     """
+}
+
+
+process convert_to_bed {
+
+    conda params.conda
+    tag "${prefix}"
+
+    input:
+        tuple val(matrix_name), val(prefix), path(mask), path(dhs_coordinates)
+
+    output:
+        tuple val(matrix_name), val(prefix), path(name)
+    
+    script:
+    name = "${prefix}.annotation.bed"
+    """
+    grep -v '#' ${dhs_coordinates} \
+        | cut -f1-3 \
+        | awk -v OFS='\t' ' \
+            NR==FNR { mask[NR]=\$1; mask_lines=NR; next } \
+            FNR in mask && mask[FNR] == 1 { print } \
+            END {  \
+                if (mask_lines != FNR) { 
+                    print "Error: Mask and masterlist sizes are different. Mask lines: " mask_lines ", Masterlist lines: " FNR > "/dev/stderr"; \
+                    exit 1; \
+                } \
+            } \
+        ' ${mask} - > ${name}
+    """
+
 }
 
 
@@ -77,4 +109,3 @@ workflow matricesListFromMeta {
     emit:
         matrices_data
 }
-

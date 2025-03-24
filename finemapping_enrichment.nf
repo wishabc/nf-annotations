@@ -1,4 +1,4 @@
-include { splitMatrices; matricesListFromMeta } from './helpers'
+include { splitMatrices; matricesListFromMeta; convert_to_bed } from './helpers'
 
 
 process overlap_annotation {
@@ -7,7 +7,7 @@ process overlap_annotation {
     tag "${prefix}"
     
     input:
-        tuple val(matrix_name), val(prefix), path(dhs_mask), path(dhs_coordinates), path(variants)
+        tuple val(matrix_name), val(prefix), path(ref_bed_file), path(annotation)
     
     output:
         tuple val(matrix_name), path(name)
@@ -15,12 +15,9 @@ process overlap_annotation {
     script:
     name = "${prefix}.overlap.txt"
     """
-    grep -v '#' ${dhs_coordinates} \
-        | awk 'NR==FNR { mask[FNR]=\$1; next } mask[FNR]==1' \
-            ${dhs_mask} \
-            - \
-        | bedmap --indicator \
-            <(zcat ${variants}) - > ${name}
+    bedmap --indicator \
+        ${ref_bed_file} \
+        <(zcat ${annotation}) - > ${name}
     """
 }
 
@@ -42,6 +39,16 @@ process mock_indicator {
     """
 }
 
+workflow customAnnotations {
+    Channel.of(
+        tuple("custom_annotation", file(params.custom_annotation))
+    )
+        | map(it -> tuple(it[0], it[1].simpleName, it[1]))
+        | combine(
+            Channel.fromPath(params.finemapped_variants_file)
+        )
+        | overlap_annotation
+}
 
 workflow {
     data = matricesListFromMeta()
@@ -53,6 +60,7 @@ workflow {
         | mock_indicator // mock_indicator, dhs_coordinates
         | map(it -> tuple("", "all_dhs", it[0], it[1])) // matrix_name, prefix, annotation_bool, dhs_coordinates
         | mix(data)
+        | convert_to_bed
         | combine(
             Channel.fromPath(params.finemapped_variants_file)
         ) // matrix_name, prefix, annotation_bool, dhs_coordinates, variants
