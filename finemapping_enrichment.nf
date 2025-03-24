@@ -40,10 +40,15 @@ process mock_indicator {
 }
 
 workflow customAnnotations {
-    Channel.of(
-        tuple("custom_annotation", file(params.custom_annotation))
-    )
-        | map(it -> tuple(it[0], it[1].simpleName, it[1]))
+    Channel.fromPath(params.custom_annotations_file)
+        | splitCsv(header:true, sep:'\t')
+        | map(
+            row -> tuple(
+                "custom_annotations",
+                row.annotation_name, 
+                file(row.annotation),
+            )
+        )
         | combine(
             Channel.fromPath(params.finemapped_variants_file)
         )
@@ -53,7 +58,6 @@ workflow customAnnotations {
 workflow {
     data = matricesListFromMeta()
        | splitMatrices // matrix_name, prefix, annotation_bool, dhs_coordinates
-
 
     data.first()
         | map(it -> it[3])
