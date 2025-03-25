@@ -7,7 +7,7 @@ process overlap_annotation {
     tag "${prefix}"
     
     input:
-        tuple val(matrix_name), val(prefix), path(ref_bed_file), path(annotation)
+        tuple val(matrix_name), val(prefix), path(annotation), path(ref_bed_file)
     
     output:
         tuple val(matrix_name), path(name)
@@ -15,9 +15,9 @@ process overlap_annotation {
     script:
     name = "${prefix}.overlap.txt"
     """
-    bedmap --indicator \
-        ${ref_bed_file} \
-        <(zcat ${annotation}) - > ${name}
+    zcat ${ref_bed_file} \
+        | bedmap --indicator - \
+        ${annotation} > ${name}
     """
 }
 
