@@ -58,7 +58,7 @@ workflow customAnnotations {
     
     data
         | map {
-            "prefix\tindicator\n${it[1]}\t${params.outdir}/finemapping/${it[0]}/${it[1]}.overlap.txt"
+            """prefix\tindicator\n${it[1]}\t${params.outdir}/finemapping/${it[0]}/${it[1]}.overlap.txt"""
         }
         | collectFile(
             storeDir: "${params.outdir}/finemapping/",
