@@ -65,7 +65,7 @@ workflow customAnnotations {
         | collectFile(
             storeDir: "${params.outdir}/finemapping/",
             skip: 1,
-            name: "${params.custom_annotations_file.baseName}+indicators.tsv",
+            name: "${file(params.custom_annotations_file).baseName}+indicators.tsv",
             keepHeader: true
         ) // metadata
 }
