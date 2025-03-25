@@ -57,15 +57,15 @@ workflow customAnnotations {
         | overlap_annotation
     
     data
-        | map {
-            """prefix\tindicator\n${it[1]}\t${params.outdir}/finemapping/${it[0]}/${it[1]}.overlap.txt\n"""
-        }
         | collectFile(
             storeDir: "${params.outdir}/finemapping/",
             skip: 1,
-            name: "${file(params.custom_annotations_file).baseName}+indicators.tsv",
             keepHeader: true
-        ) // metadata
+        ) {
+            [
+                "${file(params.custom_annotations_file).baseName}+indicators.tsv","prefix\tindicator\n${it[1]}\t${params.outdir}/finemapping/${it[0]}/${it[1]}.overlap.txt\n"""
+            ]
+        }
 }
 
 workflow {
