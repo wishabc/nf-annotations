@@ -40,7 +40,7 @@ process mock_indicator {
 }
 
 workflow customAnnotations {
-    Channel.fromPath(params.custom_annotations_file)
+    data = Channel.fromPath(params.custom_annotations_file)
         | splitCsv(header:true, sep:'\t')
         | map(
             row -> tuple(
@@ -49,10 +49,25 @@ workflow customAnnotations {
                 file(row.annotation),
             )
         )
+    
+    data 
         | combine(
             Channel.fromPath(params.finemapped_variants_file)
         )
         | overlap_annotation
+    
+    data
+        | map {
+            """prefix\tindicator\n
+            ${it[1]}\t${params.outdir}/finemapping/${it[0]}/${it[1]}.overlap.txt
+            """
+        }
+        | collectFile(
+            storeDir: "${params.outdir}/finemapping/",
+            skip: 1,
+            name: "${params.custom_annotations_file.baseName}+indicators.tsv",
+            keepHeader: true
+        ) // metadata
 }
 
 workflow {
