@@ -17,7 +17,7 @@ process overlap_annotation {
     """
     zcat ${ref_bed_file} \
         | bedmap --indicator - \
-        ${annotation} > ${name}
+        <(grep -v '#' ${annotation}) > ${name}
     """
 }
 
