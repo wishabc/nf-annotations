@@ -4,6 +4,7 @@ import scipy.sparse as sp
 
 
 def split_matrix(matrix, sample_names, prefix):
+    assert matrix.shape[1] == len(sample_names)
     for i in range(matrix.shape[1]):
         sample_name = sample_names[i]
         column = matrix.getcol(i) 
