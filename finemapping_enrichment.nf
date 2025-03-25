@@ -61,8 +61,7 @@ workflow customAnnotations {
             storeDir: "${params.outdir}/finemapping/",
             skip: 1,
             keepHeader: true
-        ) { it -> 
-            [
+        ) { it -> [
                 "${file(params.custom_annotations_file).baseName}+indicators.tsv","prefix\tindicator\n${it[1]}\t${params.outdir}/finemapping/${it[0]}/${it[1]}.overlap.txt\n"""
             ]
         }
