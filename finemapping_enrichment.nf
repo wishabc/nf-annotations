@@ -57,7 +57,6 @@ workflow customAnnotations {
         | overlap_annotation
     
     data
-        | view()
         | collectFile(
             storeDir: "${params.outdir}/finemapping/",
             skip: 1,
