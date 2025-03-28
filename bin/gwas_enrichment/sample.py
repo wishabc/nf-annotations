@@ -38,5 +38,6 @@ if __name__ == "__main__":
     sampled_df.to_csv(
         sys.argv[4],
         sep='\t',
-        index=False
+        index=False,
+        header=False
     )

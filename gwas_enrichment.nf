@@ -132,6 +132,7 @@ process extend_by_ld {
 
     publishDir "${params.outdir}/gwas_enrichment/${gwas_name}"
     conda params.conda
+    tag "${gwas_name}:${seed}"
 
     input:
         tuple val(gwas_name), val(seed), path(sampled_variants)
