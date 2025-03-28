@@ -21,7 +21,7 @@ def main(ref_pop_df: pd.DataFrame, count_to_sample, seed):
     for name, group in tqdm(grouped, total=len(grouped)):
         if name in count_to_sample.index:
             n = count_to_sample.loc[name]
-            sampled = group.sample(n=n, random_state=seed).index
+            sampled = group.sample(n=n, random_state=seed, replace=False).index
             sampled_indices.extend(sampled)
 
     return ref_pop_df.loc[sampled_indices, ['chrom', 'start', 'end', *matching_cols]].sort_values(['chrom', 'start'])
