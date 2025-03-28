@@ -16,12 +16,12 @@ def main(ref_pop_df: pd.DataFrame, count_to_sample, seed):
         count_to_sample=count_to_sample,
         seed=seed
     )
-    return ref_pop_df.loc[sampled.values, ['chrom', 'start', 'end', 'rs_id', *matching_cols]].sort_values(['chrom', 'start'])
+    return ref_pop_df.loc[sampled.values, ['chrom', 'start', 'end', *matching_cols]].sort_values(['chrom', 'start'])
 
 
 
 if __name__ == "__main__":
-    ref_pop = pd.read_table(sys.argv[1]).set_index('ID')
+    ref_pop = pd.read_table(sys.argv[1]).set_index('rs_id')
     sampling_counts = pd.read_table(sys.argv[2]).set_index(matching_cols)['count']
     sampling_seed = int(sys.argv[3])
 
