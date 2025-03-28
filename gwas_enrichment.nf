@@ -79,6 +79,7 @@ process annotate_ref_pop_with_gwas {
     script:
     name = "${gwas_name}.pop_annotated.bed"
     """
+    echo 1
     head -1 ${params.ref_pop_file} > ${name}
     tail -n+2 ${params.ref_pop_file} \
         | bedops --element-of 1 - ${gwas_file} >> ${name}
