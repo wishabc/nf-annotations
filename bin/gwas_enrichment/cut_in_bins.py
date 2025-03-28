@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 import sys
 
-from .sample import matching_cols 
+#from .sample import matching_cols 
+matching_cols = ['tss_bin', 'ld_bin', 'maf_bin']
 
 histogram_data = pd.read_table(sys.argv[1])
 
