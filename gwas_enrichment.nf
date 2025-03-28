@@ -153,9 +153,10 @@ process extend_by_ld {
         | awk -v OFS="\t" '{ print \$1, \$5-1, \$5, ".", ".", ".", \$6; }' \
         | uniq -f6 > tmp.bed
 
+    head -1 ${sampled_variants} > ${ld_extended}
     cat tmp.bed ${sampled_variants}  \
         | sort-bed - \
-        | uniq -f6 > ${ld_extended}
+        | uniq -f6 >> ${ld_extended}
     """
 }
 

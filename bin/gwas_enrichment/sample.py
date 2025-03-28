@@ -39,5 +39,4 @@ if __name__ == "__main__":
         sys.argv[4],
         sep='\t',
         index=False,
-        header=False
     )
