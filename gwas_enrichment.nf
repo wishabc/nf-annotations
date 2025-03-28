@@ -133,6 +133,7 @@ process extend_by_ld {
     publishDir "${params.outdir}/gwas_enrichment/${gwas_name}"
     conda params.conda
     tag "${gwas_name}:${seed}"
+    scratch true
 
     input:
         tuple val(gwas_name), val(seed), path(sampled_variants)
@@ -143,14 +144,13 @@ process extend_by_ld {
     script:
     ld_extended = "${gwas_name}.${seed}.ld_extended.bed"
     """
-    {
-        bedops --element-of 1 \
-            ${params.perfect_ld_variants} \
-            ${sampled_variants}  \
-            | awk -v OFS="\t" '{ print \$1, \$5-1, \$5, ".", ".", ".", \$6; }' \
-            | uniq -f6 ;
-        cat ${sampled_variants};
-    } \
+    bedops --element-of 1 \
+        ${params.perfect_ld_variants} \
+        ${sampled_variants}  \
+        | awk -v OFS="\t" '{ print \$1, \$5-1, \$5, ".", ".", ".", \$6; }' \
+        | uniq -f6 > tmp.bed
+
+    cat tmp.bed ${sampled_variants}  \
         | sort-bed - \
         | uniq -f6 > ${ld_extended}
     """
