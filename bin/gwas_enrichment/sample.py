@@ -25,7 +25,9 @@ if __name__ == "__main__":
     sampling_counts = pd.read_table(sys.argv[2]).set_index(matching_cols)['count']
     sampling_seed = int(sys.argv[3])
 
-    main(ref_pop, count_to_sample=sampling_counts, seed=sampling_seed).to_csv(
+    sampled_df = main(ref_pop, count_to_sample=sampling_counts, seed=sampling_seed)
+    sampled_df = sampled_df.reset_index()[[*sampled_df.columns, 'rs_id']]
+    .to_csv(
         sys.argv[4],
         sep='\t',
         index=False
