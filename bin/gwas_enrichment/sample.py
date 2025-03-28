@@ -11,7 +11,7 @@ def sample_random(df: pd.DataFrame, count_to_sample: pd.Series, seed):
 
 
 def main(ref_pop_df: pd.DataFrame, count_to_sample, seed):
-    sampled = ref_pop_df[['ID', *matching_cols]].groupby(matching_cols).apply(
+    sampled = ref_pop_df[matching_cols].groupby(matching_cols).apply(
         sample_random,
         count_to_sample=count_to_sample,
         seed=seed
