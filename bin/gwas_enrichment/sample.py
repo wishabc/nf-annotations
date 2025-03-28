@@ -21,7 +21,7 @@ def main(ref_pop_df: pd.DataFrame, count_to_sample, seed):
 
 
 if __name__ == "__main__":
-    ref_pop = pd.read_table(sys.argv[1], compression='gzip').set_index('ID')
+    ref_pop = pd.read_table(sys.argv[1]).set_index('ID')
     sampling_counts = pd.read_table(sys.argv[2]).set_index(matching_cols)['count']
     sampling_seed = int(sys.argv[3])
 
