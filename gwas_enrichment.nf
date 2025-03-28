@@ -116,10 +116,11 @@ process sample_from_ref_pop {
         tuple val(gwas_name), path(per_bin_counts), val(seed)
     
     output:
-        tuple val(gwas_name), val(seed), path(name)
+        tuple val(prefix), val(gwas_name), path(name)
 
     script:
-    name = "${gwas_name}.${seed}.sampled.bed"
+    prefix = "${gwas_name}.${seed}"
+    name = "${prefix}.sampled.bed"
     """
     python3 $moduleDir/bin/gwas_enrichment/sample.py \
         ${params.ref_pop_file} \
@@ -133,17 +134,17 @@ process extend_by_ld {
 
     publishDir "${params.outdir}/gwas_enrichment/${gwas_name}"
     conda params.conda
-    tag "${gwas_name}:${seed}"
+    tag "${gwas_name}"
     scratch true
 
     input:
-        tuple val(gwas_name), val(seed), path(sampled_variants)
+        tuple val(prefix), val(gwas_name), path(sampled_variants)
     
     output:
-        tuple val(gwas_name), val(seed), path(sampled_variants), path(ld_extended)
+        tuple val(prefix), val(gwas_name), path(sampled_variants), path(ld_extended)
     
     script:
-    ld_extended = "${gwas_name}.${seed}.ld_extended.bed"
+    ld_extended = "${prefix}.ld_extended.bed"
     """
     bedops --element-of 1 \
         ${params.perfect_ld_variants} \
@@ -167,9 +168,12 @@ workflow sampleMatchedVariantsForTraits {
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.gwas_name, file(row.gwas_file)))
         | annotate_ref_pop_with_gwas
+    
+    data
         | get_n_per_bin
         | combine(seeds)
         | sample_from_ref_pop
+        | mix(data.map(it -> tuple(it[0], it[0], it[1])))
         | extend_by_ld
         | collectFile(
             storeDir: "${params.outdir}/gwas_enrichment/",
@@ -178,7 +182,7 @@ workflow sampleMatchedVariantsForTraits {
         ) {
             it -> [
                 "${it[0]}.sampled_file.txt", 
-                "seed\tsampled\tld_extended\n${it[1]}\t${params.outdir}/gwas_enrichment/${it[0]}/${it[0]}.${it[1]}.sampled.bed\t${params.outdir}/gwas_enrichment/${it[0]}/${it[0]}.${it[1]}.ld_extended.bed\n"
+                "prefix\tsampled\tld_extended\n${it[1]}\t${params.outdir}/gwas_enrichment/${it[0]}/${it[0]}.${it[1]}.sampled.bed\t${params.outdir}/gwas_enrichment/${it[0]}/${it[0]}.${it[1]}.ld_extended.bed\n"
             ]
         }
 }
