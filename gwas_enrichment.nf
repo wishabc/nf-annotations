@@ -145,8 +145,9 @@ process extend_by_ld {
     """
     bedops --element-of 1 ${params.perfect_ld_variants} ${sampled_variants}  \
         | awk -v OFS="\t" '{ print \$1, \$5-1, \$5, ".", ".", ".", \$6; }' \
+        | uniq -f7 \
         | (cat - ${sampled_variants}) \
-        | sort-bed - 
+        | sort-bed - \
         | uniq -f7 > ${ld_extended}
     """
 }
