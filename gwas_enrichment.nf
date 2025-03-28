@@ -64,11 +64,120 @@ workflow {
 
 
 
+process annotate_ref_pop_with_gwas {
 
 
+    input:
+        tuple val(gwas_name), path(gwas_file)
+    
+    output:
+        tuple val(gwas_name), path(name)
+    
+    script:
+    name = "${gwas_name}.pop_annotated.bed"
+    """
+    head -1 ${params.ref_pop_file} > ${name}
+    tail -n+2 ${params.ref_pop_file} \
+        | bedmap -e 1 - ${gwas_file} >> ${name}
+    """
+}
+
+process get_n_per_bin {
+
+    conda params.conda
+
+    input:
+        tuple val(gwas_name), path(pop_annotated_file)
+    
+    output:
+        tuple val(gwas_name), path(name)
+
+    script:
+    name = "${gwas_name}.n_per_bin.txt"
+    """
+    python3 $moduleDir/bin/gwas_enrichment/cut_in_bins.py \
+        ${pop_annotated_file} \
+        ${name}
+    """
+}
 
 
+process sample_from_ref_pop {
 
+    publishDir "${params.outdir}/gwas_enrichment/${gwas_name}"
+    conda params.conda
+
+    input:
+        tuple val(gwas_name), path(per_bin_counts), val(seed)
+    
+    output:
+        tuple val(gwas_name), val(seed), path(name)
+
+    script:
+    name = "${gwas_name}.${seed}.sampled.bed"
+    """
+    python3 $moduleDir/bin/gwas_enrichment/sample.py \
+        ${params.ref_pop_file} \
+        ${per_bin_counts} \
+        ${name}
+    """
+}
+
+process extend_by_ld {
+
+    publishDir "${params.outdir}/gwas_enrichment/${gwas_name}"
+    conda params.conda
+
+    input:
+        tuple val(gwas_name), val(seed), path(sampled_variants)
+    
+    output:
+        tuple val(gwas_name), val(seed), path(sampled_variants), path(ld_extended)
+    
+    script:
+    ld_extended = "${gwas_name}.${seed}.ld_extended.bed"
+    """
+    bedops -e 1 ${sampled_variants} ${params.perfect_ld_variants} \
+        | awk -v OFS="\t" '\$5==1 { print \$1, \$6, \$6+1, ".", \$5, \$2; }' \
+        | sort-bed -> ${ld_extended}
+    """
+}
+
+
+workflow sampleMatchedVariantsForTraits {
+
+    seeds = Channel.from(1..params.n_samples) 
+        //| map(seed -> seed * 1000)
+
+    data = Channel.fromPath(params.gwas_files)
+        | splitCsv(header:true, sep:'\t')
+        | map(row -> tuple(row.gwas_name, file(row.gwas_file)))
+        | annotate_ref_pop_with_gwas
+        | get_n_per_bin
+        | combine(seeds)
+        | sample_from_ref_pop
+        | extend_by_ld
+        | collectFile(
+            storeDir: "${params.outdir}/gwas_enrichment/",
+            skip: 1,
+            keepHeader: true,
+        ) {
+            it -> [
+                "${it[0]}.sampled_file.txt", 
+                "seed\tsampled\tld_extended\n${it[1]}\t${params.outdir}/gwas_enrichment/${it[0]}.${it[1]}.sampled.bed\t${params.outdir}/gwas_enrichment/${it[0]}.${it[1]}.ld_extended.bed\n"
+            ]
+        }
+}
+
+
+process overlap_with_sampled {
+
+}
+
+
+workflow overlapSampled {
+    
+}
 
 
 
