@@ -144,7 +144,7 @@ process extend_by_ld {
     ld_extended = "${gwas_name}.${seed}.ld_extended.bed"
     """
     bedops --element-of 1 ${params.perfect_ld_variants} ${sampled_variants}  \
-        | awk -v OFS="\t" '\$5==1 { print \$1, \$5-1, \$5, ".", ".", ".", \$6; }' \
+        | awk -v OFS="\t" '{ print \$1, \$5-1, \$5, ".", ".", ".", \$6; }' \
         | (cat - ${sampled_variants}) \
         | sort-bed - > ${ld_extended}
     """
