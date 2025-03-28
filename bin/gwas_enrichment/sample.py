@@ -24,7 +24,7 @@ def main(ref_pop_df: pd.DataFrame, count_to_sample, seed):
             sampled = group.sample(n=n, random_state=seed).index
             sampled_indices.extend(sampled)
 
-    return ref_pop_df.loc[sampled.values, ['chrom', 'start', 'end', *matching_cols]].sort_values(['chrom', 'start'])
+    return ref_pop_df.loc[sampled_indices, ['chrom', 'start', 'end', *matching_cols]].sort_values(['chrom', 'start'])
 
 
 
