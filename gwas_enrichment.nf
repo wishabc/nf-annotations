@@ -119,6 +119,7 @@ process sample_from_ref_pop {
     python3 $moduleDir/bin/gwas_enrichment/sample.py \
         ${params.ref_pop_file} \
         ${per_bin_counts} \
+        ${seed} \
         ${name}
     """
 }
