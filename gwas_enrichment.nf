@@ -78,7 +78,7 @@ process annotate_ref_pop_with_gwas {
     """
     head -1 ${params.ref_pop_file} > ${name}
     tail -n+2 ${params.ref_pop_file} \
-        | bedmap --element-of 1 - <(zcat ${gwas_file} | grep -v '#') >> ${name}
+        | bedops --element-of 1 - <(zcat ${gwas_file} | grep -v '#') >> ${name}
     """
 }
 
