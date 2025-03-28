@@ -154,7 +154,7 @@ process extend_by_ld {
         | uniq -f6 > tmp.bed
 
     head -1 ${sampled_variants} > ${ld_extended}
-    cat tmp.bed ${sampled_variants}  \
+    cat tmp.bed <(grep -v '#' ${sampled_variants}) \
         | sort-bed - \
         | uniq -f6 >> ${ld_extended}
     """
