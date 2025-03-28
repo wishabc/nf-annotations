@@ -6,6 +6,8 @@ matching_cols = ['tss_bin', 'ld_bin', 'maf_bin']
 
 
 def sample_random(df: pd.DataFrame, count_to_sample: pd.Series, seed):
+    if df.name not in count_to_sample.index:
+        return []
     n = count_to_sample.loc[df.name]
     return df.sample(n=n, random_state=seed).index
 

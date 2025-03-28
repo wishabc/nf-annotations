@@ -66,6 +66,8 @@ workflow {
 
 process annotate_ref_pop_with_gwas {
 
+    tag "${gwas_name}"
+    conda params.conda
 
     input:
         tuple val(gwas_name), path(gwas_file)
@@ -85,6 +87,7 @@ process annotate_ref_pop_with_gwas {
 process get_n_per_bin {
 
     conda params.conda
+    tag "${gwas_name}"
 
     input:
         tuple val(gwas_name), path(pop_annotated_file)
@@ -106,6 +109,7 @@ process sample_from_ref_pop {
 
     publishDir "${params.outdir}/gwas_enrichment/${gwas_name}"
     conda params.conda
+    tag "${gwas_name}:${seed}"
 
     input:
         tuple val(gwas_name), path(per_bin_counts), val(seed)
