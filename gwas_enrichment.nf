@@ -78,7 +78,7 @@ process annotate_ref_pop_with_gwas {
     """
     head -1 ${params.ref_pop_file} > ${name}
     tail -n+2 ${params.ref_pop_file} \
-        | bedmap -e 1 - <(zcat ${gwas_file} | grep -v '#') >> ${name}
+        | bedmap --element-of 1 - <(zcat ${gwas_file} | grep -v '#') >> ${name}
     """
 }
 
@@ -137,7 +137,7 @@ process extend_by_ld {
     script:
     ld_extended = "${gwas_name}.${seed}.ld_extended.bed"
     """
-    bedops -e 1 ${sampled_variants} ${params.perfect_ld_variants} \
+    bedops --element-of 1 ${sampled_variants} ${params.perfect_ld_variants} \
         | awk -v OFS="\t" '\$5==1 { print \$1, \$6, \$6+1, ".", \$5, \$2; }' \
         | sort-bed -> ${ld_extended}
     """
