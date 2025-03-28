@@ -68,6 +68,7 @@ process annotate_ref_pop_with_gwas {
 
     tag "${gwas_name}"
     conda params.conda
+    publishDir "${params.outdir}/gwas_enrichment/${gwas_name}"
 
     input:
         tuple val(gwas_name), path(gwas_file)
