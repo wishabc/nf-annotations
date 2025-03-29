@@ -183,8 +183,8 @@ workflow sampleMatchedVariantsForTraits {
             keepHeader: true,
         ) {
             it -> [
-                "${it[0]}.sampled_file.txt", 
-                "prefix\tsampled\tld_extended\n${it[1]}\t${params.outdir}/gwas_enrichment/${it[0]}/${it[0]}.${it[1]}.sampled.bed\t${params.outdir}/gwas_enrichment/${it[0]}/${it[0]}.${it[1]}.ld_extended.bed\n"
+                "${it[1]}.sampled_file.txt", 
+                "prefix\tsampled\tld_extended\n${it[1]}\t${params.outdir}/gwas_enrichment/${it[1]}/${it[0]}.sampled.bed\t${params.outdir}/gwas_enrichment/${it[1]}/${it[0]}.ld_extended.bed\n"
             ]
         }
 }
