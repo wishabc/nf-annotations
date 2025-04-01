@@ -193,7 +193,7 @@ process annotate_regions {
                 cg=\$6+\$7;
                 print \$1, \$2, \$3, \$3-\$2, cg, cg/total; }' > ${name}
     
-    python3 $moduleDir/bin/split_in_bins.py
+    python3 $moduleDir/bin/motif_enrichment/split_in_bins.py ${name}
     """
 }
 
