@@ -163,59 +163,56 @@ workflow getRegionsSamplingPool {
 
 
 // DEFUNC rn
-process choose_bins {
-    conda params.conda
+// process choose_bins {
+//     conda params.conda
 
-    input:
-        path sampled_regions_pool
+//     input:
+//         path sampled_regions_pool
 
-    output:
-        path name
+//     output:
+//         path name
 
-    script:
-    name = "sampled_regions.with_bins.bed"
-    """
-    Rscript $moduleDir/bin/motif_enrichment/genome_background.R \
-        tmp.bed \
-        ${name}
-    """
-}
+//     script:
+//     name = "sampled_regions.with_bins.bed"
+//     """
+//     Rscript $moduleDir/bin/motif_enrichment/genome_background.R \
+//         tmp.bed \
+//         ${name}
+//     """
+// }
 
-process overlap_and_sample {
-        conda params.conda
+// process overlap_and_sample {
+//         conda params.conda
 
-    input:
-        tuple val(motif_id), path(motif_indicator), path(sampled_regions_pool), path(masterlist)
+//     input:
+//         tuple val(motif_id), path(motif_indicator), path(sampled_regions_pool), path(masterlist)
 
-    output:
-        path name
+//     output:
+//         path name
 
-    script:
-    name = "${motif_id}.sampled_regions.bed"
-    """
-    python3 $moduleDir/bin/sample_regions.py \
-        ${sampled_regions_pool} \
-        ${masterlist} \
-        ${motif_indicator} \
-        ${name}
-    """
-}
+//     script:
+//     name = "${motif_id}.sampled_regions.bed"
+//     """
+//     python3 $moduleDir/bin/sample_regions.py \
+//         ${sampled_regions_pool} \
+//         ${masterlist} \
+//         ${motif_indicator} \
+//         ${name}
+//     """
+// }
 
-workflow matchBackground {
-    
+// workflow matchBackground {
 
-
-
-    Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
-        | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
-        | filter { it[0] == "M02739_2.00" }
-        | combine(
-            masterlist
-        ) // motif_id, motif_hits, masterlist
-        | motif_hits_intersect
-        | combine(sampled_bg)
-        | 
+//     Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
+//         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
+//         | filter { it[0] == "M02739_2.00" }
+//         | combine(
+//             masterlist
+//         ) // motif_id, motif_hits, masterlist
+//         | motif_hits_intersect
+//         | combine(sampled_bg)
+//         | 
         
-        | generate_bed
+//         | generate_bed
 
-}
+// }
