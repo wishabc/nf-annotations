@@ -149,7 +149,7 @@ process split_masterlist_in_chunks {
 process sample_matching_bg {
 
     conda '/home/afathul/miniconda3/envs/r-kernel'
-    tag "${iter}"
+    tag "${prefix}:${iter}"
 
     input:
         tuple val(iter), val(prefix), path(bed_file)
@@ -160,7 +160,7 @@ process sample_matching_bg {
     script:
     name = "${prefix}.${iter}.bed"
     """
-    time Rscript $moduleDir/bin/motif_enrichment/delta_svm_match_bg.R \
+    Rscript $moduleDir/bin/motif_enrichment/delta_svm_match_bg.R \
         ${bed_file} \
         ${name}
     """
