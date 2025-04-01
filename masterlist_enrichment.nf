@@ -169,8 +169,7 @@ process sample_matching_bg {
 process annotate_regions {
 
     conda '/home/sabramov/miniconda3/envs/super-index'
-    publishDir "${params.outdir}/motif_enrichment/regions"
-    tag "${prefix}"
+    publishDir "${params.outdir}/motif_enrichment/"
 
     input:
         path bed_file
