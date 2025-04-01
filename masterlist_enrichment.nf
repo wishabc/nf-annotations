@@ -166,8 +166,39 @@ process sample_matching_bg {
     """
 }
 
+process annotate_regions {
+
+    conda params.conda
+    publishDir "${params.outdir}/motif_enrichment/regions"
+    tag "${prefix}"
+
+    input:
+        path bed_file
+
+    output:
+        path name
+
+    script:
+    name = "${bed_file.simpleName}.annotated.bed"
+    """
+    grep -v '#' ${bed_file} \
+        | cut -f 1-3 \
+        | sort-bed - > tmp.bed
+
+    faidx -i nucleotide \
+        -b tmp.bed \
+        ${params.genome_fasta} \
+        | awk -v OFS="\t" \
+            'NR>1 { 
+                total=\$4+\$5+\$6+\$7+\$8;
+                cg=\$6+\$7;
+                print \$1, \$2, \$3, \$3-\$2, cg, cg/total; }' > ${name}
+    """
+}
+
 workflow getRegionsSamplingPool {
-    chunks = Channel.fromPath(params.masterlist_file)
+    masterlist = Channel.fromPath(params.masterlist_file)
+    chunks = masterlist
         | split_masterlist_in_chunks
         | flatten()
         | map(it -> tuple(it.baseName, it)) // prefix, bed_file
@@ -180,9 +211,9 @@ workflow getRegionsSamplingPool {
         | collectFile(
             sort: true,
             name: 'sampled_regions_pool.bed',
-            storeDir: "${params.outdir}/motif_enrichment",
         )
-        //| merge_annotations
+        | mix(masterlist)
+        | annotate_regions
 }
 
 
