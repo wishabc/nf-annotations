@@ -138,8 +138,11 @@ process sample_matching_bg {
     script:
     name = "masterlist.sampled.${iter}.bed"
     """
+    grep -v '#' ${masterlist_file} \
+        | cut -f 1-3 > tmp.bed
+
     Rscript $moduleDir/bin/motif_enrichment/delta_svm_match_bg.R \
-        ${masterlist_file} \
+        tmp.bed \
         ${name}
     """
 }
