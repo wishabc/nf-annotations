@@ -33,8 +33,8 @@ genNullSeqs(
   outputNegFastaFN = paste0('tmp.negSet.dhs.fa'),
     xfold = 1,
     repeat_match_tol = 1,
-    GC_match_tol = 0.02,
-    length_match_tol = 0.02,
-    batchsize = 10000, # large: no problem with memory
+    GC_match_tol = 0.05,
+    length_match_tol = 0.05,
+    batchsize = 500000, # large: no problem with memory
     nMaxTrials = 20 # large: more sequences are matched. Vice versa
 )

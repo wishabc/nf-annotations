@@ -141,7 +141,6 @@ process sample_matching_bg {
     Rscript $moduleDir/bin/motif_enrichment/delta_svm_match_bg.R \
         ${masterlist_file} \
         ${name}
-    
     """
 }
 
