@@ -38,12 +38,10 @@ if __name__ == "__main__":
     n_samples = 100
     masterlist_df = masterlist_df[motif_indicator]
     sampled_indices = main(masterlist_df, regions_pool, n_samples)
-    for random_state, indices in sampled_indices.items():
-        sampled_df = regions_pool.loc[indices, ['#chr', 'start', 'end', *matching_cols]].sort_values(['#chr', 'start'])
-        sampled_df = sampled_df.reset_index()[[*sampled_df.columns, 'rs_id']]
-        # Save the sampled dataframe to a file
-        # The output file name is constructed by appending the random state to the original output file name
-        # This way, each sampled dataframe will be saved in a separate file
-        # The output file name is passed as the 5th argument to the script
-        sampled_df.to_csv(f"{sys.argv[4]}_{random_state}.txt", sep='\t', index=False)
-    sampled_df.to_csv(sys.argv[5], sep='\t', index=False, header=False)
+    for random_state, indices in tqdm(sampled_indices.items(), total=len(sampled_indices)):
+        indices = sorted(indices)
+        regions_pool.loc[indices, :].to_csv(
+            f"{sys.argv[4]}.{random_state}.txt",
+            sep='\t',
+            index=False
+        )

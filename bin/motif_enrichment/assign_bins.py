@@ -6,7 +6,7 @@ import numpy as np
 
 gc_bins = np.linspace(0, 1, 20)
 length_bins = np.linspace(0, 1000, 50)
-df = pd.read_table(sys.stdin, columns=['#chr', 'start', 'end', 'length', 'n_gc', 'gc'])
+df = pd.read_table(sys.stdin, names=['#chr', 'start', 'end', 'length', 'n_gc', 'gc'])
 
 df['gc_bin'] = pd.cut(df['gc'], bins=gc_bins)
 df['length_bin'] = pd.cut(df['length'], bins=length_bins)
