@@ -245,19 +245,22 @@ process overlap_and_sample {
 }
 
 workflow motifEnrichment {
-
     motifs_meta = Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
         | filter { it[0] == "M02739_2.00" }
 
     ref_files = Channel.fromPath("${params.outdir}/motif_enrichment/*.annotated.bed")
+        | branch { v -> 
+            sampled: ~it.simpleName.contains('sampled_regions_pool')
+            masterlist: true
+        }
 
-    sampled_regions = ref_files
-        | filter { ~it.simpleName.contains('sampled_regions_pool') }
+    sampled_regions = ref_files.masterlist
         | combine(motifs_meta)
         | map(it -> tuple(it[1], it[2], it[0]))
         | motif_hits_intersect
-        | combine(ref_files.collect())
+        | combine(ref_files.sampled)
+        | combine(ref_files.masterlist)
         | overlap_and_sample
     
     // motifs_meta
