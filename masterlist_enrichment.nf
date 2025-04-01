@@ -180,6 +180,7 @@ workflow getRegionsSamplingPool {
         | collectFile(
             sort: true,
             name: 'sampled_regions_pool.bed',
+            storeDir: "${params.outdir}/motif_enrichment",
         )
         //| merge_annotations
 }
