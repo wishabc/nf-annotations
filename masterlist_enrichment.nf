@@ -192,6 +192,8 @@ process annotate_regions {
                 total=\$4+\$5+\$6+\$7+\$8;
                 cg=\$6+\$7;
                 print \$1, \$2, \$3, \$3-\$2, cg, cg/total; }' > ${name}
+    
+    python3 $moduleDir/bin/split_in_bins.py
     """
 }
 
