@@ -138,7 +138,7 @@ process sample_matching_bg {
     script:
     name = "masterlist.sampled.${iter}.bed"
     """
-    Rscript $moduleDir/bin/motif_enrichment/genome_background.R \
+    Rscript $moduleDir/bin/motif_enrichment/delta_svm_match_bg.R \
         ${masterlist_file} \
         ${name}
     
