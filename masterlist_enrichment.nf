@@ -171,7 +171,7 @@ process annotate_regions {
     conda '/home/sabramov/miniconda3/envs/super-index'
     publishDir "${params.outdir}/motif_enrichment/"
     tag "${prefix}"
-    
+
     input:
         path bed_file
 
@@ -193,9 +193,8 @@ process annotate_regions {
             'NR>1 { 
                 total=\$4+\$5+\$6+\$7+\$8;
                 cg=\$6+\$7;
-                print \$1, \$2, \$3, \$3-\$2, cg, cg/total; }' > ${name}
-    
-    python3 $moduleDir/bin/motif_enrichment/split_in_bins.py ${name}
+                print \$1, \$2, \$3, \$3-\$2, cg, cg/total; }'
+        | python3 $moduleDir/bin/motif_enrichment/assign_bins.py ${name}
     """
 }
 
