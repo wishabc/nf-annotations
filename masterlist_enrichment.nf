@@ -239,20 +239,18 @@ process overlap_and_sample {
     """
 }
 
-workflow motifEnrichment {
+// workflow motifEnrichment {
 
-    Channel.fromPath("${params.outdir}/motif_enrichment/*.annotated.bed")
+//     Channel.fromPath("${params.outdir}/motif_enrichment/*.annotated.bed")
 
-    Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
-        | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
-        | filter { it[0] == "M02739_2.00" }
-        | combine(
-            masterlist
-        ) // motif_id, motif_hits, masterlist
-        | motif_hits_intersect
-        | combine(sampled_bg)
-        | 
-        
-        | generate_bed
+//     Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
+//         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
+//         | filter { it[0] == "M02739_2.00" }
+//         | combine(
+//             masterlist
+//         ) // motif_id, motif_hits, masterlist
+//         | motif_hits_intersect
+//         | combine(sampled_bg)
+//         | generate_bed
 
-}
+// }
