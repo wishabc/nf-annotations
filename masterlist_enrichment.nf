@@ -124,46 +124,97 @@ workflow fromBinaryMatrix {
 }
 
 
+process sample_matching_bg {
+
+    conda params.conda
+    tag "${iter}"
+
+    input:
+        tuple val(iter), path(masterlist_file)
+    
+    output:
+        tuple val(iter), path(name)
+
+    script:
+    name = "masterlist.sampled.${iter}.bed"
+    """
+    Rscript $moduleDir/bin/motif_enrichment/genome_background.R \
+        ${masterlist_file} \
+        ${name}
+    
+    """
+}
+
+workflow getRegionsSamplingPool {
+    masterlist = Channel.fromPath(params.masterlist_file)
+    
+    sampled_bg = Channel.of(1..100)
+        | combine(masterlist)
+        | sample_matching_bg
+        | map(it -> it[1])
+        | collectFile(
+            sort: true,
+            name: 'sampled_regions_pool.bed',
+        )
+        | combine(masterlist)
+        //| merge_annotations
+}
 
 
-// TESTING //
-process generate_bed {
-    publishDir "${params.outdir}/matched_bg"
 
-    tag "${motif_id}:${iter}"
-    // scratch true
+// DEFUNC rn
+process choose_bins {
     conda params.conda
 
     input:
-        tuple val(motif_id), path(indicator_file), val(iter)
+        path sampled_regions_pool
 
     output:
-        tuple val(motif_id), val(iter), path(name)
+        path name
 
     script:
-    name = "${motif_id}.${iter}.bed"
+    name = "sampled_regions.with_bins.bed"
     """
-    paste ${params.masterlist_file} ${indicator_file} \
-        | awk \
-            -v OFS='\t' \
-            -F'\t' \
-            '\$NF == 1' \
-        | cut -f1-3 > tmp.bed
-    
-    Rscript $moduleDir/bin/genome_background.R \
+    Rscript $moduleDir/bin/motif_enrichment/genome_background.R \
         tmp.bed \
         ${name}
     """
 }
 
+process overlap_and_sample {
+        conda params.conda
+
+    input:
+        tuple val(motif_id), path(motif_indicator), path(sampled_regions_pool), path(masterlist)
+
+    output:
+        path name
+
+    script:
+    name = "${motif_id}.sampled_regions.bed"
+    """
+    python3 $moduleDir/bin/sample_regions.py \
+        ${sampled_regions_pool} \
+        ${masterlist} \
+        ${motif_indicator} \
+        ${name}
+    """
+}
 
 workflow matchBackground {
+    
+
+
+
     Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
         | filter { it[0] == "M02739_2.00" }
         | combine(
-            Channel.of(1..100)
-        ) // motif_id, indicator, iter
+            masterlist
+        ) // motif_id, motif_hits, masterlist
+        | motif_hits_intersect
+        | combine(sampled_bg)
+        | 
         
         | generate_bed
 
