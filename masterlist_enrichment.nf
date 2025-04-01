@@ -170,7 +170,8 @@ process annotate_regions {
 
     conda '/home/sabramov/miniconda3/envs/super-index'
     publishDir "${params.outdir}/motif_enrichment/"
-
+    tag "${prefix}"
+    
     input:
         path bed_file
 
@@ -178,7 +179,8 @@ process annotate_regions {
         path name
 
     script:
-    name = "${bed_file.simpleName}.annotated.bed"
+    prefix = "${bed_file.simpleName}"
+    name = "${prefix}.annotated.bed"
     """
     grep -v '#' ${bed_file} \
         | cut -f 1-3 \
