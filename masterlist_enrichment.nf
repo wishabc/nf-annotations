@@ -123,43 +123,64 @@ workflow fromBinaryMatrix {
         | motifEnrichment
 }
 
+process split_masterlist_in_chunks {
+    conda params.conda
 
+    input:
+        tuple path masterlist_file
+
+    output:
+        path "${prefix}*.bed"
+
+    script:
+    prefix = "masterlist.chunk."
+    """
+    grep -v '#' ${masterlist_file} \
+        | cut -f 1-3 
+        | split \
+            -l 100000 \
+            --suffix-length=4 \
+            -d \
+            --additional-suffix=.bed \
+            - \
+            ${prefix}
+    """
+}
 process sample_matching_bg {
 
     conda '/home/afathul/miniconda3/envs/r-kernel'
     tag "${iter}"
 
     input:
-        tuple val(iter), path(masterlist_file)
+        tuple val(iter), val(prefix), path(bed_file)
     
     output:
         tuple val(iter), path(name)
 
     script:
-    name = "masterlist.sampled.${iter}.bed"
+    name = "${prefix}.${iter}.bed"
     """
-    grep -v '#' ${masterlist_file} \
-        | head -n 50000 \
-        | cut -f 1-3 > tmp.bed || true
-
     time Rscript $moduleDir/bin/motif_enrichment/delta_svm_match_bg.R \
-        tmp.bed \
+        ${bed_file} \
         ${name}
     """
 }
 
 workflow getRegionsSamplingPool {
-    masterlist = Channel.fromPath(params.masterlist_file)
+    chunks = Channel.fromPath(params.masterlist_file)
+        | split_masterlist_in_chunks
+        | flatten()
+        | map(it -> tuple(it.baseName, it)) // prefix, bed_file
     
     sampled_bg = Channel.of(1..100)
-        | combine(masterlist)
+        | combine(chunks)
         | sample_matching_bg
+        | mix(chunks)
         | map(it -> it[1])
         | collectFile(
             sort: true,
             name: 'sampled_regions_pool.bed',
         )
-        | combine(masterlist)
         //| merge_annotations
 }
 
