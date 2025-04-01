@@ -142,7 +142,7 @@ process sample_matching_bg {
         | head -n 50000 \
         | cut -f 1-3 > tmp.bed || true
 
-    Rscript $moduleDir/bin/motif_enrichment/delta_svm_match_bg.R \
+    time Rscript $moduleDir/bin/motif_enrichment/delta_svm_match_bg.R \
         tmp.bed \
         ${name}
     """
