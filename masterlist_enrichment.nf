@@ -244,7 +244,7 @@ process overlap_and_sample {
     """
 }
 
-workflow motifEnrichment {
+workflow randomRegionEnrichment {
     motifs_meta = Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
         | filter { it[0] == "M02739_2.00" }
