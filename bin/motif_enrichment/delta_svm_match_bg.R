@@ -35,6 +35,6 @@ genNullSeqs(
     repeat_match_tol = 1,
     GC_match_tol = 0.05,
     length_match_tol = 0.05,
-    batchsize = 500000, # large: no problem with memory
+    batchsize = 100000, # large: no problem with memory
     nMaxTrials = 20 # large: more sequences are matched. Vice versa
 )
