@@ -187,6 +187,7 @@ process annotate_regions {
         | cut -f 1-3 \
         | sort-bed - > tmp.bed
 
+
     faidx -i nucleotide \
         -b tmp.bed \
         ${params.genome_fasta} \
@@ -259,14 +260,14 @@ workflow motifEnrichment {
         | combine(ref_files.collect())
         | overlap_and_sample
     
-    motifs_meta
-        | combine()
-        | motif_hits_intersect
-        | combine()
+    // motifs_meta
+    //     | combine()
+    //     | motif_hits_intersect
+    //     | combine()
 
 
-        | motif_hits_intersect
-        | combine(sampled_bg)
-        | generate_bed
+    //     | motif_hits_intersect
+    //     | combine(sampled_bg)
+    //     | generate_bed
 
 }
