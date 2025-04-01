@@ -136,7 +136,7 @@ process split_masterlist_in_chunks {
     prefix = "masterlist.chunk."
     """
     grep -v '#' ${masterlist_file} \
-        | cut -f 1-3 
+        | cut -f 1-3 \
         | split \
             -l 100000 \
             --suffix-length=4 \
