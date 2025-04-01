@@ -168,7 +168,7 @@ process sample_matching_bg {
 
 process annotate_regions {
 
-    conda params.conda
+    conda '/home/sabramov/miniconda3/envs/super-index'
     publishDir "${params.outdir}/motif_enrichment/regions"
     tag "${prefix}"
 
