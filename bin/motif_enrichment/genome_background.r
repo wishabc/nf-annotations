@@ -15,6 +15,7 @@ library(IRanges)
 # Workflow:
 # Read both, filter, run function.
 
+
 args = commandArgs(trailingOnly=TRUE)
 
 # test whether there are enough arguments provided: if not, return error message
