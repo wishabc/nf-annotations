@@ -190,10 +190,10 @@ process annotate_regions {
         -b tmp.bed \
         ${params.genome_fasta} \
         | awk -v OFS="\t" \
-            'NR>1 { 
-                total=\$4+\$5+\$6+\$7+\$8;
-                cg=\$6+\$7;
-                print \$1, \$2, \$3, \$3-\$2, cg, cg/total; }'
+            'NR>1 {  \
+                total=\$4+\$5+\$6+\$7+\$8; \
+                cg=\$6+\$7; \
+                print \$1, \$2, \$3, \$3-\$2, cg, cg/total; }' \
         | python3 $moduleDir/bin/motif_enrichment/assign_bins.py ${name}
     """
 }
