@@ -133,7 +133,7 @@ process split_masterlist_in_chunks {
         path "${prefix}*.bed"
 
     script:
-    prefix = "masterlist.chunk."
+    prefix = "part"
     """
     grep -v '#' ${masterlist_file} \
         | cut -f 1-3 \
