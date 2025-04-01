@@ -126,7 +126,7 @@ workflow fromBinaryMatrix {
 
 process sample_matching_bg {
 
-    conda params.conda
+    conda '/home/afathul/miniconda3/envs/r-kernel'
     tag "${iter}"
 
     input:
