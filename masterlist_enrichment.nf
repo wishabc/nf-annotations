@@ -171,6 +171,7 @@ process annotate_regions {
     conda '/home/sabramov/miniconda3/envs/super-index'
     publishDir "${params.outdir}/motif_enrichment/"
     tag "${prefix}"
+    label "high_mem"
 
     input:
         path bed_file
@@ -219,8 +220,11 @@ workflow getRegionsSamplingPool {
 }
 
 
+
 process overlap_and_sample {
-        conda params.conda
+    conda params.conda
+    tag "${motif_id}"
+    publishDir "${params.outdir}/motif_enrichment/per_motif/${motif_id}"
 
     input:
         tuple val(motif_id), path(motif_indicator), path(sampled_regions_pool), path(masterlist)
@@ -239,18 +243,30 @@ process overlap_and_sample {
     """
 }
 
-// workflow motifEnrichment {
+workflow motifEnrichment {
 
-//     Channel.fromPath("${params.outdir}/motif_enrichment/*.annotated.bed")
+    motifs_meta = Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
+        | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
+        | filter { it[0] == "M02739_2.00" }
 
-//     Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
-//         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
-//         | filter { it[0] == "M02739_2.00" }
-//         | combine(
-//             masterlist
-//         ) // motif_id, motif_hits, masterlist
-//         | motif_hits_intersect
-//         | combine(sampled_bg)
-//         | generate_bed
+    ref_files = Channel.fromPath("${params.outdir}/motif_enrichment/*.annotated.bed")
 
-// }
+    sampled_regions = ref_files
+        | filter { ~it.simpleName.contains('sampled_regions_pool') }
+        | combine(motifs_meta)
+        | map(it -> tuple(it[1], it[2], it[0]))
+        | motif_hits_intersect
+        | combine(ref_files.collect())
+        | overlap_and_sample
+    
+    motifs_meta
+        | combine()
+        | motif_hits_intersect
+        | combine()
+
+
+        | motif_hits_intersect
+        | combine(sampled_bg)
+        | generate_bed
+
+}
