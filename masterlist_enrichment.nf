@@ -127,7 +127,7 @@ process split_masterlist_in_chunks {
     conda params.conda
 
     input:
-        tuple path masterlist_file
+        path masterlist_file
 
     output:
         path "${prefix}*.bed"
