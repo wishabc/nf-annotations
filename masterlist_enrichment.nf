@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-include { matricesListFromMeta } from './helpers'
+include { matricesListFromMeta; splitMatrices } from './helpers'
 params.conda = "$moduleDir/environment.yml"
 
 
@@ -262,6 +262,7 @@ process overlap_and_sample {
 
 workflow randomFromMatricesList {
     matricesListFromMeta()
+        | splitMatrices
         | randomRegionsEnrichment
 }
 
