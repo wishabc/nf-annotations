@@ -240,7 +240,7 @@ workflow getRegionsSamplingPool {
 
 process overlap_and_sample {
     conda params.conda
-    tag "${motif_id}"
+    tag "${motif_id}:${annotation_name}"
     publishDir "${params.outdir}/motif_enrichment/per_motif_samples/${motif_id}"
 
     input:
@@ -250,7 +250,7 @@ process overlap_and_sample {
         tuple val(motif_id), path(name)
 
     script:
-    name = "${motif_id}.sampled_regions.bed"
+    name = "${motif_id}.${annotation_name}.sampled_regions.bed"
     """
     python3 $moduleDir/bin/sample_regions.py \
         ${sampled_regions_pool} \
