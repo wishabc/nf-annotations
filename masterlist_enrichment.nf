@@ -247,8 +247,8 @@ workflow randomFromMatrix {
             | flatten()
         Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
             | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it)) // motif_id, motif_hits
-            | combine(matrices) // motif_id, motif_hits, prefix, matrix, names
-            | motifEnrichment
+            | combine(annotations) // motif_id, motif_hits, prefix, matrix, names
+            | randomRegionsEnrichment
 }
 
 
