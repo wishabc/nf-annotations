@@ -24,10 +24,10 @@ if (length(args) < 2) {
         stop("At least something input should be provided", call.=FALSE)
 }
 
+# Define the standard chromosomes
 allowed_chr <- paste0("chr", c(1:22, "X", "Y"))
-
-# Subset the genome to include only these chromosomes
-genome_filtered <- Hsapiens[allowed_chr]
+# Extract the sequences for only these chromosomes
+genome <- getSeq(Hsapiens, allowed_chr)
 
 # BSgenome.Hsapiens.UCSC.hg38.masked
 genNullSeqs(
