@@ -200,7 +200,7 @@ workflow getRegionsSamplingPool {
         | map(it -> tuple('sampled_regions_pool', it))
         | mix(masterlist)
         | annotate_regions
-        | filter { ~it[1].name.contains('sampled_regions_pool') }
+        | filter { !it[1].name.contains('sampled_regions_pool') }
         | combine(motifs_meta)
         | map(it -> tuple(it[2], it[3], it[0], it[1]))
         | motif_hits_intersect
