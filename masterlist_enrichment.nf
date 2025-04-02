@@ -261,21 +261,8 @@ process overlap_and_sample {
 }
 
 workflow randomFromMatricesList {
-    Channel.fromPath(params.matrices_list)
-        | splitCsv(header:true, sep:'\t')
-        | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
-        | randomFromMatrix
-}
-
-workflow randomFromMatrix {
-    take:
-        matrices // prefix, matrix, names
-    main:
-        annotations = matrices
-            | split_matrices // matrix_name, dhs_coordinates, masks
-            | map(it -> it[2])
-            | flatten()
-            | randomRegionsEnrichment
+    matricesListFromMeta()
+        | randomRegionsEnrichment
 }
 
 
