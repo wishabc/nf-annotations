@@ -27,7 +27,7 @@ if (length(args) < 2) {
 allowed_chr <- paste0("chr", c(1:22, "X", "Y"))
 
 # Subset the genome to include only these chromosomes
-genome_filtered <- Hsapiens[standard_chroms]
+genome_filtered <- Hsapiens[allowed_chr]
 
 # BSgenome.Hsapiens.UCSC.hg38.masked
 genNullSeqs(
