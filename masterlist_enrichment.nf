@@ -256,6 +256,7 @@ process overlap_and_sample {
         ${sampled_regions_pool} \
         ${masterlist} \
         ${motif_indicator} \
+        ${annotation} \
         ${name}
     """
 }

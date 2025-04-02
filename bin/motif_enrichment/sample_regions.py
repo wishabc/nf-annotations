@@ -35,8 +35,10 @@ if __name__ == "__main__":
     masterlist_df = pd.read_table(sys.argv[1], names=header)
     regions_pool = pd.read_table(sys.argv[2], names=header)
     motif_indicator = np.loadtxt(sys.argv[3], dtype=bool)
+    annotation_indicator = np.loadtxt(sys.argv[4], dtype=bool)
+
     n_samples = 100
-    masterlist_df = masterlist_df[motif_indicator]
+    masterlist_df = masterlist_df[motif_indicator & annotation_indicator]
     sampled_indices = main(masterlist_df, regions_pool, n_samples)
     samples = []
     for random_state, indices in tqdm(sampled_indices.items(), total=len(sampled_indices)):
@@ -44,7 +46,7 @@ if __name__ == "__main__":
             regions_pool.loc[indices, :].eval(f'sample = {random_state}')
         )
     pd.concat(samples).sort_index().to_csv(
-        sys.argv[4],
+        sys.argv[5],
         sep='\t',
         index=False,
         header=False,
