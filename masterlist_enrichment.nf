@@ -179,7 +179,8 @@ process annotate_regions {
     """
 }
 
-process sort_bed {
+
+process to_parquet {
     conda params.conda
     tag "${prefix}"
     publishDir "${params.outdir}/motif_enrichment/"
@@ -192,9 +193,9 @@ process sort_bed {
         tuple val(prefix), path(name)
 
     script:
-    name = "${prefix}.sorted.bed"
+    name = "${prefix}.parquet"
     """
-    sort-bed ${bed_file} > ${name}
+    python3 $moduleDir/bin/motif_enrichment/convert_to_parquet.py ${bed_file} ${name}
     """
 }
 
