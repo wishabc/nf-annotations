@@ -242,6 +242,7 @@ process overlap_and_sample {
     conda params.conda
     tag "${motif_id}:${annotation_name}"
     publishDir "${params.outdir}/motif_enrichment/per_motif_samples/${motif_id}"
+    label "med_mem"
 
     input:
         tuple val(motif_id), path(motif_indicator), val(annotation_name), path(annotation), path(sampled_regions_pool), path(masterlist)
