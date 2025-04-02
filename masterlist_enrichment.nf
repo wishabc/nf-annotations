@@ -265,7 +265,7 @@ workflow randomRegionsEnrichment {
 
         ref_files = Channel.fromPath("${params.outdir}/motif_enrichment/*.annotated.bed")
             | branch { v -> 
-                sampled: ~it.simpleName.contains('sampled_regions_pool')
+                sampled: !it.simpleName.contains('sampled_regions_pool')
                 masterlist: true
             }
 
