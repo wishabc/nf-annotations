@@ -23,6 +23,7 @@ if (length(args) < 2) {
         stop("At least something input should be provided", call.=FALSE)
 }
 
+seqlevels(BSgenome.Hsapiens.UCSC.hg38.masked) <- paste0("chr", c(1:22, "X", "Y"))
 
 # BSgenome.Hsapiens.UCSC.hg38.masked
 genNullSeqs(

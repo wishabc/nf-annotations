@@ -3,35 +3,13 @@ include { extract_from_anndata } from './helpers'
 params.conda = "$moduleDir/environment.yml"
 
 
-process calc_prop_accessibility {
-    conda params.conda
-    publishDir "${params.outdir}"
-    label "high_mem"
-    
-    input:
-        tuple val(id), path(binary_matrix), path(sample_names), path(masterlist_file)
-
-    output:
-        path name
-    
-    script:
-    name = "proportion_accessibility.tsv"
-    """
-    python $moduleDir/bin/calc_prop_accessibility.py \
-        ${binary_matrix} \
-        ${masterlist_file} \
-        ${name} \
-        --samples_weights ${params.sample_weights}
-    """
-}
-
 process motif_hits_intersect {
     tag "${motif_id}"
     conda params.conda
-    publishDir "${params.outdir}/motif_hits", pattern: "${motif_id}.hits.bed"
+    publishDir "${params.outdir}/motif_hits/${prefix}"
 
     input:
-        tuple val(motif_id), path(moods_file), path(masterlist_file)
+        tuple val(motif_id), path(moods_file), val(prefix), path(bed_file)
 
     output:
         tuple val(motif_id), path(indicator_file)
@@ -41,7 +19,7 @@ process motif_hits_intersect {
     """
     zcat ${moods_file} \
         | bedmap --indicator --sweep-all \
-        --fraction-map 1 <(grep -v '#' ${masterlist_file}) - > ${indicator_file}
+        --fraction-map 1 <(grep -v '#' ${bed_file}) - > ${indicator_file}
     """
 }
 
@@ -127,13 +105,12 @@ process split_masterlist_in_chunks {
     conda params.conda
 
     input:
-        path masterlist_file
+        tuple val(prefix), path(masterlist_file)
 
     output:
         path "${prefix}*.bed"
 
     script:
-    prefix = "part"
     """
     grep -v '#' ${masterlist_file} \
         | cut -f 1-3 \
@@ -172,15 +149,15 @@ process annotate_regions {
     publishDir "${params.outdir}/motif_enrichment/"
     tag "${prefix}"
     label "high_mem"
+    scratch true
 
     input:
-        path bed_file
+        tuple val(prefix), path(bed_file)
 
     output:
-        path name
+        tuple val(prefix), path(name)
 
     script:
-    prefix = "${bed_file.simpleName}"
     name = "${prefix}.annotated.bed"
     """
     grep -v '#' ${bed_file} \
@@ -202,6 +179,11 @@ process annotate_regions {
 
 workflow getRegionsSamplingPool {
     masterlist = Channel.fromPath(params.masterlist_file)
+        | map(it -> tuple("index", it))
+
+    motifs_meta = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
+        | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
+
     chunks = masterlist
         | split_masterlist_in_chunks
         | flatten()
@@ -216,8 +198,13 @@ workflow getRegionsSamplingPool {
             sort: true,
             name: 'sampled_regions_pool.bed',
         )
+        | map(it -> tuple('sampled_regions_pool', it))
         | mix(masterlist)
         | annotate_regions
+        | filter { ~it[1].name.contains('sampled_regions_pool') }
+        | combine(motifs_meta)
+        | map(it -> tuple(it[2], it[3], it[0], it[1]))
+        | motif_hits_intersect
 }
 
 
@@ -225,16 +212,16 @@ workflow getRegionsSamplingPool {
 process overlap_and_sample {
     conda params.conda
     tag "${motif_id}"
-    publishDir "${params.outdir}/motif_enrichment/per_motif/${motif_id}"
+    publishDir "${params.outdir}/motif_enrichment/per_motif_samples/${motif_id}"
 
     input:
         tuple val(motif_id), path(motif_indicator), path(sampled_regions_pool), path(masterlist)
 
     output:
-        path name
+        tuple val(motif_id), path("${prefix}*.bed")
 
     script:
-    name = "${motif_id}.sampled_regions.bed"
+    prefix = "${motif_id}.sampled_regions"
     """
     python3 $moduleDir/bin/sample_regions.py \
         ${sampled_regions_pool} \
@@ -244,10 +231,13 @@ process overlap_and_sample {
     """
 }
 
-workflow randomRegionEnrichment {
-    motifs_meta = Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
+workflow randomRegionsEnrichment {
+    motif_hits = Channel.fromPath("${params.template_run}/motif_enrichment/index/*.hits.bed")
         | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
         | filter { it[0] == "M02739_2.00" }
+    
+    motifs_meta = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
+        | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
 
     ref_files = Channel.fromPath("${params.outdir}/motif_enrichment/*.annotated.bed")
         | branch { v -> 
@@ -255,22 +245,42 @@ workflow randomRegionEnrichment {
             masterlist: true
         }
 
-    sampled_regions = ref_files.masterlist
-        | combine(motifs_meta)
-        | map(it -> tuple(it[1], it[2], it[0]))
-        | motif_hits_intersect
+    sampled_regions = motif_hits
         | combine(ref_files.sampled)
         | combine(ref_files.masterlist)
         | overlap_and_sample
-    
-    // motifs_meta
-    //     | combine()
-    //     | motif_hits_intersect
-    //     | combine()
-
-
-    //     | motif_hits_intersect
-    //     | combine(sampled_bg)
-    //     | generate_bed
-
+        | transpose()
+        | combine(motifs_meta, by: 0)
+        | map(it -> tuple(it[0], it[2], it[1].baseName, it[1]))
+        | motif_hits_intersect
+        // | count_number_of_hits
+        // | collectFile(
+        //     storeDir: "${params.outdir}/motif_enrichment/${it[0]}/",
+        //     skip: 1,
+        //     sort: true,
+        //     keepHeader: true
+        // )
 }
+
+// DEFUNC
+// process calc_prop_accessibility {
+//     conda params.conda
+//     publishDir "${params.outdir}"
+//     label "high_mem"
+    
+//     input:
+//         tuple val(id), path(binary_matrix), path(sample_names), path(masterlist_file)
+
+//     output:
+//         path name
+    
+//     script:
+//     name = "proportion_accessibility.tsv"
+//     """
+//     python $moduleDir/bin/calc_prop_accessibility.py \
+//         ${binary_matrix} \
+//         ${masterlist_file} \
+//         ${name} \
+//         --samples_weights ${params.sample_weights}
+//     """
+// }
