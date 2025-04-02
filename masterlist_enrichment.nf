@@ -139,7 +139,9 @@ process sample_matching_bg {
     """
     Rscript $moduleDir/bin/motif_enrichment/delta_svm_match_bg.R \
         ${bed_file} \
-        ${name}
+        tmp.bed
+    
+    grep -w -F -f ${params.nuclear_chroms} tmp.bed > ${name}
     """
 }
 
@@ -160,7 +162,7 @@ process annotate_regions {
     script:
     name = "${prefix}.annotated.bed"
     """
-    grep -w -F -f ${params.nuclear_chroms} ${bed_file} \
+    cat ${bed_file} \
         | cut -f 1-3 \
         | sort-bed - > tmp.bed
 
