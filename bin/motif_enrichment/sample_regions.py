@@ -38,10 +38,16 @@ if __name__ == "__main__":
     n_samples = 100
     masterlist_df = masterlist_df[motif_indicator]
     sampled_indices = main(masterlist_df, regions_pool, n_samples)
+    samples = []
     for random_state, indices in tqdm(sampled_indices.items(), total=len(sampled_indices)):
-        indices = sorted(indices)
-        regions_pool.loc[indices, :].to_csv(
-            f"{sys.argv[4]}.{random_state}.txt",
-            sep='\t',
-            index=False
+        samples.append(
+            regions_pool.loc[indices, :].eval(f'sample = {random_state}')
         )
+    pd.concat(samples).sort_index().to_csv(
+        sys.argv[4],
+        sep='\t',
+        index=False,
+        header=False,
+    )
+    
+        
