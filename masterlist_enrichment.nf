@@ -160,10 +160,9 @@ process annotate_regions {
     script:
     name = "${prefix}.annotated.bed"
     """
-    grep -v '#' ${bed_file} \
+    grep -w -F -f ${params.nuclear_chroms} ${bed_file} \
         | cut -f 1-3 \
         | sort-bed - > tmp.bed
-
 
     faidx -i nucleotide \
         -b tmp.bed \

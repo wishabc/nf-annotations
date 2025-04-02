@@ -2,7 +2,6 @@
 library(gkmSVM)
 library(BSgenome.Hsapiens.UCSC.hg38.masked)
 library(IRanges)
-library(GenomicRanges)
 
 # Input:
 # a bed file: motif_bed
@@ -24,15 +23,11 @@ if (length(args) < 2) {
         stop("At least something input should be provided", call.=FALSE)
 }
 
-# Define the standard chromosomes
-allowed_chr <- paste0("chr", c(1:22, "X", "Y"))
-# Extract the sequences for only these chromosomes
-genome <- getSeq(Hsapiens, allowed_chr)
 
 # BSgenome.Hsapiens.UCSC.hg38.masked
 genNullSeqs(
   inputBedFN = args[1],
-  genome = genome,
+  genome = BSgenome.Hsapiens.UCSC.hg38.masked,
   outputBedFN = args[2],
   outputPosFastaFN = paste0('tmp.posSet.dhs.fa'),
   outputNegFastaFN = paste0('tmp.negSet.dhs.fa'),
