@@ -290,16 +290,14 @@ workflow randomRegionsEnrichment {
         motifs_meta = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
             | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
 
-        ref_files = Channel.fromPath("${params.outdir}/motif_enrichment/*.annotated.bed")
-            | branch { v -> 
-                sampled: !it.simpleName.contains('sampled_regions_pool')
-                masterlist: true
-            }
+        sampled = Channel.fromPath("${params.outdir}/motif_enrichment/sampled_regions_pool.sorted.bed")
+         
+        annotated_masterlist = Channel.fromPath("${params.outdir}/motif_enrichment/index.annotated.bed")
 
         sampled_regions = motif_hits
             | combine(annotation)
-            | combine(ref_files.sampled)
-            | combine(ref_files.masterlist)
+            | combine(sampled)
+            | combine(annotated_masterlist)
             | overlap_and_sample
             | transpose()
             | combine(motifs_meta, by: 0)
