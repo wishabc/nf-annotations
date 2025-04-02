@@ -244,7 +244,7 @@ process overlap_and_sample {
     publishDir "${params.outdir}/motif_enrichment/per_motif_samples/${motif_id}"
 
     input:
-        tuple val(motif_id), path(motif_indicator), path(annotation), path(sampled_regions_pool), path(masterlist)
+        tuple val(motif_id), path(motif_indicator), val(annotation_name), path(annotation), path(sampled_regions_pool), path(masterlist)
 
     output:
         tuple val(motif_id), path("${prefix}.bed")
@@ -263,6 +263,7 @@ process overlap_and_sample {
 workflow randomFromMatricesList {
     matricesListFromMeta()
         | splitMatrices
+        | map(it -> tuple(it[1], it[2]))
         | randomRegionsEnrichment
 }
 
