@@ -2,6 +2,7 @@
 library(gkmSVM)
 library(BSgenome.Hsapiens.UCSC.hg38.masked)
 library(IRanges)
+library(GenomicRanges)
 
 # Input:
 # a bed file: motif_bed
@@ -23,12 +24,14 @@ if (length(args) < 2) {
         stop("At least something input should be provided", call.=FALSE)
 }
 
-seqlevels(BSgenome.Hsapiens.UCSC.hg38.masked) <- paste0("chr", c(1:22, "X", "Y"))
+allowed_chr <- paste0("chr", c(1:22, "X", "Y"))
+
+genome <- keepSeqlevels(BSgenome.Hsapiens.UCSC.hg38.masked, value = allowed_chr, pruning.mode = "coarse")
 
 # BSgenome.Hsapiens.UCSC.hg38.masked
 genNullSeqs(
   inputBedFN = args[1],
-  genome = BSgenome.Hsapiens.UCSC.hg38.masked,
+  genome = genome,
   outputBedFN = args[2],
   outputPosFastaFN = paste0('tmp.posSet.dhs.fa'),
   outputNegFastaFN = paste0('tmp.negSet.dhs.fa'),
