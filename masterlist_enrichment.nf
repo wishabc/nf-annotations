@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-include { extract_from_anndata } from './helpers'
+include { extract_from_anndata; split_matrices } from './helpers'
 params.conda = "$moduleDir/environment.yml"
 
 
