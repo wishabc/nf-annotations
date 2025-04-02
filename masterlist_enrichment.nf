@@ -148,7 +148,7 @@ process sample_matching_bg {
 process annotate_regions {
 
     conda '/home/sabramov/miniconda3/envs/super-index'
-    publishDir "${params.outdir}/motif_enrichment/"
+    publishDir "${params.outdir}/motif_enrichment/", enabled: prefix == "index"
     tag "${prefix}"
     label "high_mem"
     scratch true
@@ -173,8 +173,28 @@ process annotate_regions {
             'NR>1 {  \
                 total=\$4+\$5+\$6+\$7+\$8; \
                 cg=\$6+\$7; \
-                print \$1, \$2, \$3, \$3-\$2, cg, cg/total; }' \
-        | python3 $moduleDir/bin/motif_enrichment/assign_bins.py ${name}
+                print \$1, \$2, \$3, \$3-\$2, cg, cg/total; }' > annotated.bed
+    
+    python3 $moduleDir/bin/motif_enrichment/assign_bins.py annotated.bed ${name}
+    """
+}
+
+process sort_bed {
+    conda params.conda
+    tag "${prefix}"
+    publishDir "${params.outdir}/motif_enrichment/"
+    label "high_mem"
+
+    input:
+        tuple val(prefix), path(bed_file)
+
+    output:
+        tuple val(prefix), path(name)
+
+    script:
+    name = "${prefix}.sorted.bed"
+    """
+    sort-bed ${bed_file} > ${name}
     """
 }
 
@@ -194,15 +214,23 @@ workflow getRegionsSamplingPool {
         | combine(chunks)
         | sample_matching_bg
         | mix(chunks)
+        | annotate_regions
+        | mix(masterlist)
+        | branch {
+            masterlist: it[0] == 'index'
+            sampled: true
+        }
+    
+    sampled_bg.sampled
         | map(it -> it[1])
         | collectFile(
             sort: true,
             name: 'sampled_regions_pool.bed',
         )
         | map(it -> tuple('sampled_regions_pool', it))
-        | mix(masterlist)
-        | annotate_regions
-        | filter { !it[1].name.contains('sampled_regions_pool') }
+        | sort_bed
+
+    sampled_bg.masterlist
         | combine(motifs_meta)
         | map(it -> tuple(it[2], it[3], it[0], it[1]))
         | motif_hits_intersect
