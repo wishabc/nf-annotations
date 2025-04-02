@@ -148,7 +148,7 @@ process sample_matching_bg {
 process annotate_regions {
 
     conda '/home/sabramov/miniconda3/envs/super-index'
-    publishDir "${params.outdir}/motif_enrichment/", enabled: prefix == "index"
+    publishDir "${params.outdir}/motif_enrichment/", pattern: "index.annotated.bed"
     tag "${prefix}"
     label "high_mem"
     scratch true
