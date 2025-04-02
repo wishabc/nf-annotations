@@ -214,8 +214,8 @@ workflow getRegionsSamplingPool {
         | combine(chunks)
         | sample_matching_bg
         | mix(chunks)
-        | annotate_regions
         | mix(masterlist)
+        | annotate_regions
         | branch {
             masterlist: it[0] == 'index'
             sampled: true
@@ -275,9 +275,6 @@ workflow randomFromMatrix {
             | split_matrices // matrix_name, dhs_coordinates, masks
             | map(it -> it[2])
             | flatten()
-        Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
-            | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it)) // motif_id, motif_hits
-            | combine(annotations) // motif_id, motif_hits, prefix, matrix, names
             | randomRegionsEnrichment
 }
 
@@ -286,7 +283,7 @@ workflow randomRegionsEnrichment {
     take:
         annotations
     main:
-        motif_hits = Channel.fromPath("${params.template_run}/motif_enrichment/index/*.hits.bed")
+        motif_hits = Channel.fromPath("${params.template_run}/motif_hits/index/*.hits.bed")
             | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
             | filter { it[0] == "M02739_2.00" }
         
