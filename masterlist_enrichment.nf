@@ -215,7 +215,7 @@ process overlap_and_sample {
     publishDir "${params.outdir}/motif_enrichment/per_motif_samples/${motif_id}"
 
     input:
-        tuple val(motif_id), path(motif_indicator), path(sampled_regions_pool), path(masterlist)
+        tuple val(motif_id), path(motif_indicator), path(annotation), path(sampled_regions_pool), path(masterlist)
 
     output:
         tuple val(motif_id), path("${prefix}*.bed")
@@ -231,35 +231,63 @@ process overlap_and_sample {
     """
 }
 
+workflow randomFromMatricesList {
+    Channel.fromPath(params.matrices_list)
+        | splitCsv(header:true, sep:'\t')
+        | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
+        | randomFromMatrix
+}
+
+workflow randomFromMatrix {
+    take:
+        matrices // prefix, matrix, names
+    main:
+        annotations = matrices
+            | split_matrices // matrix_name, dhs_coordinates, masks
+            | map(it -> it[2])
+            | flatten()
+        Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
+            | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it)) // motif_id, motif_hits
+            | combine(matrices) // motif_id, motif_hits, prefix, matrix, names
+            | motifEnrichment
+}
+
+
 workflow randomRegionsEnrichment {
-    motif_hits = Channel.fromPath("${params.template_run}/motif_enrichment/index/*.hits.bed")
-        | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
-        | filter { it[0] == "M02739_2.00" }
-    
-    motifs_meta = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
-        | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
+    take:
+        annotations
+    main:
+        motif_hits = Channel.fromPath("${params.template_run}/motif_enrichment/index/*.hits.bed")
+            | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
+            | filter { it[0] == "M02739_2.00" }
+        
+        motifs_meta = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
+            | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
 
-    ref_files = Channel.fromPath("${params.outdir}/motif_enrichment/*.annotated.bed")
-        | branch { v -> 
-            sampled: ~it.simpleName.contains('sampled_regions_pool')
-            masterlist: true
-        }
+        ref_files = Channel.fromPath("${params.outdir}/motif_enrichment/*.annotated.bed")
+            | branch { v -> 
+                sampled: ~it.simpleName.contains('sampled_regions_pool')
+                masterlist: true
+            }
 
-    sampled_regions = motif_hits
-        | combine(ref_files.sampled)
-        | combine(ref_files.masterlist)
-        | overlap_and_sample
-        | transpose()
-        | combine(motifs_meta, by: 0)
-        | map(it -> tuple(it[0], it[2], it[1].baseName, it[1]))
-        | motif_hits_intersect
-        // | count_number_of_hits
-        // | collectFile(
-        //     storeDir: "${params.outdir}/motif_enrichment/${it[0]}/",
-        //     skip: 1,
-        //     sort: true,
-        //     keepHeader: true
-        // )
+        sampled_regions = motif_hits
+            | combine(annotation)
+            | combine(ref_files.sampled)
+            | combine(ref_files.masterlist)
+            | overlap_and_sample
+            | transpose()
+            | combine(motifs_meta, by: 0)
+            | map(it -> tuple(it[0], it[2], it[1].baseName, it[1]))
+            | motif_hits_intersect
+            // | count_number_of_hits
+            // | collectFile(
+            //     storeDir: "${params.outdir}/motif_enrichment/${it[0]}/",
+            //     skip: 1,
+            //     sort: true,
+            //     keepHeader: true
+            // )
+    emit:
+        motif_hits_intersect.out
 }
 
 // DEFUNC
