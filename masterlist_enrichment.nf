@@ -229,7 +229,7 @@ workflow getRegionsSamplingPool {
             name: 'sampled_regions_pool.bed',
         )
         | map(it -> tuple('sampled_regions_pool', it))
-        | sort_bed
+        | to_parquet
 
     sampled_bg.masterlist
         | combine(motifs_meta)
