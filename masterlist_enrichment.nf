@@ -173,7 +173,7 @@ process annotate_regions {
             'NR>1 {  \
                 total=\$4+\$5+\$6+\$7+\$8; \
                 cg=\$6+\$7; \
-                print \$1, \$2, \$3, \$3-\$2, cg, cg/total; }' > annotated.bed
+                print \$1, \$2-1, \$3, \$3-\$2, cg, cg/total; }' > annotated.bed
     
     python3 $moduleDir/bin/motif_enrichment/assign_bins.py annotated.bed ${name}
     """
