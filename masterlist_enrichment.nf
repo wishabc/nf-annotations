@@ -293,7 +293,7 @@ workflow randomRegionsEnrichment {
             | combine(annotated_masterlist)
             | overlap_and_sample
             | combine(motifs_meta, by: 0)
-            | map(it -> tuple(it[0], it[2], it[1].baseName, it[1]))
+            | map(it -> tuple(it[0], it[3], it[1], it[2]))
             | motif_hits_intersect
             // | count_number_of_hits
             // | collectFile(
