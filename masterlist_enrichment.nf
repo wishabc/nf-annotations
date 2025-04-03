@@ -184,7 +184,6 @@ process overlap_and_sample {
     python3 $moduleDir/bin/motif_enrichment/sample_regions.py \
         ${masterlist} \
         ${sampled_regions_pool} \
-        ${motif_indicator} \
         ${annotation} \
         ${annotation_coordinates} \
         ${name} \
