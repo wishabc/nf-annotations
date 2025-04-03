@@ -246,12 +246,13 @@ process overlap_and_sample {
     label "med_mem"
 
     input:
-        tuple val(motif_id), path(motif_indicator), val(annotation_name), path(annotation), path(annotation_coordinates), path(sampled_regions_pool), path(masterlist)
+        tuple val(annotation_name), path(annotation), path(annotation_coordinates), path(sampled_regions_pool), path(masterlist)
 
     output:
-        tuple val(motif_id), val(annotation_name), path(name)
+        tuple val(motif_id), val(annotation_name), path(name), path(reference_motif)
 
     script:
+    reference_dhs = "${motif_id}.${annotation_name}.sampled_regions.bed"
     name = "${motif_id}.${annotation_name}.sampled_regions.bed"
     """
     python3 $moduleDir/bin/motif_enrichment/sample_regions.py \

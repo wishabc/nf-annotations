@@ -31,23 +31,20 @@ if __name__ == "__main__":
     masterlist_df['start'] -= 1 
     masterlist_df = masterlist_df.set_index(['#chr', 'start', 'end'])
     regions_pool_path = sys.argv[2]
-    motif_indicator = np.loadtxt(sys.argv[3], dtype=bool)
 
-    annotation_coordinates = pd.read_table(sys.argv[5]).set_index(['#chr', 'start', 'end'])
+    annotation_coordinates = pd.read_table(sys.argv[4]).set_index(['#chr', 'start', 'end'])
 
-    annotation_indicator = np.loadtxt(sys.argv[4], dtype=bool)
+    annotation_indicator = np.loadtxt(sys.argv[3], dtype=bool)
     annotation_mask = masterlist_df.index.isin(annotation_coordinates.index)
     print(annotation_mask.sum())
     annotation_indicator_mask = np.zeros(len(masterlist_df), dtype=bool)
     annotation_indicator_mask[annotation_mask] = annotation_indicator
 
-
-    final_mask = motif_indicator & annotation_indicator_mask
-    print(f'Motif hits within annotation: {final_mask.sum()}')                                               
+    print(f'DHSs with annotation: {annotation_indicator_mask.sum()}')                                               
     print('Filtering data...')
     random_state = 42
     n_samples = 100
-    masterlist_df = masterlist_df[final_mask]
+    masterlist_df = masterlist_df[annotation_indicator_mask]
     sampled_data = main(masterlist_df, regions_pool_path, n_samples)
     sampled_data['start'] -= 1 # FIXME from top level script
     print('Writing data...')
