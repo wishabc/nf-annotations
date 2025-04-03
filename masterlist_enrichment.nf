@@ -3,75 +3,6 @@ include { matricesListFromMeta; splitMatrices } from './helpers'
 params.conda = "$moduleDir/environment.yml"
 
 
-process motif_hits_intersect {
-    tag "${motif_id}"
-    conda params.conda
-    // publishDir "${params.outdir}/motif_hits/${prefix}"
-
-    input:
-        tuple val(prefix), val(sampling_type), path(bed_file), val(motif_id), path(moods_file), 
-
-    output:
-        tuple val(prefix), val(sampling_type), path(name)
-
-    script:
-    name = "${prefix}.${motif_id}.${sampling_type}.stats.tsv"
-    """
-    zcat ${moods_file} \
-        | bedmap --indicator --sweep-all \
-        --fraction-map 1 <(grep -v '#' ${bed_file}) - > mask.txt
-    
-    echo "motif_id\tprefix\tsampling_type\toverlaps\ttotal" > ${name}
-    awk -v OFS='\t' \
-        '{ ones += \$1; total++ } \
-        END { print "${motif_id}", "${prefix}", "${sampling_type}", ones, total }' \
-        mask.txt >> ${name}
-
-    """
-}
-
-process motif_enrichment_z_score {
-    conda params.conda
-    tag "${motif_id}:${matrix_type}"
-    publishDir "${params.outdir}/motif_enrichment/${matrix_type}"
-    label "med_mem"
-
-    input:
-        tuple val(motif_id), path(indicator_file), val(matrix_type), path(binary_matrix), path(sample_names), path(accessibility_proportion)
-    
-    output:
-        tuple val(matrix_type), val(motif_id), path(name)
-    
-    script:
-    name = "${motif_id}.${matrix_type}.z_score.tsv"
-    """
-    python $moduleDir/bin/subsample_proportion.py \
-        ${motif_id} \
-        ${indicator_file} \
-        ${name} \
-        ${binary_matrix} \
-        ${accessibility_proportion} \
-        --sample_names ${sample_names} \
-        --n_bins ${params.matching_bins}
-    """
-}
-
-workflow motifEnrichment {
-    take:
-        data
-    main: 
-        out = data
-            | motif_enrichment_z_score
-            | collectFile(
-                storeDir: params.outdir,
-                skip: 1,
-                sort: true,
-                keepHeader: true
-            ) { it -> [ "${it[0]}.z_score_stats.tsv", it[2].text ] }
-    emit:
-        out
-}
-
 workflow fromMatrix {
     take:
         matrices // prefix, matrix, names
@@ -258,6 +189,33 @@ process overlap_and_sample {
         ${annotation_coordinates} \
         ${name} \
         ${reference_dhs}
+    """
+}
+
+process motif_hits_intersect {
+    tag "${motif_id}"
+    conda params.conda
+    // publishDir "${params.outdir}/motif_hits/${prefix}"
+
+    input:
+        tuple val(prefix), val(sampling_type), path(bed_file), val(motif_id), path(moods_file), 
+
+    output:
+        tuple val(prefix), val(sampling_type), path(name)
+
+    script:
+    name = "${prefix}.${motif_id}.${sampling_type}.stats.tsv"
+    """
+    zcat ${moods_file} \
+        | bedmap --indicator --sweep-all \
+        --fraction-map 1 <(grep -v '#' ${bed_file}) - > mask.txt
+    
+    echo "motif_id\tprefix\tsampling_type\toverlaps\ttotal" > ${name}
+    awk -v OFS='\t' \
+        '{ ones += \$1; total++ } \
+        END { print "${motif_id}", "${prefix}", "${sampling_type}", ones, total }' \
+        mask.txt >> ${name}
+
     """
 }
 
