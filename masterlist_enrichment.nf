@@ -201,7 +201,7 @@ process motif_hits_intersect {
         tuple val(prefix), val(sampling_type), path(bed_file), val(motif_id), path(moods_file)
 
     output:
-        tuple val(prefix), val(sampling_type), path(name)
+        tuple val(prefix), path(name)
 
     script:
     name = "${prefix}.${motif_id}.${sampling_type}.stats.tsv"
@@ -250,6 +250,7 @@ workflow randomRegionsEnrichment {
             | mix(sampled_regions.reference)
             | combine(motifs_meta)
             | motif_hits_intersect
+            | map(it -> it[1])
             | collectFile(
                 storeDir: "${params.outdir}/motif_enrichment/",
                 skip: 1,
