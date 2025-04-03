@@ -249,7 +249,7 @@ process overlap_and_sample {
         tuple val(motif_id), path(motif_indicator), val(annotation_name), path(annotation), path(annotation_coordinates), path(sampled_regions_pool), path(masterlist)
 
     output:
-        tuple val(motif_id), path(name)
+        tuple val(motif_id), val(annotation_name), path(name)
 
     script:
     name = "${motif_id}.${annotation_name}.sampled_regions.bed"
