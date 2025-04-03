@@ -17,16 +17,12 @@ def main(masterlist_df, regions_pool_path, n_samples):
     sampled_data = []
 
     for index, n in tqdm(count_to_sample.items(), total=len(count_to_sample)):
-        t0 = time.perf_counter()
         data = pd.read_parquet(regions_pool_path, filters=[('gc_bin', '==', index[0]), ('length_bin', '==', index[1])])
-        t1 = time.perf_counter()
-        print(f"[{index}] Read parquet in {t1 - t0:.2f}s", flush=True)
-        for random_state in np.arange(n_samples):
-            sampled = data.sample(n=n, random_state=random_state, replace=False)
-            sampled['sample_id'] = random_state
-            sampled_data.append(sampled)
+        sampled = data.sample(n=n * n_samples, random_state=random_state, replace=True)
+        sampled['sample_id'] = np.repeat(np.arange(n_samples), n)
+        sampled_data.append(sampled)
             
-    return sampled_data
+    return pd.concat(sampled_data, ignore_index=True)
 
 
 if __name__ == "__main__":
@@ -46,11 +42,11 @@ if __name__ == "__main__":
     annotation_indicator_mask[annotation_mask] = annotation_indicator
                                                      
     print('Filtering data...')
+    random_state = 42
     n_samples = 100
     masterlist_df = masterlist_df[motif_indicator & annotation_indicator_mask]
     sampled_data = main(masterlist_df, regions_pool_path, n_samples)
     print('Writing data...')
-    sampled_data = pd.concat(sampled_data)
     sampled_data.sort_values(['#chr', 'start']).to_csv(
         sys.argv[6],
         sep='\t',
