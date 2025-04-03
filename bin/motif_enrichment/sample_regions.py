@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 import sys
-
+import time
 
 def sample_random(df: pd.DataFrame, count_to_sample: pd.Series, seed):
     if df.name not in count_to_sample.index:
@@ -17,8 +17,10 @@ def main(masterlist_df, regions_pool_path, n_samples):
     sampled_data = []
 
     for index, n in tqdm(count_to_sample.items(), total=len(count_to_sample)):
+        t0 = time.perf_counter()
         data = pd.read_parquet(regions_pool_path, filters=[('gc_bin', '==', index[0]), ('length_bin', '==', index[1])])
-        print('Finished reading parquet chunk')
+        t1 = time.perf_counter()
+        print(f"[{index}] Read parquet in {t1 - t0:.2f}s", flush=True)
         for random_state in np.arange(n_samples):
             sampled = data.sample(n=n, random_state=random_state, replace=False)
             sampled['sample_id'] = random_state
