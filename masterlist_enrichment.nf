@@ -230,10 +230,6 @@ workflow randomRegionsEnrichment {
     take:
         annotations // prefix, annotation_mask, dhs_coordinates
     main:
-        motif_hits = Channel.fromPath("${params.template_run}/motif_hits/index/*.hits.bed")
-            | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
-            | filter { it[0] == "M02739_2.00" }
-        
         motifs_meta = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
             | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
 
