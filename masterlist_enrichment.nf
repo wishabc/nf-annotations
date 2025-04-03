@@ -6,20 +6,27 @@ params.conda = "$moduleDir/environment.yml"
 process motif_hits_intersect {
     tag "${motif_id}"
     conda params.conda
-    publishDir "${params.outdir}/motif_hits/${prefix}"
+    // publishDir "${params.outdir}/motif_hits/${prefix}"
 
     input:
-        tuple val(motif_id), path(moods_file), val(prefix), path(bed_file)
+        tuple val(prefix), val(sampling_type), path(bed_file), val(motif_id), path(moods_file), 
 
     output:
-        tuple val(motif_id), path(indicator_file)
+        tuple val(prefix), val(sampling_type), path(name)
 
     script:
-    indicator_file = "${motif_id}.hits.bed"
+    name = "${prefix}.${motif_id}.${sampling_type}.stats.tsv"
     """
     zcat ${moods_file} \
         | bedmap --indicator --sweep-all \
-        --fraction-map 1 <(grep -v '#' ${bed_file}) - > ${indicator_file}
+        --fraction-map 1 <(grep -v '#' ${bed_file}) - > mask.txt
+    
+    echo "motif_id\tprefix\tsampling_type\toverlaps\ttotal" > ${name}
+    awk -v OFS='\t' \
+        '{ ones += \$1; total++ } \
+        END { print "${motif_id}", "${prefix}", "${sampling_type}", ones, total }' \
+        mask.txt >> ${name}
+
     """
 }
 
@@ -203,9 +210,6 @@ workflow getRegionsSamplingPool {
     masterlist = Channel.fromPath(params.masterlist_file)
         | map(it -> tuple("index", it))
 
-    motifs_meta = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
-        | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
-
     chunks = masterlist
         | split_masterlist_in_chunks
         | flatten()
@@ -217,12 +221,7 @@ workflow getRegionsSamplingPool {
         | mix(chunks)
         | mix(masterlist)
         | annotate_regions
-        | branch {
-            masterlist: it[0] == 'index'
-            sampled: true
-        }
-    
-    sampled_bg.sampled
+        | filter { it[0] != 'index' }
         | map(it -> it[1])
         | collectFile(
             sort: true,
@@ -230,29 +229,25 @@ workflow getRegionsSamplingPool {
         )
         | map(it -> tuple('sampled_regions_pool', it))
         | to_parquet
-
-    sampled_bg.masterlist
-        | combine(motifs_meta)
-        | map(it -> tuple(it[2], it[3], it[0], it[1]))
-        | motif_hits_intersect
 }
 
 
 
 process overlap_and_sample {
     conda params.conda
-    tag "${motif_id}:${annotation_name}"
-    publishDir "${params.outdir}/motif_enrichment/per_motif_samples/${motif_id}"
+    tag "${annotation_name}"
+    publishDir "${params.outdir}/motif_enrichment/per_category_samples/"
     label "med_mem"
 
     input:
         tuple val(annotation_name), path(annotation), path(annotation_coordinates), path(sampled_regions_pool), path(masterlist)
 
     output:
-        tuple val(motif_id), val(annotation_name), path(name), path(reference_motif)
+        tuple val(annotation_name), val('sampled'), path(name), emit: sampled
+        tuple val(annotation_name), val('dhs'), path(reference_dhs), emit: reference
 
     script:
-    reference_dhs = "${motif_id}.${annotation_name}.sampled_regions.bed"
+    reference_dhs = "${motif_id}.${annotation_name}.reference_regions.bed"
     name = "${motif_id}.${annotation_name}.sampled_regions.bed"
     """
     python3 $moduleDir/bin/motif_enrichment/sample_regions.py \
@@ -261,14 +256,14 @@ process overlap_and_sample {
         ${motif_indicator} \
         ${annotation} \
         ${annotation_coordinates} \
-        ${name}
+        ${name} \
+        ${reference_dhs}
     """
 }
 
 workflow randomFromMatricesList {
     matricesListFromMeta()
         | splitMatrices
-        | map(it -> tuple(it[1], it[2], it[3]))
         | randomRegionsEnrichment
 }
 
@@ -288,44 +283,22 @@ workflow randomRegionsEnrichment {
          
         annotated_masterlist = Channel.fromPath("${params.template_run}/motif_enrichment/index.annotated.bed")
 
-        sampled_regions = motif_hits
-            | combine(annotations)
+        sampled_regions = annotations
             | combine(sampled)
             | combine(annotated_masterlist)
             | overlap_and_sample
-            | combine(motifs_meta, by: 0)
-            | map(it -> tuple(it[0], it[3], it[1], it[2]))
+        
+        result = sampled_regions.sampled
+            | mix(sampled_regions.dhs)
+            | combine(motifs_meta)
             | motif_hits_intersect
-            // | count_number_of_hits
-            // | collectFile(
-            //     storeDir: "${params.outdir}/motif_enrichment/${it[0]}/",
-            //     skip: 1,
-            //     sort: true,
-            //     keepHeader: true
-            // )
+            | collectFile(
+                storeDir: "${params.outdir}/motif_enrichment/",
+                skip: 1,
+                sort: true,
+                name: "enrichment_stats.tsv"
+                keepHeader: true
+            )
     emit:
-        motif_hits_intersect.out
+        result
 }
-
-// DEFUNC
-// process calc_prop_accessibility {
-//     conda params.conda
-//     publishDir "${params.outdir}"
-//     label "high_mem"
-    
-//     input:
-//         tuple val(id), path(binary_matrix), path(sample_names), path(masterlist_file)
-
-//     output:
-//         path name
-    
-//     script:
-//     name = "proportion_accessibility.tsv"
-//     """
-//     python $moduleDir/bin/calc_prop_accessibility.py \
-//         ${binary_matrix} \
-//         ${masterlist_file} \
-//         ${name} \
-//         --samples_weights ${params.sample_weights}
-//     """
-// }

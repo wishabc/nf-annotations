@@ -44,11 +44,17 @@ if __name__ == "__main__":
     print('Filtering data...')
     random_state = 42
     n_samples = 100
-    masterlist_df = masterlist_df[annotation_indicator_mask]
+    masterlist_df = masterlist_df[annotation_indicator_mask].dropna(subset=['gc_bin', 'length_bin'])
     sampled_data = main(masterlist_df, regions_pool_path, n_samples)
     sampled_data['start'] -= 1 # FIXME from top level script
     print('Writing data...')
     sampled_data.sort_values(['#chr', 'start']).to_csv(
+        sys.argv[5],
+        sep='\t',
+        index=False,
+        header=False,
+    )
+    masterlist_df.to_csv(
         sys.argv[6],
         sep='\t',
         index=False,
