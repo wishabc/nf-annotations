@@ -253,8 +253,7 @@ workflow randomRegionsEnrichment {
             | collectFile(
                 storeDir: "${params.outdir}/motif_enrichment/",
                 skip: 1,
-                sort: true,
-                name: "enrichment_stats.tsv"
+                name: "enrichment_stats.tsv",
                 keepHeader: true
             )
     emit:
