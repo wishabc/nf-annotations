@@ -242,6 +242,7 @@ workflow randomRegionsEnrichment {
         annotated_masterlist = Channel.fromPath("${params.template_run}/motif_enrichment/index.annotated.bed")
 
         sampled_regions = annotations
+            | map(it -> tuple(it[1], it[2], it[3]))
             | combine(sampled)
             | combine(annotated_masterlist)
             | overlap_and_sample
