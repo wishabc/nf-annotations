@@ -21,6 +21,7 @@ def main(masterlist_df, regions_pool_path, n_samples):
 
     for index, n in tqdm(count_to_sample.items(), total=len(count_to_sample)):
         data = pd.read_parquet(regions_pool_path, filters=[('gc_bin', '==', index[0]), ('length_bin', '==', index[1])])
+        print('Finished reading parquet chunk')
         for random_state in np.arange(n_samples):
             sampled = data.sample(n=n, random_state=random_state, replace=False)
             sampled['sample_id'] = random_state
