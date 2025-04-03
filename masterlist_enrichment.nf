@@ -179,6 +179,7 @@ process overlap_and_sample {
     script:
     name = "${annotation_name}.sampled_regions.bed"
     """
+    echo 1
     python3 $moduleDir/bin/motif_enrichment/sample_regions.py \
         ${masterlist} \
         ${sampled_regions_pool} \
