@@ -14,7 +14,7 @@ def sample_random(df: pd.DataFrame, count_to_sample: pd.Series, seed):
     return df.sample(n=n, random_state=seed).index.tolist()
 
 
-def main(masterlist_df, regions_pool_path):
+def main(masterlist_df, regions_pool_path, n_samples):
     count_to_sample = masterlist_df[matching_cols].value_counts()
 
     sampled_data = []
