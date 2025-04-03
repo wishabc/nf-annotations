@@ -45,9 +45,9 @@ if __name__ == "__main__":
     print('Filtering data...')
     random_state = 42
     n_samples = 100
-    masterlist_df = masterlist_df[annotation_indicator_mask].dropna(subset=['gc_bin', 'length_bin'])
+    masterlist_df = masterlist_df[annotation_indicator_mask].dropna(subset=['gc_bin', 'length_bin']).reset_index()
     sampled_data = main(masterlist_df, regions_pool_path, n_samples)
-    masterlist_df += 1 # FIXME from top level script
+    masterlist_df['start'] += 1 # FIXME from top level script
     masterlist_df['sampling'] = 'reference'
     sampled_data.append(masterlist_df)
     sampled_data = pd.concat(sampled_data, ignore_index=True)
