@@ -282,7 +282,7 @@ workflow randomRegionsEnrichment {
         motifs_meta = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
             | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
 
-        sampled = Channel.fromPath("${params.outdir}/motif_enrichment/sampled_regions_pool.sorted.bed")
+        sampled = Channel.fromPath("${params.outdir}/motif_enrichment/sampled_regions_pool.parquet.bed")
          
         annotated_masterlist = Channel.fromPath("${params.outdir}/motif_enrichment/index.annotated.bed")
 
