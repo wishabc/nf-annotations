@@ -175,7 +175,7 @@ process overlap_and_sample {
 
     output:
         tuple val(annotation_name), val('sampled'), path(name), emit: sampled
-        tuple val(annotation_name), val('dhs'), path(reference_dhs), emit: reference
+        tuple val(annotation_name), val('reference'), path(reference_dhs), emit: reference
 
     script:
     reference_dhs = "${motif_id}.${annotation_name}.reference_regions.bed"
@@ -247,7 +247,7 @@ workflow randomRegionsEnrichment {
             | overlap_and_sample
         
         result = sampled_regions.sampled
-            | mix(sampled_regions.dhs)
+            | mix(sampled_regions.reference)
             | combine(motifs_meta)
             | motif_hits_intersect
             | collectFile(
