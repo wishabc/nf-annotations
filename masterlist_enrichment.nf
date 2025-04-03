@@ -174,11 +174,9 @@ process overlap_and_sample {
         tuple val(annotation_name), path(annotation), path(annotation_coordinates), path(sampled_regions_pool), path(masterlist)
 
     output:
-        tuple val(annotation_name), val('sampled'), path(name), emit: sampled
-        tuple val(annotation_name), val('reference'), path(reference_dhs), emit: reference
+        tuple val(annotation_name), path(name)
 
     script:
-    reference_dhs = "${annotation_name}.reference_regions.bed"
     name = "${annotation_name}.sampled_regions.bed"
     """
     python3 $moduleDir/bin/motif_enrichment/sample_regions.py \
@@ -186,8 +184,7 @@ process overlap_and_sample {
         ${sampled_regions_pool} \
         ${annotation} \
         ${annotation_coordinates} \
-        ${name} \
-        ${reference_dhs}
+        ${name}
     """
 }
 
@@ -197,24 +194,24 @@ process motif_hits_intersect {
     // publishDir "${params.outdir}/motif_hits/${prefix}"
 
     input:
-        tuple val(prefix), val(sampling_type), path(bed_file), val(motif_id), path(moods_file)
+        tuple val(prefix), path(bed_file), val(motif_id), path(moods_file)
 
     output:
         tuple val(prefix), path(name)
 
     script:
-    name = "${prefix}.${motif_id}.${sampling_type}.stats.tsv"
+    name = "${prefix}.${motif_id}.stats.tsv"
     """
     zcat ${moods_file} \
         | bedmap --indicator --sweep-all \
         --fraction-map 1 <(grep -v '#' ${bed_file}) - > mask.txt
     
-    echo "motif_id\tprefix\tsampling_type\toverlaps\ttotal" > ${name}
-    awk -v OFS='\t' \
-        '{ ones += \$1; total++ } \
-        END { print "${motif_id}", "${prefix}", "${sampling_type}", ones, total }' \
-        mask.txt >> ${name}
-
+    python3 $moduleDir/bin/motif_enrichment/count_entries.py \
+        ${bed_file} \
+        mask.txt \
+        ${motif_id} \
+        ${prefix} \
+        ${name}
     """
 }
 
@@ -231,19 +228,17 @@ workflow randomRegionsEnrichment {
     main:
         motifs_meta = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
             | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
+            | filter { it[0] in ["M02739_2.00"] }
 
         sampled = Channel.fromPath("${params.template_run}/motif_enrichment/sampled_regions_pool.parquet")
          
         annotated_masterlist = Channel.fromPath("${params.template_run}/motif_enrichment/index.annotated.bed")
 
-        sampled_regions = annotations
+        result = annotations
             | map(it -> tuple(it[1], it[2], it[3]))
             | combine(sampled)
             | combine(annotated_masterlist)
             | overlap_and_sample
-        
-        result = sampled_regions.sampled
-            | mix(sampled_regions.reference)
             | combine(motifs_meta)
             | motif_hits_intersect
             | map(it -> it[1])

@@ -19,10 +19,11 @@ def main(masterlist_df, regions_pool_path, n_samples):
     for index, n in tqdm(count_to_sample.items(), total=len(count_to_sample)):
         data = pd.read_parquet(regions_pool_path, filters=[('gc_bin', '==', index[0]), ('length_bin', '==', index[1])])
         sampled = data.sample(n=n * n_samples, random_state=random_state, replace=True)
-        sampled['sample_id'] = np.repeat(np.arange(n_samples), n)
+        sampled['sampling'] = np.repeat(np.arange(n_samples), n)
+        sampled['sampling'] = "sampling_" + sampled['sampling'].astype('str')
         sampled_data.append(sampled)
             
-    return pd.concat(sampled_data, ignore_index=True)
+    return sampled_data
 
 
 if __name__ == "__main__":
@@ -46,16 +47,14 @@ if __name__ == "__main__":
     n_samples = 100
     masterlist_df = masterlist_df[annotation_indicator_mask].dropna(subset=['gc_bin', 'length_bin'])
     sampled_data = main(masterlist_df, regions_pool_path, n_samples)
+    masterlist_df += 1 # FIXME from top level script
+    masterlist_df['sampling'] = 'reference'
+    sampled_data.append(masterlist_df)
+    sampled_data = pd.concat(sampled_data, ignore_index=True)
     sampled_data['start'] -= 1 # FIXME from top level script
     print('Writing data...')
-    sampled_data.sort_values(['#chr', 'start']).to_csv(
+    sampled_data[['#chr', 'start', 'end', 'sampling']].sort_values(['#chr', 'start']).to_csv(
         sys.argv[5],
-        sep='\t',
-        index=False,
-        header=False,
-    )
-    masterlist_df.to_csv(
-        sys.argv[6],
         sep='\t',
         index=False,
         header=False,
