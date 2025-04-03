@@ -41,7 +41,7 @@ if __name__ == "__main__":
     annotation_indicator_mask = np.zeros(len(masterlist_df), dtype=bool)
     annotation_indicator_mask[annotation_mask] = annotation_indicator
                                                      
-
+    print('Filtering data...')
     n_samples = 100
     masterlist_df = masterlist_df[motif_indicator & annotation_indicator_mask]
     sampled_data = main(masterlist_df, regions_pool_path, n_samples)
