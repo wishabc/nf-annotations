@@ -198,7 +198,7 @@ process motif_hits_intersect {
     // publishDir "${params.outdir}/motif_hits/${prefix}"
 
     input:
-        tuple val(prefix), val(sampling_type), path(bed_file), val(motif_id), path(moods_file), 
+        tuple val(prefix), val(sampling_type), path(bed_file), val(motif_id), path(moods_file)
 
     output:
         tuple val(prefix), val(sampling_type), path(name)
