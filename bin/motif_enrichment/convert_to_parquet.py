@@ -11,7 +11,7 @@ df.to_parquet(
     sys.argv[2],
     index=False,
     engine='pyarrow',
-    compression='gzip',
+    compression='none',
     partition_cols=['gc_bin', 'length_bin'],
 )
 
