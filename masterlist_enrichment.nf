@@ -246,7 +246,7 @@ process overlap_and_sample {
     label "med_mem"
 
     input:
-        tuple val(motif_id), path(motif_indicator), val(annotation_name), path(annotation), path(sampled_regions_pool), path(masterlist)
+        tuple val(motif_id), path(motif_indicator), val(annotation_name), path(annotation), path(annotation_coordinates), path(sampled_regions_pool), path(masterlist)
 
     output:
         tuple val(motif_id), path(name)
@@ -259,6 +259,7 @@ process overlap_and_sample {
         ${masterlist} \
         ${motif_indicator} \
         ${annotation} \
+        ${annotation_coordinates} \
         ${name}
     """
 }
@@ -266,14 +267,14 @@ process overlap_and_sample {
 workflow randomFromMatricesList {
     matricesListFromMeta()
         | splitMatrices
-        | map(it -> tuple(it[1], it[2]))
+        | map(it -> tuple(it[1], it[2], it[3]))
         | randomRegionsEnrichment
 }
 
 
 workflow randomRegionsEnrichment {
     take:
-        annotations
+        annotations // prefix, annotation_mask, dhs_coordinates
     main:
         motif_hits = Channel.fromPath("${params.template_run}/motif_hits/index/*.hits.bed")
             | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it))
@@ -282,16 +283,15 @@ workflow randomRegionsEnrichment {
         motifs_meta = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
             | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
 
-        sampled = Channel.fromPath("${params.outdir}/motif_enrichment/sampled_regions_pool.parquet.bed")
+        sampled = Channel.fromPath("${params.template_run}/motif_enrichment/sampled_regions_pool.parquet.bed")
          
-        annotated_masterlist = Channel.fromPath("${params.outdir}/motif_enrichment/index.annotated.bed")
+        annotated_masterlist = Channel.fromPath("${params.template_run}/motif_enrichment/index.annotated.bed")
 
         sampled_regions = motif_hits
             | combine(annotations)
             | combine(sampled)
             | combine(annotated_masterlist)
             | overlap_and_sample
-            | transpose()
             | combine(motifs_meta, by: 0)
             | map(it -> tuple(it[0], it[2], it[1].baseName, it[1]))
             | motif_hits_intersect
