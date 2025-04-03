@@ -255,8 +255,8 @@ process overlap_and_sample {
     name = "${motif_id}.${annotation_name}.sampled_regions.bed"
     """
     python3 $moduleDir/bin/motif_enrichment/sample_regions.py \
-        ${sampled_regions_pool} \
         ${masterlist} \
+        ${sampled_regions_pool} \
         ${motif_indicator} \
         ${annotation} \
         ${annotation_coordinates} \
