@@ -229,7 +229,7 @@ workflow randomRegionsEnrichment {
     main:
         motifs_meta = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
             | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
-            | filter { it[0] in ["M02739_2.00"] }
+            //| filter { it[0] in ["M02739_2.00"] }
 
         sampled = Channel.fromPath("${params.template_run}/motif_enrichment/sampled_regions_pool.parquet")
          
