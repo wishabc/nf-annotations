@@ -4,9 +4,6 @@ from tqdm import tqdm
 import sys
 
 
-matching_cols = ['gc_bin', 'length_bin']
-
-
 def sample_random(df: pd.DataFrame, count_to_sample: pd.Series, seed):
     if df.name not in count_to_sample.index:
         return []
@@ -15,7 +12,7 @@ def sample_random(df: pd.DataFrame, count_to_sample: pd.Series, seed):
 
 
 def main(masterlist_df, regions_pool_path, n_samples):
-    count_to_sample = masterlist_df[matching_cols].value_counts()
+    count_to_sample = masterlist_df[['gc_bin', 'length_bin']].value_counts()
 
     sampled_data = []
 
