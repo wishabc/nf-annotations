@@ -3,42 +3,6 @@ include { matricesListFromMeta; splitMatrices } from './helpers'
 params.conda = "$moduleDir/environment.yml"
 
 
-workflow fromMatrix {
-    take:
-        matrices // prefix, matrix, names
-    main:
-        accessibility = Channel.fromPath("${params.template_run}/proportion_accessibility.tsv", checkIfExists: true)
-        Channel.fromPath("${params.template_run}/motif_hits/*.hits.bed")
-            | map(it -> tuple(it.name.replaceAll('.hits.bed', ''), it)) // motif_id, motif_hits
-            | combine(matrices) // motif_id, motif_hits, prefix, matrix, names
-            | combine(accessibility) // motif_id, motif_hits, prefix, matrix, names, accessibility
-            | motifEnrichment
-}
-
-workflow fromMatricesList {
-    Channel.fromPath(params.matrices_list)
-        | splitCsv(header:true, sep:'\t')
-        | map(row -> tuple(row.matrix_name, file(row.matrix), file(row.sample_names)))
-        | fromMatrix
-}
-
-
-workflow fromBinaryMatrix {
-    matrices = Channel.of(tuple("DHS_binary", file(params.index_anndata), file(params.peaks_mask))) // kinda hotfixes
-        | extract_from_anndata // prefix, matrix, sample_names, dhs_names
-    
-    prop_accessibility = matrices
-        | calc_prop_accessibility
-    
-    Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
-        | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
-        | combine(matrices.map(it -> it[3]))
-        | motif_hits_intersect // motif_id, indicator
-        | combine(matrices)
-        | combine(prop_accessibility)
-        | motifEnrichment
-}
-
 process split_masterlist_in_chunks {
     conda params.conda
 
@@ -137,7 +101,7 @@ process to_parquet {
     """
 }
 
-workflow getRegionsSamplingPool {
+workflow getRegionsPool {
     masterlist = Channel.fromPath(params.masterlist_file)
         | map(it -> tuple("index", it))
 
@@ -216,14 +180,14 @@ process motif_hits_intersect {
     """
 }
 
-workflow randomFromMatricesList {
+workflow fromMatricesList {
     matricesListFromMeta()
         | splitMatrices
-        | randomRegionsEnrichment
+        | annotationEnrichment
 }
 
 
-workflow randomRegionsEnrichment {
+workflow annotationEnrichment {
     take:
         annotations // prefix, annotation_mask, dhs_coordinates
     main:
