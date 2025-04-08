@@ -11,7 +11,7 @@ filenames = os.listdir(data_dir)
 
 # Extract unique parts after the prefix
 unique_labels = set()
-pattern = re.compile(r'^{}\.([0-9_]+)\..*'.format(re.escape(prefix)))
+pattern = re.compile(r'^{}\.(.*?)\..*'.format(re.escape(prefix)))
 
 for filename in filenames:
     match = pattern.match(filename)
