@@ -29,7 +29,6 @@ def main(masterlist_df, regions_pool_path, n_samples):
 if __name__ == "__main__":
     header = ['#chr', 'start', 'end', 'length', 'n_gc', 'gc', 'gc_bin', 'length_bin']
     masterlist_df = pd.read_table(sys.argv[1], names=header)
-    masterlist_df['start'] -= 1 
     masterlist_df = masterlist_df.set_index(['#chr', 'start', 'end'])
     regions_pool_path = sys.argv[2]
 
@@ -47,11 +46,9 @@ if __name__ == "__main__":
     n_samples = 100
     masterlist_df = masterlist_df[annotation_indicator_mask].dropna(subset=['gc_bin', 'length_bin']).reset_index()
     sampled_data = main(masterlist_df, regions_pool_path, n_samples)
-    masterlist_df['start'] += 1 # FIXME from top level script
     masterlist_df['sampling'] = 'reference'
     sampled_data.append(masterlist_df)
     sampled_data = pd.concat(sampled_data, ignore_index=True)
-    sampled_data['start'] -= 1 # FIXME from top level script
     print('Writing data...')
     sampled_data[['#chr', 'start', 'end', 'sampling']].sort_values(['#chr', 'start']).to_csv(
         sys.argv[5],
