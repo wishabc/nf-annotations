@@ -162,7 +162,7 @@ process motif_hits_intersect {
         tuple val(prefix), path(bed_file), val(motif_id), path(moods_file)
 
     output:
-        tuple val(prefix), path(name)
+        tuple val(prefix), val(motif_id), path(name)
 
     script:
     name = "${prefix}.${motif_id}.stats.tsv"
@@ -176,6 +176,27 @@ process motif_hits_intersect {
         mask.txt \
         ${motif_id} \
         ${prefix} \
+        ${name}
+    """
+}
+
+process calc_pvals {
+    conda params.conda
+    tag "${prefix}"
+    publishDir "${params.outdir}/motif_enrichment/"
+    label "high_mem"
+
+    input:
+        tuple val(prefix), path(sampling_results)
+
+    output:
+        tuple val(prefix), path(name)
+
+    script:
+    name = "${prefix}.pvals.bed"
+    """
+    python3 $moduleDir/bin/motif_enrichment/calc_pvals.py \
+        ${sampling_results} \
         ${name}
     """
 }
@@ -206,13 +227,16 @@ workflow annotationEnrichment {
             | overlap_and_sample
             | combine(motifs_meta)
             | motif_hits_intersect
-            | map(it -> it[1])
             | collectFile(
-                storeDir: "${params.outdir}/motif_enrichment/",
                 skip: 1,
-                name: "enrichment_stats.tsv",
                 keepHeader: true
-            )
+            ) {
+                [
+                    "${it[0]}.sampled.bed",
+                    it[2].text
+                ]
+            }
+            | calc_pvals
     emit:
         result
 }
