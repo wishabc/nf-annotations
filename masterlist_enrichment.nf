@@ -77,7 +77,7 @@ process annotate_regions {
                 cg=\$6+\$7; \
                 print \$1, \$2-1, \$3, \$3-\$2, cg, cg/total; }' > annotated.bed
     
-    python3 $moduleDir/bin/motif_enrichment/assign_bins.py annotated.bed ${name}
+    python3 $moduleDir/bin/motif_enrichment/assign_bins.py annotated.bed ${params.length_bins_bounds} ${name}
     """
 }
 
