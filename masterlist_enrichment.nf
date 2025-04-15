@@ -212,8 +212,13 @@ workflow annotationEnrichment {
     take:
         annotations // prefix, annotation_mask, dhs_coordinates
     main:
-        motifs_meta = Channel.fromPath("${params.moods_scans_dir}/*") // result of nf-genotyping scan_motifs pipeline
-            | map(it -> tuple(it.name.replaceAll('.moods.log.bed.gz', ''), it))
+        motifs_meta = Channel.fromPath(params.motifs_metadata)
+            | splitCsv(header: true, sep: "\t")
+            | map(row -> tuple(
+                row.motif_id, 
+                "${params.moods_scans_dir}/${row.motif_id}.moods.log.bed.gz" // result of nf-genotyping scan_motifs pipeline
+                )
+            )
             //| filter { it[0] in ["M02739_2.00"] }
 
         sampled = Channel.fromPath("${params.template_run}/motif_enrichment/sampled_regions_pool.parquet")
