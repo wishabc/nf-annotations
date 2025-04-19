@@ -1,5 +1,5 @@
 include { fromMatrix as ldscFromMatrix } from './ldsc' addParams(by_cell_type: true)
-include { fromMatrix as motifEnrichmentFromMatrix } from './masterlist_enrichment'
+//include { fromMatrix as motifEnrichmentFromMatrix } from './masterlist_enrichment'
 include { extract_from_anndata } from './helpers'
 
 
@@ -131,16 +131,16 @@ workflow {
         | map(it -> tuple(it[0], it[2], it[4]))
         | prepare_mixings_data // prefix, matrix, names, dhs
     
-    if (!file("${params.template_run}/proportion_accessibility.tsv").exists()) {
-        error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first or specify template_run folder. Once per binary matrix."
-    }
+    // if (!file("${params.template_run}/proportion_accessibility.tsv").exists()) {
+    //     error "No accessibility file found at ${params.template_run}/proportion_accessibility.tsv; please run masterlist_enrichment:fromBinaryMatrix first or specify template_run folder. Once per binary matrix."
+    // }
     
     mixing_data
         | ldscFromMatrix // ldsc. ALWAYS uses by_cell_type version (z-score) if run from here.
     
-    mixing_data
-        | map(it -> tuple(it[0], it[1], it[2]))
-        | motifEnrichmentFromMatrix
+    // mixing_data
+    //     | map(it -> tuple(it[0], it[1], it[2]))
+    //     | motifEnrichmentFromMatrix
 
     craft_configs()
 }
