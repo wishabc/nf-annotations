@@ -232,7 +232,7 @@ workflow annotationEnrichment {
             | overlap_and_sample
             | combine(motifs_meta)
             | motif_hits_intersect
-            | join(
+            | combine(
                 annotations.map(it -> tuple(it[1], it[0])),
                 by: 0
             )
