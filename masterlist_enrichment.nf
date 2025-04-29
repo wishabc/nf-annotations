@@ -241,6 +241,7 @@ workflow annotationEnrichment {
                     it[2].text
                 ]
             }
+            | map(it -> tuple(it.name.replaceAll('.sampled.bed', ''), it))
             | calc_pvals
     emit:
         result
