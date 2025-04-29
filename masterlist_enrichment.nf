@@ -243,7 +243,7 @@ workflow annotationEnrichment {
             }
             | map(it -> tuple(it.name.replaceAll('.sampled.bed', ''), it))
             | join(
-                annotations.map(it -> tuple(it[0], it[1])),
+                annotations.map(it -> tuple(it[1], it[0])),
                 by: 0
             )
             | map(it -> tuple(it[2], it[1]))
