@@ -232,21 +232,20 @@ workflow annotationEnrichment {
             | overlap_and_sample
             | combine(motifs_meta)
             | motif_hits_intersect
+            | join(
+                annotations.map(it -> tuple(it[1], it[0])),
+                by: 0
+            )
             | collectFile(
                 skip: 1,
                 keepHeader: true
             ) {
                 [
-                    "${it[0]}.sampled.bed",
+                    "${it[3]}.sampled.bed",
                     it[2].text
                 ]
             }
             | map(it -> tuple(it.name.replaceAll('.sampled.bed', ''), it))
-            | join(
-                annotations.map(it -> tuple(it[1], it[0])),
-                by: 0
-            )
-            | map(it -> tuple(it[2], it[1]))
             | calc_pvals
     emit:
         result
