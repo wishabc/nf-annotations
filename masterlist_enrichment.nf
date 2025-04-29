@@ -210,7 +210,7 @@ workflow fromMatricesList {
 
 workflow annotationEnrichment {
     take:
-        annotations // prefix, annotation_mask, dhs_coordinates
+        annotations // matrix_name, prefix, annotation_mask, dhs_coordinates
     main:
         motifs_meta = Channel.fromPath(params.motifs_metadata)
             | splitCsv(header: true, sep: "\t")
@@ -242,6 +242,11 @@ workflow annotationEnrichment {
                 ]
             }
             | map(it -> tuple(it.name.replaceAll('.sampled.bed', ''), it))
+            | combine(
+                annotations.map(it -> tuple(it[0], it[1])),
+                by: 0
+            )
+            | map(it -> tuple(it[2], it[1]))
             | calc_pvals
     emit:
         result
