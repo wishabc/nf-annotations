@@ -20,7 +20,7 @@ def sampling_to_signif(df):
         ascending=False
     )
     stats['z'] = stats.eval('(frac - sampled_frac) / sqrt(sampled_frac_var)')
-    stats['logodds'] = stats.eval('log(sampled_frac) - log(1 - sampled_frac) - log(frac) + log(1 - frac)') / np.log(2)
+    stats['logodds'] = stats.eval('log(frac) - log(1 - frac) - log(sampled_frac) + log(1 - sampled_frac)') / np.log(2)
     stats['pval'] = st.norm.sf(stats['z'])
     stats['fdr'] = multipletests(stats['pval'], method='fdr_bh')[1]
     return stats.reset_index().drop(columns=['sampling'])
