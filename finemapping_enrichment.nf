@@ -65,7 +65,7 @@ workflow customAnnotations {
         }
 }
 
-workflow {
+workflow fromMatricesList {
     data = matricesListFromMeta()
        | splitMatrices // matrix_name, prefix, annotation_bool, dhs_coordinates
 
