@@ -136,7 +136,7 @@ process extend_by_ld {
     publishDir "${params.outdir}/gwas_enrichment/${gwas_name}"
     conda params.conda
     tag "${gwas_name}"
-    scratch true
+    //scratch true
 
     input:
         tuple val(prefix), val(gwas_name), path(sampled_variants)
@@ -176,7 +176,9 @@ workflow sampleMatched {
             | get_n_per_bin
             | combine(seeds)
             | sample_from_ref_pop
-            | mix(ref_set.map(it -> tuple(it[0], it[0], it[1])))
+            | mix(
+                ref_set.map(it -> tuple(it[0], it[0], it[1]))
+            )
             | extend_by_ld
             | collectFile(
                 storeDir: "${params.outdir}/gwas_enrichment/",
