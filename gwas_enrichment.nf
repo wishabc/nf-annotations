@@ -171,13 +171,12 @@ workflow sampleMatched {
 
         ref_set = data 
             | annotate_ref_pop_with_gwas
-            | map(it -> tuple(it[0], it[0], it[1]))
         
         out = ref_set
             | get_n_per_bin
             | combine(seeds)
             | sample_from_ref_pop
-            | mix(ref_set)
+            | mix(ref_set.map(it -> tuple(it[0], it[0], it[1])))
             | extend_by_ld
             | collectFile(
                 storeDir: "${params.outdir}/gwas_enrichment/",
