@@ -169,13 +169,15 @@ workflow sampleMatched {
         seeds = Channel.from(1..params.n_samples) 
         //| map(seed -> seed * 1000)
 
-        data | annotate_ref_pop_with_gwas
+        ref_set = data 
+            | annotate_ref_pop_with_gwas
+            | map(it -> tuple(it[0], it[0], it[1]))
         
         out = data
             | get_n_per_bin
             | combine(seeds)
             | sample_from_ref_pop
-            | mix(data.map(it -> tuple(it[0], it[0], it[1])))
+            | mix(ref_set)
             | extend_by_ld
             | collectFile(
                 storeDir: "${params.outdir}/gwas_enrichment/",
