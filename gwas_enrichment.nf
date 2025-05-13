@@ -173,7 +173,7 @@ workflow sampleMatched {
             | annotate_ref_pop_with_gwas
             | map(it -> tuple(it[0], it[0], it[1]))
         
-        out = data
+        out = ref_set
             | get_n_per_bin
             | combine(seeds)
             | sample_from_ref_pop
