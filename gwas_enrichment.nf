@@ -187,7 +187,7 @@ workflow sampleMatched {
             ) {
                 it -> [
                     "${it[1]}.sampled_file.txt", 
-                    "prefix\tsampled\tld_extended\n${it[1]}\t${params.outdir}/gwas_enrichment/${it[1]}/${it[0]}.sampled.bed\t${params.outdir}/gwas_enrichment/${it[1]}/${it[0]}.ld_extended.bed\n"
+                    "prefix\tsampled\tld_extended\n${it[0]}\t${params.outdir}/gwas_enrichment/${it[1]}/${it[0]}.sampled.bed\t${params.outdir}/gwas_enrichment/${it[1]}/${it[0]}.ld_extended.bed\n"
                 ]
             }
 
