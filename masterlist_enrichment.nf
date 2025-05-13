@@ -193,7 +193,7 @@ process calc_pvals {
         tuple val(prefix), path(name)
 
     script:
-    name = "${prefix}.pvals.bed"
+    name = "${prefix}.pvals.tsv"
     """
     python3 $moduleDir/bin/motif_enrichment/calc_pvals.py \
         ${sampling_results} \

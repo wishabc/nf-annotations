@@ -147,47 +147,67 @@ process extend_by_ld {
     script:
     ld_extended = "${prefix}.ld_extended.bed"
     """
+    grep -v '#' ${sampled_variants} > variants.ho_header.bed
     bedops --element-of 1 \
         ${params.perfect_ld_variants} \
-        <(grep -v '#' ${sampled_variants})  \
+        variants.ho_header.bed \
         | awk -v OFS="\t" '{ print \$1, \$5-1, \$5, ".", ".", ".", \$6; }' \
         | uniq -f6 > tmp.bed
 
     head -1 ${sampled_variants} > ${ld_extended}
-    cat tmp.bed <(grep -v '#' ${sampled_variants}) \
+    cat tmp.bed variants.ho_header.bed \
         | sort-bed - \
         | uniq -f6 >> ${ld_extended}
     """
 }
 
 
-workflow sampleMatchedVariantsForTraits {
-
-    seeds = Channel.from(1..params.n_samples) 
+workflow sampleMatched {
+    take:
+        data
+    main:
+        seeds = Channel.from(1..params.n_samples) 
         //| map(seed -> seed * 1000)
 
+        data | annotate_ref_pop_with_gwas
+        
+        data
+            | get_n_per_bin
+            | combine(seeds)
+            | sample_from_ref_pop
+            | mix(data.map(it -> tuple(it[0], it[0], it[1])))
+            | extend_by_ld
+            | collectFile(
+                storeDir: "${params.outdir}/gwas_enrichment/",
+                skip: 1,
+                keepHeader: true,
+            ) {
+                it -> [
+                    "${it[1]}.sampled_file.txt", 
+                    "prefix\tsampled\tld_extended\n${it[1]}\t${params.outdir}/gwas_enrichment/${it[1]}/${it[0]}.sampled.bed\t${params.outdir}/gwas_enrichment/${it[1]}/${it[0]}.ld_extended.bed\n"
+                ]
+            }
+
+    emit:
+
+}
+
+
+workflow sampleMatchedVariantsForTraits {
     data = Channel.fromPath(params.gwas_files)
         | splitCsv(header:true, sep:'\t')
         | map(row -> tuple(row.gwas_name, file(row.gwas_file)))
-        | annotate_ref_pop_with_gwas
-    
-    data
-        | get_n_per_bin
-        | combine(seeds)
-        | sample_from_ref_pop
-        | mix(data.map(it -> tuple(it[0], it[0], it[1])))
-        | extend_by_ld
-        | collectFile(
-            storeDir: "${params.outdir}/gwas_enrichment/",
-            skip: 1,
-            keepHeader: true,
-        ) {
-            it -> [
-                "${it[1]}.sampled_file.txt", 
-                "prefix\tsampled\tld_extended\n${it[1]}\t${params.outdir}/gwas_enrichment/${it[1]}/${it[0]}.sampled.bed\t${params.outdir}/gwas_enrichment/${it[1]}/${it[0]}.ld_extended.bed\n"
-            ]
-        }
+        | sampleMatched
 }
+
+workflow sampleMatchedSignifVariantsForTraits {
+    data = Channel.fromPath(params.gwas_files)
+        | splitCsv(header:true, sep:'\t')
+        | map(row -> tuple(row.gwas_name, file(row.gwas_file)))
+        | filter_significant_hits
+        | sampleMatched
+}
+
 
 
 // process overlap_with_sampled {
