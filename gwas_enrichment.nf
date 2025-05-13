@@ -171,7 +171,7 @@ workflow sampleMatched {
 
         data | annotate_ref_pop_with_gwas
         
-        data
+        out = data
             | get_n_per_bin
             | combine(seeds)
             | sample_from_ref_pop
@@ -189,7 +189,7 @@ workflow sampleMatched {
             }
 
     emit:
-
+        out
 }
 
 
