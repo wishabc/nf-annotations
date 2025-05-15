@@ -77,7 +77,7 @@ process annotate_ref_pop_with_gwas {
         tuple val(gwas_name), path(name)
     
     script:
-    name = "${gwas_name}.pop_annotated.bed"
+    name = "${gwas_name}.sampled.bed"
     oper = gwas_file.extension == "gz" ? "zcat" : "cat"
     """
     head -1 ${params.ref_pop_file} > ${name}
@@ -147,15 +147,15 @@ process extend_by_ld {
     script:
     ld_extended = "${prefix}.ld_extended.bed"
     """
-    grep -v '#' ${sampled_variants} > variants.ho_header.bed
+    grep -v '#' ${sampled_variants} > variants.no_header.bed
     bedops --element-of 1 \
         ${params.perfect_ld_variants} \
-        variants.ho_header.bed \
+        variants.no_header.bed \
         | awk -v OFS="\t" '{ print \$1, \$5-1, \$5, ".", ".", ".", \$6; }' \
         | uniq -f6 > tmp.bed
 
     head -1 ${sampled_variants} > ${ld_extended}
-    cat tmp.bed variants.ho_header.bed \
+    cat variants.no_header.bed tmp.bed \
         | sort-bed - \
         | uniq -f6 >> ${ld_extended}
     """
