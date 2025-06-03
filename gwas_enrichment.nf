@@ -80,9 +80,10 @@ process annotate_ref_pop_with_gwas {
     name = "${gwas_name}.sampled.bed"
     oper = gwas_file.extension == "gz" ? "zcat" : "cat"
     """
-    head -1 ${params.ref_pop_file} > ${name}
     tail -n+2 ${params.ref_pop_file} \
-        | bedops --element-of 1 - <(${oper} ${gwas_file} | grep -v '#') >> ${name}
+        | bedops --element-of 1 - <(${oper} ${gwas_file} | grep -v '#') \
+        | python3 $moduleDir/bin/gwas_enrichment/filter_na.py \
+            ${params.ref_pop_file} > ${name}
     """
 }
 
@@ -185,9 +186,10 @@ workflow sampleMatched {
                 skip: 1,
                 keepHeader: true,
             ) {
+                def parentDir = "${params.outdir}/gwas_enrichment/${it[1]}"
                 it -> [
                     "${it[1]}.sampled_file.txt", 
-                    "prefix\tsampled\tld_extended\n${it[0]}\t${params.outdir}/gwas_enrichment/${it[1]}/${it[0]}.sampled.bed\t${params.outdir}/gwas_enrichment/${it[1]}/${it[0]}.ld_extended.bed\n"
+                    "prefix\tsampled\tld_extended\tsampled_n\tld_extended_n\n${it[0]}\t/${parentDir}/${it[2].name}\t${parentDir}/${it[3].name}\t${it[2].countLines() - 1}\t${it[3].countLines() - 1}\n"
                 ]
             }
 
