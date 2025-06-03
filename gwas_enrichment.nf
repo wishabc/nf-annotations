@@ -186,8 +186,9 @@ workflow sampleMatched {
                 skip: 1,
                 keepHeader: true,
             ) {
+                it -> 
                 def parentDir = "${params.outdir}/gwas_enrichment/${it[1]}"
-                it -> [
+                [
                     "${it[1]}.sampled_file.txt", 
                     "prefix\tsampled\tld_extended\tsampled_n\tld_extended_n\n${it[0]}\t/${parentDir}/${it[2].name}\t${parentDir}/${it[3].name}\t${it[2].countLines() - 1}\t${it[3].countLines() - 1}\n"
                 ]
