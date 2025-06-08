@@ -210,8 +210,7 @@ workflow sampleMatched {
             )
             | extend_by_ld
         
-        out 
-            | map(it -> tuple(it[1], it[3]))
+        out.map(it -> tuple(it[1], it[3]))
             | groupTuple()
             | merge_annotations
             | collectFile(
