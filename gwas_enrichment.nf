@@ -169,7 +169,8 @@ process merge_annotations {
     publishDir "${params.outdir}/gwas_enrichment/${gwas_name}"
     conda params.conda
     tag "${gwas_name}"
-    //scratch true
+    scratch true
+    cpus 2
 
     input:
         tuple val(gwas_name), path(variants)
@@ -178,12 +179,14 @@ process merge_annotations {
         tuple val(gwas_name), path(name)
     
     script:
-    name = "${gwas_name}.ld_extended.bed"
+    name = "${gwas_name}.ld_extended.bed.gz"
     """
-    head -1 ${variants[0]} > ${name}
+    head -1 ${variants[0]} > tmp.bed
     cat ${variants} \
         | grep -v '#' \
-        | sort-bed - >> ${name}
+        | sort-bed - >> tmp.bed
+    
+    bgzip -@${task.cpus} -c tmp.bed > ${name}
     """
 }
 
