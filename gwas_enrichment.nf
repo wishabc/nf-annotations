@@ -210,7 +210,7 @@ workflow sampleMatched {
             | mix(ref_set)
             | extend_by_ld
             | map(it -> tuple(it[1], it[3]))
-            | groupTuple()
+            | groupTuple(size: params.n_samples + 1)
             | merge_annotations
             | collectFile(
                 storeDir: "${params.outdir}/gwas_enrichment/",
