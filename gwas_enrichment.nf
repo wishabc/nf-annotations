@@ -209,8 +209,7 @@ workflow sampleMatched {
                 ref_set.map(it -> tuple(it[0], "ref", it[1]))
             )
             | extend_by_ld
-        
-        out | map(it -> tuple(it[1], it[3]))
+            | map(it -> tuple(it[1], it[3]))
             | groupTuple()
             | merge_annotations
             | collectFile(
@@ -224,7 +223,7 @@ workflow sampleMatched {
                 ]
             }
         
-        out | collectFile(
+        extend_by_ld.out | collectFile(
                 storeDir: "${params.outdir}/gwas_enrichment/",
                 skip: 1,
                 keepHeader: true,
