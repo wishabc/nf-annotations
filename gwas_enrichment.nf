@@ -200,14 +200,14 @@ workflow sampleMatched {
 
         ref_set = data 
             | annotate_ref_pop_with_gwas
+            | map(it -> tuple(it[0], "ref", it[1]))
         
         out = ref_set
+            | map(it -> tuple(it[0], it[2]))
             | get_n_per_bin
             | combine(seeds)
             | sample_from_ref_pop
-            | mix(
-                ref_set.map(it -> tuple(it[0], "ref", it[1]))
-            )
+            | mix(ref_set)
             | extend_by_ld
             | map(it -> tuple(it[1], it[3]))
             | groupTuple()
