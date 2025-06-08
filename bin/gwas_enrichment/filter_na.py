@@ -9,5 +9,6 @@ if __name__ == '__main__':
             'tss_bin', 'ld_bin', 'maf_bin'
         ]
     )
+    df['sampling_type'] = 'ref'
 
     df.to_csv(sys.stdout, sep='\t', index=False, header=True)

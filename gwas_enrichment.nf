@@ -118,11 +118,12 @@ process sample_from_ref_pop {
         tuple val(gwas_name), path(per_bin_counts), val(seed)
     
     output:
-        tuple val(prefix), val(gwas_name), path(name)
+        tuple val(gwas_name), val(file_id), path(name)
 
     script:
     prefix = "${gwas_name}.${seed}"
     name = "${prefix}.sampled.bed"
+    file_id = "sampling.${seed}"
     """
     python3 $moduleDir/bin/gwas_enrichment/sample.py \
         ${params.ref_pop_file} \
@@ -140,25 +141,49 @@ process extend_by_ld {
     //scratch true
 
     input:
-        tuple val(prefix), val(gwas_name), path(sampled_variants)
+        tuple val(gwas_name), val(file_id), path(sampled_variants)
     
     output:
         tuple val(prefix), val(gwas_name), path(sampled_variants), path(ld_extended)
     
     script:
+    prefix = "${gwas_name}.${file_id}"
     ld_extended = "${prefix}.ld_extended.bed"
     """
     grep -v '#' ${sampled_variants} > variants.no_header.bed
     bedops --element-of 1 \
         ${params.perfect_ld_variants} \
         variants.no_header.bed \
-        | awk -v OFS="\t" '{ print \$1, \$5-1, \$5, ".", ".", ".", \$6; }' \
+        | awk -v OFS="\t" '{ print \$1, \$5-1, \$5, ".", ".", ".", \$6, "${file_id}" }' \
         | uniq -f6 > tmp.bed
 
     head -1 ${sampled_variants} > ${ld_extended}
     cat variants.no_header.bed tmp.bed \
         | sort-bed - \
         | uniq -f6 >> ${ld_extended}
+    """
+}
+
+process merge_annotations {
+ 
+    publishDir "${params.outdir}/gwas_enrichment/${gwas_name}"
+    conda params.conda
+    tag "${gwas_name}"
+    //scratch true
+
+    input:
+        tuple val(gwas_name), path(variants)
+    
+    output:
+        tuple val(gwas_name), path(name)
+    
+    script:
+    name = "${gwas_name}.ld_extended.bed"
+    """
+    head -1 ${variants[0]} > ${name}
+    cat ${variants} \
+        | grep -v '#' \
+        | sort-bed - >> ${name}
     """
 }
 
@@ -178,10 +203,26 @@ workflow sampleMatched {
             | combine(seeds)
             | sample_from_ref_pop
             | mix(
-                ref_set.map(it -> tuple(it[0], it[0], it[1]))
+                ref_set.map(it -> tuple(it[0], "ref", it[1]))
             )
             | extend_by_ld
+        
+        out 
+            | map(it -> tuple(it[1], it[3]))
+            | groupTuple()
+            | merge_annotations
             | collectFile(
+                storeDir: "${params.outdir}/gwas_enrichment/",
+                skip: 1,
+                keepHeader: true,
+            ) {
+                it -> [
+                    "sampled_gwas_meta.tsv", 
+                    "gwas_trait\tsampled_variants\n${it[0]}\t/${params.outdir}/gwas_enrichment/${it[0]}/${it[1].name}\n",
+                ]
+            }
+        
+        out | collectFile(
                 storeDir: "${params.outdir}/gwas_enrichment/",
                 skip: 1,
                 keepHeader: true,

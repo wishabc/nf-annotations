@@ -35,6 +35,7 @@ if __name__ == "__main__":
 
     sampled_df = main(ref_pop, count_to_sample=sampling_counts, seed=sampling_seed)
     sampled_df = sampled_df.reset_index()[[*sampled_df.columns, 'rs_id']]
+    sampled_df['sampling_type'] = f'sampling.{sampling_seed}'
     sampled_df.to_csv(
         sys.argv[4],
         sep='\t',
