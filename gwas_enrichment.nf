@@ -138,7 +138,7 @@ process extend_by_ld {
     publishDir "${params.outdir}/gwas_enrichment/${gwas_name}"
     conda params.conda
     tag "${gwas_name}"
-    //scratch true
+    scratch true
 
     input:
         tuple val(gwas_name), val(file_id), path(sampled_variants)
@@ -210,7 +210,7 @@ workflow sampleMatched {
             )
             | extend_by_ld
         
-        out.map(it -> tuple(it[1], it[3]))
+        out | map(it -> tuple(it[1], it[3]))
             | groupTuple()
             | merge_annotations
             | collectFile(
