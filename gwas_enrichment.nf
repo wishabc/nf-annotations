@@ -219,7 +219,7 @@ workflow sampleMatched {
             ) {
                 it -> [
                     "sampled_gwas_meta.tsv", 
-                    "gwas_trait\tsampled_variants\n${it[0]}\t/${params.outdir}/gwas_enrichment/${it[0]}/${it[1].name}\n",
+                    "gwas_trait\tsampled_variants\n${it[0]}\t${params.outdir}/gwas_enrichment/${it[0]}/${it[1].name}\n",
                 ]
             }
         
