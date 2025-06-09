@@ -80,6 +80,7 @@ process annotate_ref_pop_with_gwas {
     name = "${gwas_name}.sampled.bed"
     oper = gwas_file.extension == "gz" ? "zcat" : "cat"
     """
+    echo 1
     tail -n+2 ${params.ref_pop_file} \
         | bedops --element-of 1 - <(${oper} ${gwas_file} | grep -v '#') \
         | python3 $moduleDir/bin/gwas_enrichment/filter_na.py \
