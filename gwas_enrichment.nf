@@ -80,7 +80,6 @@ process annotate_ref_pop_with_gwas {
     name = "${gwas_name}.sampled.bed"
     oper = gwas_file.extension == "gz" ? "zcat" : "cat"
     """
-    echo 1
     tail -n+2 ${params.ref_pop_file} \
         | bedops --element-of 1 - <(${oper} ${gwas_file} | grep -v '#') \
         | python3 $moduleDir/bin/gwas_enrichment/filter_na.py \
@@ -155,13 +154,12 @@ process extend_by_ld {
     bedops --element-of 1 \
         ${params.perfect_ld_variants} \
         variants.no_header.bed \
-        | awk -v OFS="\t" '{ print \$1, \$5-1, \$5, ".", ".", ".", \$6, "${file_id}" }' \
-        | uniq -f6 > tmp.bed
+        | awk -v OFS="\t" \
+            '{ print \$1, \$5-1, \$5, ".", ".", ".", \$6, "${file_id}" }' > tmp.bed
 
     head -1 ${sampled_variants} > ${ld_extended}
     cat variants.no_header.bed tmp.bed \
-        | sort-bed - \
-        | uniq -f6 >> ${ld_extended}
+        | sort-bed - >> ${ld_extended}
     """
 }
 
