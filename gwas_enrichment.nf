@@ -80,6 +80,7 @@ process annotate_ref_pop_with_gwas {
     name = "${gwas_name}.sampled.bed"
     oper = gwas_file.extension == "gz" ? "zcat" : "cat"
     """
+    echo 1
     tail -n+2 ${params.ref_pop_file} \
         | bedops --element-of 1 - <(${oper} ${gwas_file} | grep -v '#') \
         | python3 $moduleDir/bin/gwas_enrichment/filter_na.py \
@@ -154,12 +155,13 @@ process extend_by_ld {
     bedops --element-of 1 \
         ${params.perfect_ld_variants} \
         variants.no_header.bed \
-        | awk -v OFS="\t" \
-            '{ print \$1, \$5-1, \$5, ".", ".", ".", \$6, "${file_id}" }' > tmp.bed
+        | awk -v OFS="\t" '{ print \$1, \$5-1, \$5, ".", ".", ".", \$6, "${file_id}" }' \
+        | uniq -f6 > tmp.bed
 
     head -1 ${sampled_variants} > ${ld_extended}
     cat variants.no_header.bed tmp.bed \
-        | sort-bed - >> ${ld_extended}
+        | sort-bed - \
+        | uniq -f6 >> ${ld_extended}
     """
 }
 
@@ -178,7 +180,7 @@ process merge_annotations {
         tuple val(gwas_name), path(name)
     
     script:
-    name = "${gwas_name}.ld_extended.bed.gz"
+    name = "${gwas_name}.sampled.bed.gz"
     """
     head -1 ${variants[0]} > tmp.bed
     cat ${variants} \
@@ -208,7 +210,7 @@ workflow sampleMatched {
             | sample_from_ref_pop
             | mix(ref_set)
             | extend_by_ld
-            | map(it -> tuple(it[1], it[3]))
+            | map(it -> tuple(it[1], it[2]))
             | groupTuple(size: params.n_samples + 1)
             | merge_annotations
             | collectFile(
@@ -222,18 +224,18 @@ workflow sampleMatched {
                 ]
             }
         
-        extend_by_ld.out | collectFile(
-                storeDir: "${params.outdir}/gwas_enrichment/",
-                skip: 1,
-                keepHeader: true,
-            ) {
-                it -> 
-                def parentDir = "${params.outdir}/gwas_enrichment/${it[1]}"
-                [
-                    "${it[1]}.sampled_file.txt", 
-                    "prefix\tsampled\tld_extended\tsampled_n\tld_extended_n\n${it[0]}\t/${parentDir}/${it[2].name}\t${parentDir}/${it[3].name}\t${it[2].countLines() - 1}\t${it[3].countLines() - 1}\n"
-                ]
-            }
+        // extend_by_ld.out | collectFile(
+        //         storeDir: "${params.outdir}/gwas_enrichment/",
+        //         skip: 1,
+        //         keepHeader: true,
+        //     ) {
+        //         it -> 
+        //         def parentDir = "${params.outdir}/gwas_enrichment/${it[1]}"
+        //         [
+        //             "${it[1]}.sampled_file.txt", 
+        //             "prefix\tsampled\tld_extended\tsampled_n\tld_extended_n\n${it[0]}\t/${parentDir}/${it[2].name}\t${parentDir}/${it[3].name}\t${it[2].countLines() - 1}\t${it[3].countLines() - 1}\n"
+        //         ]
+        //     }
 
     emit:
         out
