@@ -248,9 +248,10 @@ workflow fromMatrix {
 
 // Entry workflows
 workflow {
-    println "Looking for bed files in ${params.annotations_dir}/"
-    custom_annotations = Channel.fromPath("${params.annotations_dir}/*.bed") 
-        | map(it -> tuple('custom_annotations', it.baseName, it)) // matrix_name, group_id, custom_annotation
+    println "Looking for custom annotations in ${params.custom_annotations_meta}"
+    custom_annotations = Channel.fromPath(params.custom_annotations_meta)
+        | splitCsv(header:true, sep:'\t')
+        | map(row -> tuple(row.prefix, file(row.annotation_name), file(row.annotation)))
         | fromAnnotations
 }
 
@@ -259,14 +260,6 @@ workflow fromMatricesList {
     matricesListFromMeta()
         | fromMatrix
 }
-
-workflow fromBinaryMatrix {
-    // Doesn't work just yet
-    Channel.fromPath(params.binary_matrix)
-        | map(it -> tuple("DHS_Binary", it, file(params.sample_names), file(params.masterlist_file)))
-        | fromMatrix
-}
-
 
 
 // Start from CAV calling pval file
@@ -300,3 +293,12 @@ workflow fromAggregatedCavs {
         | fromAnnotations
    
 }
+
+
+
+// workflow fromBinaryMatrix {
+//     // Doesn't work just yet
+//     Channel.fromPath(params.binary_matrix)
+//         | map(it -> tuple("DHS_Binary", it, file(params.sample_names), file(params.masterlist_file)))
+//         | fromMatrix
+// }
