@@ -151,6 +151,7 @@ process make_ldsc_annotation {
     
     script:
     name = "${group_id}.${chrom}.annot.gz"
+    oper = custom_annotation.name.endsWith('.bed') ? 'cat' : 'zcat'
     """
     echo ANNOT | gzip > ${name}
 
@@ -158,7 +159,9 @@ process make_ldsc_annotation {
         | awk -v OFS='\t' '{ print "chr"\$1,\$4-1,\$4,NR }' \
         | sort-bed - > sorted_bim.bed
 
-    cut -f1-3 ${custom_annotation} \
+    ${oper} ${custom_annotation} \
+        | grep -v '#' \
+        | cut -f1-3 \
         | sort-bed - \
         | bedmap --indicator --sweep-all sorted_bim.bed - \
         | paste sorted_bim.bed - \
