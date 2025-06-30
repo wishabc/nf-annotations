@@ -254,7 +254,7 @@ workflow {
     println "Looking for custom annotations in ${params.custom_annotations_meta}"
     custom_annotations = Channel.fromPath(params.custom_annotations_meta)
         | splitCsv(header:true, sep:'\t')
-        | map(row -> tuple(row.prefix, file(row.annotation_name), file(row.annotation)))
+        | map(row -> tuple(row.prefix, row.annotation_name, file(row.annotation)))
         | fromAnnotations
 }
 
