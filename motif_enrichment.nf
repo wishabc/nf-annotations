@@ -156,10 +156,33 @@ process overlap_and_sample {
 process motif_hits_intersect {
     tag "${motif_id}"
     conda params.conda
-    // publishDir "${params.outdir}/motif_hits/${prefix}"
+    publishDir { prefix == "keep" ? "${params.outdir}/motif_hits" : null }
 
     input:
         tuple val(prefix), path(bed_file), val(motif_id), path(moods_file)
+
+    output:
+        tuple val(prefix), val(motif_id), path(bed_file), path(name)
+
+    script:
+    name = "${motif_id}.motif_hits_mask.txt"
+    """
+    zcat ${moods_file} \
+        | bedmap --indicator --sweep-all \
+        --fraction-map 1 <(grep -v '#' ${bed_file}) - > ${name}
+    
+    """
+}
+
+process count_entries {
+
+    conda params.conda
+    tag "${prefix}"
+    publishDir "${params.outdir}/motif_enrichment/"
+    label "high_mem"
+
+    input:
+        tuple val(prefix), val(motif_id), path(bed_file), path(motif_hits_mask)
 
     output:
         tuple val(prefix), val(motif_id), path(name)
@@ -167,18 +190,15 @@ process motif_hits_intersect {
     script:
     name = "${prefix}.${motif_id}.stats.tsv"
     """
-    zcat ${moods_file} \
-        | bedmap --indicator --sweep-all \
-        --fraction-map 1 <(grep -v '#' ${bed_file}) - > mask.txt
-    
     python3 $moduleDir/bin/motif_enrichment/count_entries.py \
         ${bed_file} \
-        mask.txt \
+        ${motif_hits_mask} \
         ${motif_id} \
         ${prefix} \
         ${name}
     """
 }
+
 
 process calc_pvals {
     conda params.conda
@@ -216,7 +236,7 @@ workflow annotationEnrichment {
             | splitCsv(header: true, sep: "\t")
             | map(row -> tuple(
                 row.motif_id, 
-                "${params.moods_scans_dir}/${row.motif_id}.moods.log.bed.gz" // result of nf-genotyping scan_motifs pipeline
+                row.moods_scans_ref // result of nf-genotyping scan_motifs pipeline
                 )
             )
             //| filter { it[0] in ["M02739_2.00"] }
@@ -232,6 +252,7 @@ workflow annotationEnrichment {
             | overlap_and_sample
             | combine(motifs_meta)
             | motif_hits_intersect
+            | count_entries
             | combine(
                 annotations.map(it -> tuple(it[1], it[0])),
                 by: 0
@@ -249,4 +270,18 @@ workflow annotationEnrichment {
             | calc_pvals
     emit:
         result
+}
+
+
+workflow motifIndexOverlap {
+    motifs_meta = Channel.fromPath(params.motifs_metadata)
+        | splitCsv(header: true, sep: "\t")
+        | map(row -> tuple(
+            row.motif_id, 
+            row.moods_scans_ref // result of nf-genotyping scan_motifs pipeline
+            )
+        )
+        | map(
+            it -> tuple("keep", file(params.index_bed), it[0], it[1])
+        )
 }
