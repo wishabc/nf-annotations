@@ -284,4 +284,5 @@ workflow motifIndexOverlap {
         | map(
             it -> tuple("keep", file(params.index_bed), it[0], it[1])
         )
+        | motif_hits_intersect
 }
