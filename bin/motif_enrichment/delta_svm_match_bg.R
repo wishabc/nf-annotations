@@ -32,7 +32,7 @@ genNullSeqs(
   outputPosFastaFN = paste0('tmp.posSet.dhs.fa'),
   outputNegFastaFN = paste0('tmp.negSet.dhs.fa'),
     xfold = 1,
-    repeat_match_tol = 1,
+    repeat_match_tol = 0.05,
     GC_match_tol = 0.05,
     length_match_tol = 0.05,
     batchsize = 100000, # large: no problem with memory
