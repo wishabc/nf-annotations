@@ -30,7 +30,7 @@ process overlap_and_sample {
 process motif_hits_intersect {
     tag "${motif_id}"
     conda params.conda
-    publishDir "${params.outdir}/motif_hits_test", enabled: "${prefix == 'keep'}", pattern: "${name}"
+    publishDir "${params.outdir}/motif_hits", enabled: "${prefix == 'keep'}", pattern: "${name}"
 
     input:
         tuple val(prefix), path(bed_file), val(motif_id), path(moods_file)
