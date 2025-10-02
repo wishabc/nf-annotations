@@ -26,11 +26,11 @@ if (length(args) < 2) {
 
 # BSgenome.Hsapiens.UCSC.hg38.masked
 genNullSeqs(
-  inputBedFN = args[1],
-  genome = BSgenome.Hsapiens.UCSC.hg38.masked,
-  outputBedFN = args[2],
-  outputPosFastaFN = paste0('tmp.posSet.dhs.fa'),
-  outputNegFastaFN = paste0('tmp.negSet.dhs.fa'),
+    inputBedFN = args[1],
+    genome = BSgenome.Hsapiens.UCSC.hg38.masked,
+    outputBedFN = args[2],
+    outputPosFastaFN = paste0('tmp.posSet.dhs.fa'),
+    outputNegFastaFN = paste0('tmp.negSet.dhs.fa'),
     xfold = 1,
     repeat_match_tol = 0.05,
     GC_match_tol = 0.05,

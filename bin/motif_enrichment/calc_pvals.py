@@ -5,7 +5,7 @@ from statsmodels.stats.multitest import multipletests
 import sys
 
 
-def sampling_to_signif(df):
+def sampling_to_signif(df: pd.DataFrame) -> pd.DataFrame:
     df['frac'] = df.eval('motif_hits / total')
     ref = df.query('sampling == "reference"')
     sampled = df.query('sampling != "reference"')

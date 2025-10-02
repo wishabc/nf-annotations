@@ -13,6 +13,7 @@ length_bins = [*np.arange(*arange_params), np.inf]
 df['gc_bin'] = pd.cut(df['gc'], bins=gc_bins, labels=False, include_lowest=True)
 df['length_bin'] = pd.cut(df['length'], bins=length_bins, labels=False)
 
+
 df.to_csv(
     sys.argv[3],
     sep='\t',

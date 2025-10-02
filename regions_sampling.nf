@@ -24,6 +24,8 @@ process split_masterlist_in_chunks {
             ${prefix}
     """
 }
+
+
 process sample_matching_bg {
 
     conda '/home/afathul/miniconda3/envs/r-kernel'
@@ -46,6 +48,23 @@ process sample_matching_bg {
     """
 }
 
+process extract_repeats_mask {
+
+    conda '/home/sabramov/miniconda3/envs/super-index'
+
+    output:
+        path name
+
+    script:
+    name = "${prefix}.repeats_mask.bed"
+    """
+    Rscript $moduleDir/bin/motif_enrichment/extract_repeats_mask.R \
+        ${bed_file} \
+        ${params.repeats_bed} \
+        ${name}
+    """
+}
+
 process annotate_regions {
 
     conda '/home/sabramov/miniconda3/envs/super-index'
@@ -55,7 +74,7 @@ process annotate_regions {
     scratch true
 
     input:
-        tuple val(prefix), path(bed_file)
+        tuple val(prefix), path(bed_file), path(repeats_mask)
 
     output:
         tuple val(prefix), path(name)
@@ -76,7 +95,10 @@ process annotate_regions {
                 cg=\$6+\$7; \
                 print \$1, \$2-1, \$3, \$3-\$2, cg, cg/total; }' > annotated.bed
     
-    python3 $moduleDir/bin/motif_enrichment/assign_bins.py annotated.bed ${params.length_bins_bounds} ${name}
+    python3 $moduleDir/bin/motif_enrichment/assign_bins.py \
+        annotated.bed \
+        ${params.length_bins_bounds} \
+        ${name}
     """
 }
 
@@ -100,7 +122,7 @@ process to_parquet {
     """
 }
 
-workflow getRegionsPool {
+workflow {
     masterlist = Channel.fromPath(params.masterlist_file)
         | map(it -> tuple("index", it))
 
