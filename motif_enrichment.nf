@@ -51,7 +51,6 @@ process motif_hits_intersect {
 process count_entries {
     conda params.conda
     tag "${prefix}"
-    publishDir "${params.outdir}/motif_enrichment/"
     label "high_mem"
 
     input:

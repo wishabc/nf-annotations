@@ -151,7 +151,7 @@ process make_ldsc_annotation {
     
     script:
     name = "${group_id}.${chrom}.annot.gz"
-    oper = custom_annotation.name.endsWith('.bed') ? 'cat' : 'zcat'
+    oper = custom_annotation.extension == 'gz' ? 'zcat' : 'cat'
     """
     echo ANNOT | gzip > ${name}
 
