@@ -18,7 +18,7 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser(description="Predict DHS model")
-    parser.add_argument("--samples_file", type=str, default="/net/seq/data2/projects/ENCODE4Plus/REGULOME/sequence_to_accessibility_model/TCL_dataset.test.100.h5")
+    parser.add_argument("--dhs_dataset", type=str, default="/net/seq/data2/projects/ENCODE4Plus/REGULOME/sequence_to_accessibility_model/TCL_dataset.test.100.h5")
     parser.add_argument("--embeddings_file", type=str, default="/home/jvierstra/proj/vinson/data/embeddings_old_clustername.tsv")
     parser.add_argument("--fasta_file", type=str, default="/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa")
     parser.add_argument("--sample_genotype_file", type=str, default="/net/seq/data2/projects/sabramov/ENCODE4/dnase-wasp.v5/output/meta+sample_ids.tsv")
@@ -38,7 +38,7 @@ def main():
     )
 
     dataset = SequenceEmbedDataset(
-        args.samples_file,
+        args.dhs_dataset,
         args.embeddings_file,
         args.fasta_file,
         negative_samples_rate=0,
