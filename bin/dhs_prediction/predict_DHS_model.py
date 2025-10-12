@@ -57,11 +57,17 @@ def main():
     embed_model = CellEmbedding(n_inputs=637, n_layers=0, n_outputs=256)
     trunk_model = BassetTrunkEmbed(embed_model.n_outputs)
 
-    model_predict = EmbedModel.load_from_checkpoint(
+    model_predict = EmbedModel(
+        trunk_model,
+        embed_model,
+        regression=True,
+    ).to(device)
+    pretrained_state_dict = torch.load(
         args.checkpoint,
-        trunk=trunk_model,
-        embed=embed_model
-    )
+        map_location=torch.device("cpu"),
+    )["state_dict"]
+
+    model_predict.load_state_dict(pretrained_state_dict)
     model_predict = model_predict.eval()
 
     @torch.inference_mode()
