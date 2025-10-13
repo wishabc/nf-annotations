@@ -19,7 +19,7 @@ process predict {
     name = "${prefix}.npy"
     """
     python3 $moduleDir/bin/dhs_prediction/predict_DHS_model.py \
-        --dhs_dataset ${dhs_dataset} \
+        ${dhs_dataset} \
         --embeddings_file ${embeddings_file} \
         --checkpoint ${checkpoint} \
         --fasta_file ${params.fasta_file} \
