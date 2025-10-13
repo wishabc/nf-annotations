@@ -18,7 +18,7 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser(description="Predict DHS model")
-    parser.add_argument("--dhs_dataset", type=str, default="/net/seq/data2/projects/ENCODE4Plus/REGULOME/sequence_to_accessibility_model/TCL_dataset.test.100.h5")
+    parser.add_argument("dhs_dataset", type=str, help="Path to DHS dataset (.h5 file)")
     parser.add_argument("--embeddings_file", type=str, default="/home/jvierstra/proj/vinson/data/embeddings_old_clustername.tsv")
     parser.add_argument("--fasta_file", type=str, default="/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa")
     parser.add_argument("--sample_genotype_file", type=str, default="/net/seq/data2/projects/sabramov/ENCODE4/dnase-wasp.v5/output/meta+sample_ids.tsv")
@@ -26,7 +26,7 @@ def main():
     parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--num_workers", type=int, default=8)
     parser.add_argument("--checkpoint", type=str, default="/home/jvierstra/proj/vinson/models/data_AUG3_with_warmup_and_decay_v2/checkpoints/epoch=3-step=1851994-val_loss=16.16.ckpt")
-    parser.add_argument("--output", type=str, default="/net/seq/data2/projects/ENCODE4Plus/REGULOME/sequence_to_accessibility_model/HRT_pred_test.100.new_model.npy")
+    parser.add_argument("--output", type=str, required=True, help="Path to save model predictions (.npy file)")
     args = parser.parse_args()
 
     dataset_kwargs = dict(
