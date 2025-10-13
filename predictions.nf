@@ -19,7 +19,6 @@ process predict {
     name = "${prefix}.npy"
     """
     python3 $moduleDir/bin/dhs_prediction/predict_DHS_model.py \
-        ${prefix} \
         --dhs_dataset ${dhs_dataset} \
         --embeddings_file ${embeddings_file} \
         --checkpoint ${checkpoint} \
