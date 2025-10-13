@@ -18,7 +18,7 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser(description="Predict DHS model")
-    parser.add_argument("--samples_file", type=str, default="/net/seq/data2/projects/ENCODE4Plus/REGULOME/sequence_to_accessibility_model/TCL_dataset.test.100.h5")
+    parser.add_argument("--dhs_dataset", type=str, default="/net/seq/data2/projects/ENCODE4Plus/REGULOME/sequence_to_accessibility_model/TCL_dataset.test.100.h5")
     parser.add_argument("--embeddings_file", type=str, default="/home/jvierstra/proj/vinson/data/embeddings_old_clustername.tsv")
     parser.add_argument("--fasta_file", type=str, default="/net/seq/data/genomes/human/GRCh38/noalts/GRCh38_no_alts.fa")
     parser.add_argument("--sample_genotype_file", type=str, default="/net/seq/data2/projects/sabramov/ENCODE4/dnase-wasp.v5/output/meta+sample_ids.tsv")
@@ -38,7 +38,7 @@ def main():
     )
 
     dataset = SequenceEmbedDataset(
-        args.samples_file,
+        args.dhs_dataset,
         args.embeddings_file,
         args.fasta_file,
         negative_samples_rate=0,
@@ -57,11 +57,17 @@ def main():
     embed_model = CellEmbedding(n_inputs=637, n_layers=0, n_outputs=256)
     trunk_model = BassetTrunkEmbed(embed_model.n_outputs)
 
-    model_predict = EmbedModel.load_from_checkpoint(
+    model_predict = EmbedModel(
+        trunk_model,
+        embed_model,
+        regression=True,
+    ).to(device)
+    pretrained_state_dict = torch.load(
         args.checkpoint,
-        trunk=trunk_model,
-        embed=embed_model
-    )
+        map_location=torch.device("cpu"),
+    )["state_dict"]
+
+    model_predict.load_state_dict(pretrained_state_dict)
     model_predict = model_predict.eval()
 
     @torch.inference_mode()
