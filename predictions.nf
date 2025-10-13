@@ -40,7 +40,7 @@ process annotate_with_predictions {
         path name
 
     script:
-    name = "${params.samples_file}.annotated_with_predictions.tsv"
+    name = "${file(params.samples_file).baseName}.annotated_with_predictions.tsv"
     """
     python3 $moduleDir/bin/dhs_prediction/annotate_meta.py \
         ${params.samples_file} \
