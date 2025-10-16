@@ -10,7 +10,7 @@ process predict {
     label "gpu"
 
     input:
-        tuple val(prefix), path(embeddings_file), path(dhs_dataset), path(checkpoint)
+        tuple val(prefix), path(embeddings_file), path(dhs_dataset), path(checkpoint), val(model_type)
     
     output:
         tuple val(prefix), path(name)
@@ -26,6 +26,7 @@ process predict {
         --sample_genotype_file ${params.sample_genotype_file} \
         --genotype_file ${params.genotype_file} \
         --num_workers ${task.cpus} \
+        --model_type ${model_type} \
         --output ${name} 
     """
 }
@@ -51,7 +52,7 @@ process annotate_with_predictions {
 workflow {
     Channel.fromPath(params.samples_file)
         | splitCsv(header:true, sep:'\t')
-        | map(row -> tuple(row.prefix, file(row.embeddings_file), file(row.dhs_dataset), file(row.checkpoint)))
+        | map(row -> tuple(row.prefix, file(row.embeddings_file), file(row.dhs_dataset), file(row.checkpoint), row.model_type))
         | predict
     
     annotate_with_predictions()
