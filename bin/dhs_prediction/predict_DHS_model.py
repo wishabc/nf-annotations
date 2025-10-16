@@ -16,6 +16,34 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from tqdm import tqdm
 import argparse
 
+
+def load_vinson_model(checkpoint_path, device):
+    embed_model = CellEmbedding(n_inputs=637, n_layers=0, n_outputs=256)
+    trunk_model = BassetTrunkEmbed(embed_model.n_outputs)
+
+    model_predict = EmbedModel(
+        trunk_model,
+        embed_model,
+        regression=True,
+    ).to(device)
+    pretrained_state_dict = torch.load(
+        checkpoint_path,
+        map_location=device,
+    )["state_dict"]
+
+    model_predict.load_state_dict(pretrained_state_dict)
+    model_predict = model_predict.eval()
+    return model_predict
+
+
+def load_legnet_model(checkpoint_path, device):
+    sys.path.append('/home/sabramov/packages/dnase_legnet')
+    from dnase_legnet.legnet_embed_cnn import LegNetEmbedinCNN
+
+    model = LegNetEmbedinCNN.load_from_checkpoint(checkpoint_path, map_location=device).eval()
+    return model
+
+
 def main():
     parser = argparse.ArgumentParser(description="Predict DHS model")
     parser.add_argument("dhs_dataset", type=str, help="Path to DHS dataset (.h5 file)")
@@ -26,6 +54,7 @@ def main():
     parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--num_workers", type=int, default=8)
     parser.add_argument("--checkpoint", type=str, default="/home/jvierstra/proj/vinson/models/data_AUG3_with_warmup_and_decay_v2/checkpoints/epoch=3-step=1851994-val_loss=16.16.ckpt")
+    parser.add_argument("--model_type", type=str, default="vinson", choices=["vinson", "legnet"], help="Type of model to use for prediction")
     parser.add_argument("--output", type=str, required=True, help="Path to save model predictions (.npy file)")
     args = parser.parse_args()
 
@@ -54,21 +83,12 @@ def main():
         drop_last=False,
     )
 
-    embed_model = CellEmbedding(n_inputs=637, n_layers=0, n_outputs=256)
-    trunk_model = BassetTrunkEmbed(embed_model.n_outputs)
-
-    model_predict = EmbedModel(
-        trunk_model,
-        embed_model,
-        regression=True,
-    ).to(device)
-    pretrained_state_dict = torch.load(
-        args.checkpoint,
-        map_location=torch.device("cpu"),
-    )["state_dict"]
-
-    model_predict.load_state_dict(pretrained_state_dict)
-    model_predict = model_predict.eval()
+    if args.model_type == "vinson":
+        model_predict = load_vinson_model(args.checkpoint, device)
+    elif args.model_type == "legnet":
+        model_predict = load_legnet_model(args.checkpoint, device)
+    else:
+        raise ValueError(f"Unknown model type: {args.model_type}")
 
     @torch.inference_mode()
     def load_and_predict(batch, model):    
