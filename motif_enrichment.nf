@@ -160,3 +160,19 @@ workflow motifIndexOverlap {
         )
         | motif_hits_intersect
 }
+
+
+workflow motifIndexOverlapFromDir {
+    params.moods_scans_dir = ""
+    motifs_meta = Channel.fromPath(params.motifs_metadata)
+        | splitCsv(header: true, sep: "\t")
+        | map(row -> tuple(
+            row.motif_id, 
+            "${params.moods_scans_dir}/${row.motif_id}.moods.log.bed.gz " // result of nf-genotyping scan_motifs pipeline
+            )
+        )
+        | map(
+            it -> tuple("keep", file(params.index_bed), it[0], it[1])
+        )
+        | motif_hits_intersect
+}

@@ -87,7 +87,7 @@ process convert_sumstats_to_hg38 {
     # chr, start, end, ref, alt, Beta, Beta_se, P, neglog10_p
     zcat ${manifest_hg38} \
         | paste - <(zcat ${sumstats}) \
-        | python3 $moduleDir/bin/reformat_sumstats.py \
+        | python3 $moduleDir/bin/ldsc/reformat_sumstats.py \
             hg38.unsorted.bed \
             ${population} \
             ${n_samples} \
